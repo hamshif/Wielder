@@ -1,0 +1,29 @@
+
+*.iml
+/.project
+*dump.rdb
+/.idea
+*.war
+
+
+*.rdb
+
+
+
+#  Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfvars files
+*.tfvars
+
+*.tar.gz
+*.rsa.pub
+*.gz.asc
+*.zip
+
+*.pyc
+/__pycache__
