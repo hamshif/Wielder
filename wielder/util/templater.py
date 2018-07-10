@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import jprops
+from jprops import _CommentSentinel
 
 from wielder.util.arguer import get_kube_parser, process_args
 
@@ -105,6 +107,111 @@ def templates_to_instances(file_paths, tmpl_vars):
                                     break
                         else:
                             file_out.write(line)
+
+
+def prop_templates_to_instances(var_file_path, template_files, print_variables=False):
+    """
+    This function renders a list of files ending with .tmpl into files without .tmpl ending,
+    replacing template_variables from conf. if such files exist before hand they are deleted
+    :param var_file_path:
+    :param template_files:
+    :param print_variables:
+    :return:
+    """
+    with open(var_file_path) as fp:
+
+        variable_map = jprops.load_properties(fp)
+
+        if print_variables:
+
+            tuple_list_vars = jprops.iter_properties(fp, comments=False)
+
+            print(f'\n\nproperties:\n')
+
+            for prop in list(tuple_list_vars):
+
+                print(prop)
+
+    for template_file in template_files:
+
+        prop_file = template_file.replace('.tmpl', '')
+
+        try:
+            os.remove(prop_file)
+        except OSError:
+            pass
+
+        with open(template_file, "rt") as file_in:
+
+            props = list(jprops.iter_properties(file_in, comments=True))
+
+            with open(prop_file, "wt") as file_out:
+
+                for prop in props:
+
+                    print(f'prop: {prop}   of type:  {type(prop[0])}')
+
+                    if not isinstance(prop[0], _CommentSentinel):
+
+                        new_prop = prop[1]
+
+                        if '#' in prop[1]:
+
+                            # print(prop)
+                            vrs = get_vars_from_string(prop[1], '#')
+                            # print(a)
+
+                            new_val = prop[1]
+
+                            for k in vrs:
+                                # print(f'key: {k}    value:{variable_map[k]}')
+                                new_val = new_val.replace(k, variable_map[k])
+
+                            new_val = new_val.replace('#', '')
+                            new_prop = new_val
+
+                        new_prop = new_prop.replace('"', '')
+
+                        file_out.write(f"{prop[0]}={new_prop}\n")
+                    else:
+                        file_out.write(f"\n\n#  {prop[1]}\n")
+
+
+def add_props(base_path, addition_path):
+
+    with open(addition_path, "rt") as file_in:
+
+        props = list(jprops.iter_properties(file_in, comments=True))
+
+    with open(base_path, "a") as file_out:
+
+        for prop in props:
+
+            if not isinstance(prop[0], _CommentSentinel):
+
+                file_out.write(f"{prop[0]}={prop[1]}\n")
+
+            else:
+                file_out.write(f"\n\n#  {prop[1]}\n")
+
+
+def get_vars_from_string(s, c):
+
+    indexes = [pos for pos, char in enumerate(s) if char == c]
+
+    indexes_length = len(indexes) - len(indexes) % 2
+
+    b = []
+
+    if indexes_length == 0:
+        return b
+
+    i = 1
+    while i < indexes_length:
+        b.append(s[indexes[i-1] + 1: indexes[i]])
+        i += 2
+
+    return b
 
 
 if __name__ == "__main__":
