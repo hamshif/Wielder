@@ -102,7 +102,7 @@ def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init
             os.system(f"eval $(minikube docker-env)")
 
         # a deployment might have n pods!
-        result = os.system(f"kubectl create -f {file_path}")
+        result = os.system(f"kubectl apply -f {file_path}")
 
         print(f"result: {result}")
 
