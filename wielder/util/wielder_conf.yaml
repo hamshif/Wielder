@@ -1,0 +1,63 @@
+deploy_env: local
+enable_debug: True
+enable_dev: False
+deploy_strategy: lean
+supported_deploy_envs:
+  - local
+  - dev
+  - int
+
+kube_context: minikube
+
+# ----------- GCP ---------------
+
+cloud_provider: gcp
+gcp_image_repo_zone: eu.gcr.io
+gcp_project: ''
+
+
+# ---------- Templates --------------
+
+template_ignore_dirs:
+  - .git
+  - .terraform
+  - rxkube
+  - image
+  - terra
+  - db_scripts
+  - bash-scripts
+  - __pycache__
+  - debug-mount
+  - artifacts
+  - handy-scripts
+  - darwin_amd64
+  - plugins
+  - bucket
+
+template_variables:
+
+  - !!python/tuple ['#kube_context#', minikube]
+  - !!python/tuple ['#deploy_env#', local]
+  - !!python/tuple ['#DEV_MODE#', True]
+
+  - !!python/tuple ['#mysql_image#', 'rtp-mysql:dev']
+
+  - !!python/tuple ['#redis_master_cep#', rtpmaster]
+  - !!python/tuple ['#redis_master_dx#', rtpmaster]
+  - !!python/tuple ['#redis_master_lookup#', rtpmaster]
+
+  - !!python/tuple ['#redis_image#', 'rtp-redis:dev']
+  - !!python/tuple ['#redis_volume_name#', 'redis-pv-storage']
+
+  - !!python/tuple ['#mongo_image#', 'mongo:3.2']
+
+
+
+# ---------- Scripts --------------
+
+script_variables:
+
+
+  rtp_mongo_admin: main_admin
+  rtp_mongo_password: 123
+  rtp_mongo_number_of_replicas: 3

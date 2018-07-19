@@ -103,7 +103,7 @@ def templates_to_instances(file_paths, tmpl_vars):
                                 if r[0] in line:
 
                                     print(f"line: {line}     replacing {r[0]} with {r[1]}")
-                                    file_out.write(line.replace(r[0], r[1]))
+                                    file_out.write(line.replace(r[0], f'{r[1]}'))
                                     break
                         else:
                             file_out.write(line)

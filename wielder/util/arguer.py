@@ -1,11 +1,26 @@
 #!/usr/bin/env python
-from wielder.default_conf import Conf
+import os
 
 __author__ = 'Gideon Bar'
 
 import argparse
-from importlib.util import spec_from_file_location, module_from_spec
+
+import yaml
+
+from collections import namedtuple
+
 from wielder.util.commander import async_cmd
+
+
+class Conf:
+
+    def attr_list(self, should_print=False):
+
+        items = self.__dict__.items()
+        if should_print:
+            [print(f"attribute: {k}    value: {v}") for k, v in items]
+
+        return items
 
 
 def destroy_sanity(conf):
@@ -125,6 +140,8 @@ def sanity(conf):
                   f"!!! Exiting ...")
             exit(1)
 
+    print(f"conf.supported_deploy_envs: {conf.supported_deploy_envs}")
+
     if conf.deploy_env not in conf.supported_deploy_envs:
 
         print(f"We do not support deploy_env: {conf.deploy_env}!!!\n"
@@ -137,69 +154,54 @@ def sanity(conf):
     # TODO check if configured images exist in repository using docker images | grep or gcloud ...
 
 
-def set_value(cmd_args, file_args, attribute_name, default_value):
-
-    """
-    :param cmd_args: command-line argument first precedence
-    :param file_args: conf file setting 2cnd precedence
-    :param attribute_name:
-    :param default_value: used if no other value is set
-    :return: final value for conf
-    """
-
-    if hasattr(cmd_args, attribute_name):
-
-        attribute = getattr(cmd_args, attribute_name, default_value)
-
-        if attribute is None:
-
-            attribute = getattr(file_args, attribute_name, default_value)
-
-            if attribute is None:
-                return default_value
-
-        return attribute
-    else:
-        return getattr(cmd_args, attribute_name, default_value)
-
-
 def process_args(cmd_args):
 
     if cmd_args.conf_file is None:
 
-        from wielder.default_conf import get_conf
-        conf = get_conf()
+        dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    else:
+        cmd_args.conf_file = dir_path + '/wielder_conf.yaml'
 
-        spec = spec_from_file_location("my_conf", cmd_args.conf_file)
-        my_conf = module_from_spec(spec)
-        spec.loader.exec_module(my_conf)
-        conf = Conf()
-        conf = my_conf.fill_alternate_conf(conf)
 
-    # TODO make a tuple list and feed it as a function
+    with open(cmd_args.conf_file, 'r') as yaml_file:
+        conf_args = yaml.load(yaml_file)
 
-    conf.plan = set_value(cmd_args, conf, 'plan', False)
+    if not hasattr(conf_args, 'plan'):
+        conf_args['plan'] = False
 
-    conf.kube_context = set_value(cmd_args, conf, 'kube_context', 'minikube')
 
-    conf.deploy_env = set_value(cmd_args, conf, 'deploy_env', 'local')
+    print('Configuration File Arguments:')
 
-    conf.cloud_provider = set_value(cmd_args, conf, 'cloud_provider', 'gcp')
+    config_items = cmd_args.__dict__.items()
 
-    conf.gcp_project = set_value(cmd_args, conf, 'gcp_project', 'marketo-webpersonalization-dev')
+    for k, v in config_items:
 
-    conf.deploy_strategy = set_value(cmd_args, conf, 'deploy_strategy', 'lean')
+        if v is not None:
+            conf_args[k] = v
 
-    conf.enable_debug = set_value(cmd_args, conf, 'enable_debug', False)
+    named_tuple = namedtuple("Conf1", conf_args.keys())(*conf_args.values())
 
-    conf.enable_dev = set_value(cmd_args, conf, 'enable_dev', False)
+    conf = Conf()
 
+    conf.plan = named_tuple.plan
+    conf.conf_file = named_tuple.conf_file
+    conf.deploy_env = named_tuple.deploy_env
+    conf.enable_debug = named_tuple.enable_debug
+    conf.enable_dev = named_tuple.enable_dev
+    conf.deploy_strategy = named_tuple.deploy_strategy
+    conf.supported_deploy_envs = named_tuple.supported_deploy_envs
+    conf.kube_context = named_tuple.kube_context
+    conf.cloud_provider = named_tuple.cloud_provider
+    conf.gcp_image_repo_zone = named_tuple.gcp_image_repo_zone
+    conf.gcp_project = named_tuple.gcp_project
+    conf.template_ignore_dirs = named_tuple.template_ignore_dirs
+    conf.template_variables = named_tuple.template_variables
+    conf.script_variables = named_tuple.script_variables
 
     sanity(conf)
 
     return conf
+
 
 
 if __name__ == "__main__":
@@ -208,7 +210,6 @@ if __name__ == "__main__":
     kube_args = kube_parser.parse_args()
 
     conf = process_args(kube_args)
-    conf.attr_list(True)
 
     destroy_sanity(conf)
 
