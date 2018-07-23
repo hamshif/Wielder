@@ -18,6 +18,8 @@ class Conf:
 
         items = self.__dict__.items()
         if should_print:
+
+            print("Conf items:\n______\n")
             [print(f"attribute: {k}    value: {v}") for k, v in items]
 
         return items
@@ -162,13 +164,11 @@ def process_args(cmd_args):
 
         cmd_args.conf_file = dir_path + '/wielder_conf.yaml'
 
-
     with open(cmd_args.conf_file, 'r') as yaml_file:
         conf_args = yaml.load(yaml_file)
 
     if not hasattr(conf_args, 'plan'):
         conf_args['plan'] = False
-
 
     print('Configuration File Arguments:')
 
@@ -179,29 +179,32 @@ def process_args(cmd_args):
         if v is not None:
             conf_args[k] = v
 
-    named_tuple = namedtuple("Conf1", conf_args.keys())(*conf_args.values())
+    raw_config = namedtuple("Conf1", conf_args.keys())(*conf_args.values())
 
     conf = Conf()
 
-    conf.plan = named_tuple.plan
-    conf.conf_file = named_tuple.conf_file
-    conf.deploy_env = named_tuple.deploy_env
-    conf.enable_debug = named_tuple.enable_debug
-    conf.enable_dev = named_tuple.enable_dev
-    conf.deploy_strategy = named_tuple.deploy_strategy
-    conf.supported_deploy_envs = named_tuple.supported_deploy_envs
-    conf.kube_context = named_tuple.kube_context
-    conf.cloud_provider = named_tuple.cloud_provider
-    conf.gcp_image_repo_zone = named_tuple.gcp_image_repo_zone
-    conf.gcp_project = named_tuple.gcp_project
-    conf.template_ignore_dirs = named_tuple.template_ignore_dirs
-    conf.template_variables = named_tuple.template_variables
-    conf.script_variables = named_tuple.script_variables
+    conf.plan = raw_config.plan
+    conf.conf_file = raw_config.conf_file
+    conf.deploy_env = raw_config.deploy_env
+    conf.enable_debug = raw_config.enable_debug
+    conf.enable_dev = raw_config.enable_dev
+    conf.deploy_strategy = raw_config.deploy_strategy
+    conf.supported_deploy_envs = raw_config.supported_deploy_envs
+    conf.kube_context = raw_config.kube_context
+    conf.cloud_provider = raw_config.cloud_provider
+    conf.gcp_image_repo_zone = raw_config.gcp_image_repo_zone
+    conf.gcp_project = raw_config.gcp_project
+    conf.template_ignore_dirs = raw_config.template_ignore_dirs
+    conf.template_variables = raw_config.template_variables
+    conf.script_variables = raw_config.script_variables
+
+    conf.raw_config = raw_config
 
     sanity(conf)
 
-    return conf
+    conf.attr_list(True)
 
+    return conf
 
 
 if __name__ == "__main__":
