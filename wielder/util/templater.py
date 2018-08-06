@@ -214,6 +214,17 @@ def get_vars_from_string(s, c):
     return b
 
 
+def get_raw_arg(conf, key, default_value=None):
+
+    try:
+        default_value = conf.raw_config_args[key]
+    except:
+        pass
+
+    return default_value
+
+
+
 if __name__ == "__main__":
 
     kube_parser = get_kube_parser()
