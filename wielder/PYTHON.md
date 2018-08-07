@@ -7,7 +7,7 @@ create virtualenv
  ```
  brew install python3
  pip3 install virtualenv virtualenvwrapper
- mkvirtualenv -p $(which python3) kube3
+ mkvirtualenv -p $(which python3) wielder
  ```
 dependencies
 -
@@ -18,13 +18,13 @@ dependencies
  ```
 
  ```
- workon kube3
+ workon wielder
  pip install kubernetes flask rx
  ```
 or Use requirements.txt in rxkube dir to fill the environment:
  
  ```
- workon kube3
+ workon wielder
  pip install -r requirements.txt --no-index --find-links file:///tmp/packages
  ```
 
@@ -32,7 +32,7 @@ or Use requirements.txt in rxkube dir to fill the environment:
 use virtualenv in any shell
 -
  ```
- workon kube3
+ workon wielder
  which python 
  python --version
  deactivate
