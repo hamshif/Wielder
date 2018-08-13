@@ -1,2 +1,2 @@
 
-__all__ = ['packager.py', 'arguer', 'templater', 'commander']
+__all__ = ['packager.py', 'arguer', 'templater', 'commander', 'imager']
