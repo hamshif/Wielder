@@ -177,7 +177,7 @@ def prop_templates_to_instances(var_file_path, template_files, print_variables=F
                         file_out.write(f"\n\n#  {prop[1]}\n")
 
 
-def add_props(base_path, addition_path):
+def add_props_file(base_path, addition_path):
 
     with open(addition_path, "rt") as file_in:
 
@@ -193,6 +193,21 @@ def add_props(base_path, addition_path):
 
             else:
                 file_out.write(f"\n\n#  {prop[1]}\n")
+
+
+def add_props(base_path, props, comment):
+
+    with open(base_path, "a") as file_out:
+
+        if comment is not None:
+
+            file_out.write(f"# {comment}\n")
+
+        for k, v in props.items():
+
+            if v is not None:
+
+                file_out.write(f"{k}={v}\n")
 
 
 def get_vars_from_string(s, c):
