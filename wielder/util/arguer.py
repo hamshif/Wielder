@@ -11,6 +11,8 @@ from collections import namedtuple
 
 from wielder.util.commander import async_cmd
 
+LOCAL_CONTEXTS = ['docker-for-desktop', 'minikube']
+
 
 class Conf:
 
@@ -133,12 +135,13 @@ def sanity(conf):
         print(f"kubernetes current context: {context}")
 
     if conf.deploy_env == 'local':
-        if conf.kube_context != 'minikube':
+
+        if conf.kube_context not in LOCAL_CONTEXTS:
 
             print(f"There is a discrepancy between deploy_env: {conf.deploy_env} "
                   f"and kube_context: {conf.kube_context}.\n"
-                  f"If you meant to use minikube run:\n"
-                  f"kubectl config use-context minikube\n"
+                  f"If you meant to one of these:\n{LOCAL_CONTEXTS} run:\n"
+                  f"kubectl config use-context <some local-context>\n"
                   f"!!! Exiting ...")
             exit(1)
 
