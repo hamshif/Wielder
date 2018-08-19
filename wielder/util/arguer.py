@@ -11,7 +11,10 @@ from collections import namedtuple
 
 from wielder.util.commander import async_cmd
 
-LOCAL_CONTEXTS = ['docker-for-desktop', 'minikube']
+CONTEXT_MINI = 'minikube'
+CONTEXT_DOCKER = 'docker-for-desktop'
+
+LOCAL_CONTEXTS = [CONTEXT_DOCKER, CONTEXT_MINI]
 
 
 class Conf:
