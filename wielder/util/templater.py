@@ -239,7 +239,6 @@ def get_raw_arg(conf, key, default_value=None):
     return default_value
 
 
-
 if __name__ == "__main__":
 
     kube_parser = get_kube_parser()
