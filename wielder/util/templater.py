@@ -84,6 +84,8 @@ def templates_to_instances(file_paths, tmpl_vars):
     """
     for file_path in file_paths:
 
+        print(f"file path: {file_path}")
+
         yaml_file = file_path.replace('.tmpl', '')
 
         try:
@@ -95,18 +97,20 @@ def templates_to_instances(file_paths, tmpl_vars):
 
             with open(yaml_file, "wt") as file_out:
 
-                    for line in file_in:
+                for line in file_in:
 
-                        if '#' in line:
+                    if '#' in line:
 
-                            for r in tmpl_vars:
-                                if r[0] in line:
+                        for r in tmpl_vars:
+                            if r[0] in line:
 
-                                    print(f"line: {line}     replacing {r[0]} with {r[1]}")
-                                    file_out.write(line.replace(r[0], f'{r[1]}'))
+                                print(f"line: {line}     replacing {r[0]} with {r[1]}")
+                                line = line.replace(r[0], f'{r[1]}')
+
+                                if '#' not in line:
                                     break
-                        else:
-                            file_out.write(line)
+
+                    file_out.write(line)
 
 
 def prop_templates_to_instances(var_file_path, template_files, print_variables=False):
@@ -244,9 +248,13 @@ if __name__ == "__main__":
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
 
+    kube_args.conf_file = '/Users/gbar/stam/rtp/RtpKube/deploy/rxkube/conf/wielder_conf.yaml'
+
+
     conf = process_args(kube_args)
+
     conf.attr_list(True)
-    templates = gather_templates('/Users/gbar/stam/rtp/RtpKube/deploy/redis/test', conf)
+    templates = gather_templates('/Users/gbar/stam/rtp/RtpKube/test', conf)
 
     print(f"templates:\n{templates}")
     templates_to_instances(templates, conf.template_variables)
