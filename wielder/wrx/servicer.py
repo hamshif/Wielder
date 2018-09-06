@@ -30,13 +30,13 @@ def get_svc_ip(svc):
     return outer_ip
 
 
-def get_service(name):
+def get_service(name, namespace="default"):
 
     config.load_kube_config(os.path.join(os.environ["HOME"], '.kube/config'))
 
     v1 = client.CoreV1Api()
 
-    svc_list = v1.list_namespaced_service("default")
+    svc_list = v1.list_namespaced_service(namespace)
 
     for svc in svc_list.items:
 
@@ -48,6 +48,11 @@ def init_observe_service(svc_tuple):
 
     svc_name = svc_tuple[0]
     svc_file_path = svc_tuple[1]
+
+    if len(svc_tuple) > 2:
+        svc_namespace = svc_tuple[2]
+    else:
+        svc_namespace = "default"
 
     interval = 5
 
@@ -61,7 +66,7 @@ def init_observe_service(svc_tuple):
 
     while ip is None:
 
-        svc = get_service(svc_name)
+        svc = get_service(svc_name, namespace=svc_namespace)
 
         if time_waiting > 400:
             print(f"waited {time_waiting} that'sn enough exiting")
