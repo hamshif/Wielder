@@ -4,7 +4,7 @@ import os
 import jprops
 from jprops import _CommentSentinel
 
-from wielder.util.arguer import get_kube_parser, process_args
+from wielder.util.arguer import get_kube_parser, process_args, Conf
 
 
 # TODO Consider switching from tuples to dict
@@ -245,16 +245,16 @@ def get_raw_arg(conf, key, default_value=None):
 
 if __name__ == "__main__":
 
-    kube_parser = get_kube_parser()
-    kube_args = kube_parser.parse_args()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f"current working dir: {dir_path}")
 
-    kube_args.conf_file = '/Users/gbar/stam/rtp/RtpKube/deploy/rxkube/conf/wielder_conf.yaml'
+    conf = Conf()
+    conf.template_variables = [
+        ("#yo#", "Goofy"),
+        ("#bro#", "Joker")
+    ]
 
-
-    conf = process_args(kube_args)
-
-    conf.attr_list(True)
-    templates = gather_templates('/Users/gbar/stam/rtp/RtpKube/test', conf)
+    templates = gather_templates(dir_path, conf)
 
     print(f"templates:\n{templates}")
     templates_to_instances(templates, conf.template_variables)

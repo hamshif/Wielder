@@ -19,6 +19,10 @@ LOCAL_CONTEXTS = [CONTEXT_DOCKER, CONTEXT_MINI]
 
 class Conf:
 
+    def __init__(self):
+
+        self.template_ignore_dirs = []
+
     def attr_list(self, should_print=False):
 
         items = self.__dict__.items()
@@ -162,7 +166,7 @@ def sanity(conf):
     # TODO check if configured images exist in repository using docker images | grep or gcloud ...
 
 
-def process_args(cmd_args):
+def process_args(cmd_args, perform_sanity=True):
 
     if cmd_args.conf_file is None:
 
@@ -206,7 +210,8 @@ def process_args(cmd_args):
 
     conf.raw_config_args = conf_args
 
-    sanity(conf)
+    if perform_sanity:
+        sanity(conf)
 
     conf.attr_list(True)
 
