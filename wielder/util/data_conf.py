@@ -82,6 +82,42 @@ def get_datalake_parser():
     return parser
 
 
+def extract_gcp_to_conf(conf, gcp_services=[]):
+
+    raw = conf.raw_config_args['gcp']
+
+    gcp = Conf()
+
+    gcp.gcp_project = raw['project']
+    gcp.gcp_image_repo_zone = raw['image_repo_zone']
+    gcp.is_shared_vpc = raw['is_shared_vpc']
+    gcp.region = raw['region']
+    gcp.zone = raw['zone']
+    gcp.image_repo_zone = raw['image_repo_zone']
+    gcp.service_accounts = raw['service_accounts']
+    gcp.network = raw['network']
+    gcp.subnetwork = raw['subnetwork']
+
+    conf.gcp = gcp
+
+    if 'dataproc' in gcp_services:
+
+        raw_dataproc = raw['dataproc']
+        dataproc = Conf()
+        dataproc.high_availability = raw_dataproc['high_availability']
+        dataproc.extra_tags = raw_dataproc['extra_tags']
+        dataproc.region = raw_dataproc['region']
+        dataproc.zone = raw_dataproc['zone']
+        dataproc.internal_ip_only = raw_dataproc['internal_ip_only']
+        dataproc.master_machine_type = raw_dataproc['master_machine_type']
+        dataproc.worker_machine_type = raw_dataproc['worker_machine_type']
+        dataproc.master_boot_disk_size = raw_dataproc['master_boot_disk_size']
+        dataproc.worker_boot_disk_size = raw_dataproc['worker_boot_disk_size']
+        dataproc.num_worker_nodes = raw_dataproc['num_worker_nodes']
+
+        conf.gcp.dataproc = dataproc
+        
+
 def process_args(cmd_args):
 
     if cmd_args.conf_file is None:
@@ -125,17 +161,11 @@ def process_args(cmd_args):
     conf.git_branch = named_tuple.git_branch
     conf.git_commit = named_tuple.git_commit
 
-    conf.gcp_project = named_tuple.gcp['project']
-    conf.gcp_image_repo_zone = named_tuple.gcp['image_repo_zone']
-    conf.is_shared_vpc = named_tuple.gcp['is_shared_vpc']
-    conf.region = named_tuple.gcp['region']
-    conf.zone = named_tuple.gcp['zone']
-    conf.image_repo_zone = named_tuple.gcp['image_repo_zone']
-    conf.service_accounts = named_tuple.gcp['service_accounts']
-    conf.network = named_tuple.gcp['network']
-    conf.subnetwork = named_tuple.gcp['subnetwork']
-
     conf.raw_config_args = conf_args
+
+    if conf.cloud_provider == 'gcp':
+
+        extract_gcp_to_conf(conf, ['dataproc'])
 
     conf.attr_list(True)
 
@@ -149,7 +179,7 @@ if __name__ == "__main__":
 
     _conf = process_args(datalake_args)
 
-    print('brake point')
+    print('break point')
 
 
 
