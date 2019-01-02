@@ -82,7 +82,7 @@ def get_datalake_parser():
     return parser
 
 
-def extract_gcp_to_conf(conf, gcp_services=[]):
+def extract_gcp_to_conf(conf):
 
     raw = conf.raw_config_args['gcp']
 
@@ -100,9 +100,11 @@ def extract_gcp_to_conf(conf, gcp_services=[]):
 
     conf.gcp = gcp
 
+    gcp_services = raw['services']
+
     if 'dataproc' in gcp_services:
 
-        raw_dataproc = raw['dataproc']
+        raw_dataproc = gcp_services['dataproc']
         dataproc = Conf()
         dataproc.high_availability = raw_dataproc['high_availability']
         dataproc.extra_tags = raw_dataproc['extra_tags']
@@ -165,7 +167,7 @@ def process_args(cmd_args):
 
     if conf.cloud_provider == 'gcp':
 
-        extract_gcp_to_conf(conf, ['dataproc'])
+        extract_gcp_to_conf(conf)
 
     conf.attr_list(True)
 
