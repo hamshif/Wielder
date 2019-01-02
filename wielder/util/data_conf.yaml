@@ -1,0 +1,71 @@
+deploy_env: local
+supported_deploy_envs:
+  - local
+  - dev
+  - int
+  - qe
+  - st
+  - prod
+
+enable_debug: True
+enable_dev: False
+
+git_super_repo: data
+git_branch: master
+git_commit: commit_hash_cod
+
+deploy_strategy: vanila
+gcp_image_repo_zone: not_created_yet
+
+cloud_provider: gcp
+
+# ----------- GCP ---------------
+
+gcp:
+  project: marketo-datalake-dev
+  zone: eu.gcr.io
+  is_shared_vpc: True
+  region: global
+  zone: us-west1-a
+  image_repo_zone: lalaland
+  service_accounts:
+    - ploni@nowhere.com
+    - pooh@under_the_name_of_sanders.forest
+  network: default
+  subnetwork: for_shared_vpc
+
+
+# ---------- Templates --------------
+
+template_ignore_dirs:
+  - .git
+  - .terraform
+  - image
+  - terra
+  - db_scripts
+  - bash-scripts
+  - __pycache__
+  - debug-mount
+  - artifacts
+  - handy-scripts
+  - darwin_amd64
+  - plugins
+  - bucket
+
+template_variables:
+
+# ----- Dataproc Terraform
+
+  - !!python/tuple ['#deploy_env#', local]
+  - !!python/tuple ['#DEV_MODE#', True]
+
+# ---------- Spark Jobs ------------
+
+# ---------- CDAP Pipelines --------------
+
+
+# ---------- Scripts --------------
+
+script_variables:
+
+  question: why_does_a_chicken?
