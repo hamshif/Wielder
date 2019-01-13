@@ -27,3 +27,5 @@
 
 *.pyc
 /__pycache__
+
+*.egg*

@@ -46,10 +46,17 @@ def get_datalake_parser():
     )
 
     parser.add_argument(
-        '-de', '--deploy_env',
+        '-e', '--env',
         type=str,
-        choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
+        default='qe',
         help='Deployment environment local means dev refers to git branches ...'
+    )
+
+    parser.add_argument(
+        '-re', '--runtime_env',
+        type=str,
+        default='local-docker',
+        help='Runtime environment eg local-docker, local, gcp, gcp-shared-vpc etc...'
     )
 
     parser.add_argument(
@@ -57,14 +64,6 @@ def get_datalake_parser():
         type=str,
         choices=['gcp', 'aws', 'azure'],
         help='Cloud provider will only mean something if not local:'
-    )
-
-    parser.add_argument(
-        '-gp', '--gcp_project',
-        type=str,
-        choices=['marketo-webpersonalization-dev', 'rtp-gcp-poc'],
-        help='GCP project for GKE means:\n'
-             'Which project to use for deploy and resources.'
     )
 
     parser.add_argument(
@@ -176,12 +175,15 @@ def process_args(cmd_args):
 
 if __name__ == "__main__":
 
-    datalake_parser = get_datalake_parser()
-    datalake_args = datalake_parser.parse_args()
+    datalake_args, other_args = get_datalake_parser().parse_known_args()
 
     _conf = process_args(datalake_args)
 
     print('break point')
+
+    print(f"datalake_args:\n{datalake_args}\n")
+    print(f"other_args:\n{other_args}")
+
 
 
 
