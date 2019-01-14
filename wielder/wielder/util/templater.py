@@ -243,6 +243,29 @@ def get_raw_arg(conf, key, default_value=None):
     return default_value
 
 
+def config_tree_to_tuple(tree):
+    """
+    A utility for turning a dictionary to to a flate list od tuples
+    One use is to convert a pyhocon ConfigFactory to a templater usable list of tuples
+    :param tree: ConfigFactory or dictionary
+    :return: list of tuples rendered from input tree
+    """
+
+    template_variables = []
+
+    print(f'shana tova{type(tree)}')
+
+    for k in tree:
+
+        print(k)
+        print(tree[k])
+        template_variables.append((f"#{k}#",tree[k]))
+
+    return template_variables
+
+
+
+
 if __name__ == "__main__":
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
