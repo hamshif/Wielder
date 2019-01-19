@@ -9,6 +9,32 @@ create virtualenv
  pip3 install virtualenv virtualenvwrapper
  mkvirtualenv -p $(which python3) wielder
  ```
+ in .zshrc
+ 
+ add these lines:
+ 
+```
+  
+# set where virutal environments will live
+export WORKON_HOME=$HOME/.virtualenvs
+# ensure all new environments are isolated from the site-packages directory
+export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages'
+# use the same directory for virtualenvs as virtualenvwrapper
+export PIP_VIRTUALENV_BASE=$WORKON_HOME
+
+# makes pip detect an active virtualenv and install to it
+export PIP_RESPECT_VIRTUALENV=true
+if [[ -r /usr/local/bin/virtualenvwrapper.sh ]]; then
+ source /usr/local/bin/virtualenvwrapper.sh
+else
+ echo "WARNING: Can't find virtualenvwrapper.sh"
+fi
+ 
+VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+ 
+source /usr/local/bin/virtualenvwrapper.sh
+  ```
+ 
 dependencies
 -
  ```
