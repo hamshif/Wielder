@@ -295,8 +295,7 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
 
             file_out.write(f'{k} = "{v}"\n\n')
 
-    file_out.write(f'\n\n')
-    file_out.close()
+        file_out.write(f'\n\n')
 
 
 if __name__ == "__main__":
