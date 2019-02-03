@@ -243,10 +243,13 @@ def get_raw_arg(conf, key, default_value=None):
     return default_value
 
 
-def config_tree_to_tuple(tree):
+def config_tree_to_tuple(tree, print_vars=True, template=True, escape_sequence='#'):
     """
     A utility for turning a dictionary to to a flate list od tuples
     One use is to convert a pyhocon ConfigFactory to a templater usable list of tuples
+    :param escape_sequence: the template escape sequence by default #var#
+    :param template: should add template escape sequence to key
+    :param print_vars: should print or not
     :param tree: ConfigFactory or dictionary
     :return: list of tuples rendered from input tree
     """
@@ -257,13 +260,43 @@ def config_tree_to_tuple(tree):
 
     for k in tree:
 
-        print(k)
-        print(tree[k])
-        template_variables.append((f"#{k}#",tree[k]))
+        v = tree[k]
+
+        if template:
+            k = f"{escape_sequence}{k}{escape_sequence}"
+
+        if print_vars:
+            print(f"k: {k}   v: {v}")
+
+        template_variables.append((k, v))
 
     return template_variables
 
 
+def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=True):
+    """
+    TODO support terraform dictionary and list depth
+    Take a pyhocon tree and converts it to a terraform file
+    :param tree: pyhocon tree
+    :param destination:
+    :param name:
+    :param print_vars: should prin vars to console
+    :return: nothing
+    """
+
+    with open(f"{destination}/{name}", "a") as file_out:
+
+        for k in tree:
+
+            v = tree[k]
+
+            if print_vars:
+                print(f"k: {k}   v: {v}")
+
+            file_out.write(f'{k} = "{v}"\n\n')
+
+    file_out.write(f'\n\n')
+    file_out.close()
 
 
 if __name__ == "__main__":
