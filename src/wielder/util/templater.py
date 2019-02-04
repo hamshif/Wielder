@@ -3,6 +3,7 @@
 import os
 import jprops
 from jprops import _CommentSentinel
+from pyhocon import ConfigTree
 
 from wielder.util.arguer import get_kube_parser, process_args, Conf
 
@@ -284,7 +285,14 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
     :return: nothing
     """
 
-    with open(f"{destination}/{name}", "a") as file_out:
+    config_file = f"{destination}/{name}"
+
+    try:
+        os.remove(config_file)
+    except OSError:
+        print("Error while deleting file ", config_file)
+
+    with open(config_file, "a") as file_out:
 
         for k in tree:
 
@@ -293,7 +301,20 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
             if print_vars:
                 print(f"k: {k}   v: {v}")
 
-            file_out.write(f'{k} = "{v}"\n\n')
+            if isinstance(v, str):
+                v = f'"{v}"'
+            elif isinstance(v, bool):
+                v = f'{v}'.lower()
+            elif isinstance(v, list):
+                v = f"{v}".replace("'", '"')
+            elif isinstance(v, ConfigTree):
+                #  TODO use tail recursion with function for nesting
+                pass
+            elif isinstance(v, dict):
+                # TODO check dictionaries
+                v = f"{v}".replace("'", '"')
+
+            file_out.write(f'{k} = {v}\n\n')
 
         file_out.write(f'\n\n')
 
