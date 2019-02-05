@@ -1,4 +1,5 @@
 import os
+import re
 
 
 class DirContext:
@@ -31,3 +32,12 @@ def replace_last(full, sub, rep=''):
             return full[:-count] + end.replace(sub, rep)
 
     return full
+
+
+def purge(directory, pattern):
+
+    for f in os.listdir(directory):
+        if re.search(pattern, f):
+            os.remove(os.path.join(directory, f))
+
+
