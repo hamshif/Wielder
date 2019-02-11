@@ -75,13 +75,34 @@ def line_prepender(filename, line, once=True):
         f.write(line.rstrip('\r\n') + '\n' + content)
 
 
+def remove_line(filename, line):
+
+    f = open(filename, "r+")
+    d = f.readlines()
+    f.seek(0)
+    for i in d:
+        if line not in i:
+            f.write(i)
+    f.truncate()
+    f.close()
+
+
 if __name__ == "__main__":
 
-    line = 'Do not yell in open space'
+    _line = 'Do not yell in open space'
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print(f"current working dir: {dir_path}")
 
+    full_path = f'{dir_path}/punishment.conf'
+
     for a in range(100):
-        line_prepender(f'{dir_path}/punishment.conf', line, once=False)
+        line_prepender(full_path, _line, once=False)
+
+    print('break point')
+
+    remove_line(full_path, _line)
+
+
+
 
