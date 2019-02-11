@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import re
 
@@ -67,7 +69,19 @@ def line_prepender(filename, line, once=True):
         content = f.read()
         f.seek(0, 0)
 
-        if is_line_in_file(filename, line) and once:
+        if once and is_line_in_file(filename, line):
             return
 
         f.write(line.rstrip('\r\n') + '\n' + content)
+
+
+if __name__ == "__main__":
+
+    line = 'Do not yell in open space'
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(f"current working dir: {dir_path}")
+
+    for a in range(100):
+        line_prepender(f'{dir_path}/punishment.conf', line, once=False)
+
