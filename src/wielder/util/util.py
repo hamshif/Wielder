@@ -20,6 +20,13 @@ class DirContext:
 
 
 def replace_last(full, sub, rep=''):
+    """
+    replaces the last instance of a substring in the full string with rep
+    :param full: the base string in which the replacement should happen
+    :param sub: to be replaced
+    :param rep: replacement substring default empty
+    :return:
+    """
 
     end = ''
     count = 0
@@ -41,3 +48,26 @@ def purge(directory, pattern):
             os.remove(os.path.join(directory, f))
 
 
+def is_line_in_file(full_path, line):
+
+    with open(full_path) as f:
+        content = f.readlines()
+
+        for l in content:
+            if line in l:
+                f.close()
+                return True
+
+        return False
+
+
+def line_prepender(filename, line, once=True):
+
+    with open(filename, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+
+        if is_line_in_file(filename, line) and once:
+            return
+
+        f.write(line.rstrip('\r\n') + '\n' + content)
