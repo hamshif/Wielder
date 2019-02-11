@@ -6,6 +6,12 @@ from wielder.util.util import line_prepender
 
 
 def include_configs(base_path, included_paths):
+    """
+    includes a list of file paths in pyhocon ConfigTree
+    :param base_path: the basic config file
+    :param included_paths: a list of paths to include in the tree
+    :return: combined ConfigTree
+    """
 
     for included_path in included_paths:
 
