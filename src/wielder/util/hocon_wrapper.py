@@ -16,9 +16,14 @@ def include_configs(base_path, included_paths, remove_includes=True):
 
     for included_path in included_paths:
 
-        line_prepender(filename=base_path, line=f'include file("{included_path}")', once=False)
+        line = f'include file("{included_path}")'
+        # print(f'Trying to add {line} to {base_path}')
+        line_prepender(filename=base_path, line=line, once=True)
+        # print(f'Added {line} to {base_path}')
 
+    # print(f'Trying to parse {base_path}')
     conf = Cf.parse_file(base_path)
+    # print(f'parsed {base_path}')
 
     if remove_includes:
 
