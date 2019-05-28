@@ -281,7 +281,7 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
     :param tree: pyhocon tree
     :param destination:
     :param name:
-    :param print_vars: should prin vars to console
+    :param print_vars: should print vars to console
     :return: nothing
     """
 

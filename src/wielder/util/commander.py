@@ -22,6 +22,14 @@ def subprocess_cmd(command, executable='/bin/sh'):
     print(proc_stdout)
 
 
+def bash_command(command, shell=False):
+    try:
+        output = sp.check_output(command, shell=shell, stderr=sp.STDOUT, universal_newlines=True)
+        return output.strip()
+    except Exception as e:
+        raise Exception(f"Error occurred while trying to run bash command: {e}")
+
+
 if __name__ == "__main__":
 
     subprocess_cmd('echo a; echo b')
