@@ -175,7 +175,7 @@ def process_args(cmd_args, perform_sanity=True):
         cmd_args.conf_file = dir_path + '/wielder_conf.yaml'
 
     with open(cmd_args.conf_file, 'r') as yaml_file:
-        conf_args = yaml.load(yaml_file)
+        conf_args = yaml.load(yaml_file, Loader=yaml.UnsafeLoader)
 
     if not hasattr(conf_args, 'plan'):
         conf_args['plan'] = False

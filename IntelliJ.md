@@ -20,3 +20,13 @@ you might have to add scala directories as source
 1.1. add non framework directories e.g. docker scripts from existing sources
 1.1. add Python frameworks using preprepared virtualenvwrapper
 
+
+python interpreter
+
+At project level add SDK pointing to python virtualenvwrapper (or conda, pyenv ...)
+To get intellisense add module src dirs to SDK classpath  thus:
+File >> project structure >> SDKs >> class path tab >> + >> ..../Wielder/src
+
+If you want to change the resulting default dir structure change from project view to Project Files
+
+
