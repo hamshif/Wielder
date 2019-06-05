@@ -5,7 +5,6 @@ import select
 from enum import Enum
 from pyhocon import ConfigFactory as Cf
 from pyhocon.tool import HOCONConverter as Hc
-from wielder.util.arguer import get_kube_parser
 from wielder.wrx.deployer import init_observe_pods
 
 
