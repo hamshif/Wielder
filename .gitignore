@@ -29,3 +29,12 @@
 /__pycache__
 
 *.egg*
+__init__.py
+conf/
+deploy/slate-deploy.yaml.tmpl
+deploy/slate-pv.yaml.tmpl
+deploy/slate-pvc.yaml.tmpl
+deploy/slate-storage-class.yaml.tmpl
+gcp/slate-deploy.yaml.tmpl
+image/
+plan/
