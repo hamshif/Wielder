@@ -6,6 +6,7 @@ from enum import Enum
 from pyhocon import ConfigFactory as Cf
 from pyhocon.tool import HOCONConverter as Hc
 from wielder.wrx.deployer import init_observe_pods
+from wielder.wrx.servicer import init_observe_service
 
 
 class KubeResType(Enum):
@@ -43,7 +44,7 @@ def wrap_included(paths):
     return includes
 
 
-def deploy_init_callback(result):
+def callback(result):
 
     for i in range(len(result)):
 
@@ -116,8 +117,10 @@ class WieldPlan:
     def apply(self):
 
         deploy_plan = None
+        service_plan = None
 
         possible_deploy_plan = self.to_plan_path('deploy')
+        possible_service_plan = self.to_plan_path('service')
 
         for plan_path in self.plan_paths:
 
@@ -125,15 +128,22 @@ class WieldPlan:
 
             if possible_deploy_plan == plan_path:
                 deploy_plan = plan_path
+            elif possible_service_plan == plan_path:
+                service_plan = plan_path
 
         if deploy_plan:
             # Observe the pods created
             init_observe_pods(
                 deploy_tuple=(self.name, deploy_plan),
                 use_minikube_repo=False,
-                callback=deploy_init_callback,
+                callback=callback,
                 init=False
             )
+
+        if service_plan:
+            result = init_observe_service(svc_tuple=(self.name, service_plan))
+
+        callback(result)
 
     def delete(self, auto_approve=False):
 
