@@ -30,6 +30,11 @@ class WieldAction(Enum):
 
 
 def wrap_included(paths):
+    """
+    Creates configuration tree includes string on the fly
+    :param paths: A list of file paths
+    :return: A string usable by  pyhocon.ConfigFactory.parse_string to get config tree
+    """
 
     includes = ''
     for path in paths:

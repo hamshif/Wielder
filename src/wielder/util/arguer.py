@@ -81,10 +81,17 @@ def get_kube_parser():
     )
 
     parser.add_argument(
+        '-re', '--runtime_env',
+        type=str,
+        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure'],
+        help='Runtime environment refers to where the Kubernetes cluster is running'
+    )
+
+    parser.add_argument(
         '-de', '--deploy_env',
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
-        help='Deployment environment local means minikube, dev refers to git branches ...'
+        help='Deployment environment refers to stages of production'
     )
 
     parser.add_argument(
