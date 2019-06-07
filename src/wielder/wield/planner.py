@@ -95,7 +95,7 @@ class WieldPlan:
 
             self.plan_paths.append(plan_path)
 
-    def wield(self, action=WieldAction.PLAN, auto_approve=False, observe_deploy=False, observe_svc=True):
+    def wield(self, action=WieldAction.PLAN, auto_approve=False):
 
         if not isinstance(action, WieldAction):
             raise TypeError("action must of type WieldAction")
@@ -106,17 +106,16 @@ class WieldPlan:
 
         conf = Cf.parse_file(self.wield_path)
 
-        self.namespace = conf.slate.namespace
+        module_conf = conf[self.name]
+
+        self.namespace = module_conf.namespace
         self.ordered_kube_resources = conf.ordered_kube_resources
 
         self.plan(conf)
 
         if action == action.APPLY:
 
-            if conf.runtime_env == 'docker':
-                observe_svc = False
-
-            self.apply(observe_deploy, observe_svc)
+            self.apply(module_conf.observe_deploy, module_conf.observe_svc)
 
         print('break')
 
