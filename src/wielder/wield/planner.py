@@ -94,7 +94,7 @@ class WieldPlan:
 
             self.plan_paths.append(plan_path)
 
-    def wield(self, action=WieldAction.PLAN, auto_approve=False):
+    def wield(self, action=WieldAction.PLAN, auto_approve=False, observe=False):
 
         if not isinstance(action, WieldAction):
             raise TypeError("action must of type WieldAction")
@@ -110,40 +110,32 @@ class WieldPlan:
         self.plan(conf)
 
         if action == action.APPLY:
-            self.apply()
+            self.apply(observe)
 
         print('break')
 
-    def apply(self):
+    def apply(self, observe=False):
 
-        deploy_plan = None
-        service_plan = None
+        for res in self.ordered_kube_resources:
 
-        possible_deploy_plan = self.to_plan_path('deploy')
-        possible_service_plan = self.to_plan_path('service')
-
-        for plan_path in self.plan_paths:
-
+            plan_path = self.to_plan_path(res=res)
             os.system(f"kubectl apply -f {plan_path};")
 
-            if possible_deploy_plan == plan_path:
-                deploy_plan = plan_path
-            elif possible_service_plan == plan_path:
-                service_plan = plan_path
+            if observe:
+                # Observe the pods created
+                if res is 'deploy':
 
-        if deploy_plan:
-            # Observe the pods created
-            init_observe_pods(
-                deploy_tuple=(self.name, deploy_plan),
-                use_minikube_repo=False,
-                callback=callback,
-                init=False
-            )
+                    init_observe_pods(
+                        deploy_tuple=(self.name, plan_path),
+                        use_minikube_repo=False,
+                        callback=callback,
+                        init=False
+                    )
 
-        if service_plan:
-            result = init_observe_service(svc_tuple=(self.name, service_plan))
-
-        callback(result)
+                # if res is 'service':
+                #     result = init_observe_service(svc_tuple=(self.name, plan_path))
+                #
+                # callback(result)
 
     def delete(self, auto_approve=False):
 
