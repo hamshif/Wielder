@@ -5,8 +5,7 @@ import select
 from enum import Enum
 from pyhocon import ConfigFactory as Cf
 from pyhocon.tool import HOCONConverter as Hc
-from wielder.wrx.deployer import init_observe_pods
-from wielder.wrx.servicer import init_observe_service
+from wielder.wrx.deployer import get_pods, observe_pod
 
 
 class KubeResType(Enum):
@@ -62,6 +61,7 @@ class WieldPlan:
         self.wield_path = f'{conf_dir}/{runtime_env}/{name}-wield.conf'
         self.plan_format = plan_format
         self.ordered_kube_resources = []
+        self.namespace = 'default'
         self.plans = []
         self.plan_paths = []
 
@@ -105,6 +105,7 @@ class WieldPlan:
 
         conf = Cf.parse_file(self.wield_path)
 
+        self.namespace = conf.slate.namespace
         self.ordered_kube_resources = conf.ordered_kube_resources
 
         self.plan(conf)
@@ -123,19 +124,15 @@ class WieldPlan:
 
             if observe:
                 # Observe the pods created
-                if res is 'deploy':
+                if res == 'deploy':
 
-                    init_observe_pods(
-                        deploy_tuple=(self.name, plan_path),
-                        use_minikube_repo=False,
-                        callback=callback,
-                        init=False
+                    pods = get_pods(
+                        self.name,
+                        namespace=self.namespace
                     )
 
-                # if res is 'service':
-                #     result = init_observe_service(svc_tuple=(self.name, plan_path))
-                #
-                # callback(result)
+                    for pod in pods:
+                        observe_pod(pod)
 
     def delete(self, auto_approve=False):
 
