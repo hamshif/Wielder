@@ -44,6 +44,37 @@ def get_service(name, namespace="default"):
             return svc
 
 
+# TODO merge this with init_observe_service or deprecate
+def observe_service(svc_name, svc_namespace):
+
+    interval = 5
+
+    time_waiting = 0
+    svc = None
+
+    while ip is None:
+
+        svc = get_service(svc_name, namespace=svc_namespace)
+
+        if time_waiting > 400:
+            print(f"waited {time_waiting} that'sn enough exiting")
+            return "timeout either provisioning might be too long or some code problem", svc_name, svc
+            break
+
+        ip = get_svc_ip(svc)
+
+        if ip is None:
+            try:
+                print(f"\n\nWaited {time_waiting} for {svc_name} going to sleep for {interval}")
+                time.sleep(interval)
+                time_waiting += interval
+
+            except Exception as e:
+                return svc_name, svc, e
+
+    return svc_name, svc, ip
+
+
 def init_observe_service(svc_tuple):
 
     svc_name = svc_tuple[0]

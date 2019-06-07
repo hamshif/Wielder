@@ -6,6 +6,7 @@ from enum import Enum
 from pyhocon import ConfigFactory as Cf
 from pyhocon.tool import HOCONConverter as Hc
 from wielder.wrx.deployer import get_pods, observe_pod
+from wielder.wrx.servicer import observe_service
 
 
 class KubeResType(Enum):
@@ -94,7 +95,7 @@ class WieldPlan:
 
             self.plan_paths.append(plan_path)
 
-    def wield(self, action=WieldAction.PLAN, auto_approve=False, observe=False):
+    def wield(self, action=WieldAction.PLAN, auto_approve=False, observe_deploy=False, observe_svc=True):
 
         if not isinstance(action, WieldAction):
             raise TypeError("action must of type WieldAction")
@@ -111,28 +112,40 @@ class WieldPlan:
         self.plan(conf)
 
         if action == action.APPLY:
-            self.apply(observe)
+
+            if conf.runtime_env == 'docker':
+                observe_svc = False
+
+            self.apply(observe_deploy, observe_svc)
 
         print('break')
 
-    def apply(self, observe=False):
+    def apply(self, observe_deploy=False, observe_svc=False):
 
         for res in self.ordered_kube_resources:
 
             plan_path = self.to_plan_path(res=res)
             os.system(f"kubectl apply -f {plan_path};")
 
-            if observe:
+            if res == 'service' and observe_svc:
+
+                # TODO find a better way to make sure the service is up
+                # make sure the service in the cloud is up by checking ip
+                observe_service(
+                    self.name,
+                    namespace=self.namespace
+                )
+
+            elif res == 'deploy' and observe_deploy:
+
                 # Observe the pods created
-                if res == 'deploy':
+                pods = get_pods(
+                    self.name,
+                    namespace=self.namespace
+                )
 
-                    pods = get_pods(
-                        self.name,
-                        namespace=self.namespace
-                    )
-
-                    for pod in pods:
-                        observe_pod(pod)
+                for pod in pods:
+                    observe_pod(pod)
 
     def delete(self, auto_approve=False):
 
