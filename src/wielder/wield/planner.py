@@ -34,7 +34,7 @@ def wrap_included(paths):
     """
     Creates configuration tree includes string on the fly
     :param paths: A list of file paths
-    :return: A string usable by  pyhocon.ConfigFactory.parse_string to get config tree
+    :return: A string usable by pyhocon.ConfigFactory.parse_string to get config tree
     """
 
     includes = ''
@@ -42,13 +42,6 @@ def wrap_included(paths):
         includes += f'include file("{path}")\n'
 
     return includes
-
-
-def callback(result):
-
-    for i in range(len(result)):
-
-        print(f"{i}: deploy result returned: {result[i]}")
 
 
 class WieldPlan:
