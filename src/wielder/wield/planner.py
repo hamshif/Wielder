@@ -2,59 +2,23 @@
 import os
 import sys
 import select
-from enum import Enum
-from pyhocon import ConfigFactory as Cf
+
 from pyhocon.tool import HOCONConverter as Hc
+from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wrx.deployer import get_pods, observe_pod
 from wielder.wrx.servicer import observe_service
 
 
-class KubeResType(Enum):
-    DEPLOY = 'deploy'
-    POD = 'pod'
-    STATEFUL = 'stateful'
-    SERVICE = 'service'
-    PV = 'pv'
-    PVC = 'pvc'
-    STORAGE = 'storage'
-
-
-class PlanType(Enum):
-    YAML = 'yaml'
-    JSON = 'json'
-
-
-class WieldAction(Enum):
-    APPLY = 'apply'
-    PLAN = 'plan'
-    DELETE = 'delete'
-
-
-def wrap_included(paths):
-    """
-    Creates configuration tree includes string on the fly
-    :param paths: A list of file paths
-    :return: A string usable by pyhocon.ConfigFactory.parse_string to get config tree
-    """
-
-    includes = ''
-    for path in paths:
-        includes += f'include file("{path}")\n'
-
-    return includes
-
-
 class WieldPlan:
 
-    def __init__(self, name, conf_dir, plan_dir, runtime_env='docker', plan_format=PlanType.YAML):
+    def __init__(self, name, conf, plan_dir, plan_format=PlanType.YAML):
 
         self.name = name
-        self.conf_dir = conf_dir
+        self.conf = conf
         self.plan_dir = plan_dir
-        self.runtime_env = runtime_env
-        self.wield_path = f'{conf_dir}/{runtime_env}/{name}-wield.conf'
         self.plan_format = plan_format
         self.ordered_kube_resources = []
+        # TODO consider where to get namespace
         self.namespace = 'default'
         self.plans = []
         self.plan_paths = []
@@ -68,11 +32,11 @@ class WieldPlan:
         plan_path = f'{self.plan_dir}/{self.name}-{res}.{self.plan_format.value}'
         return plan_path
 
-    def plan(self, conf):
+    def plan(self):
 
         for res in self.ordered_kube_resources:
 
-            plan = Hc.convert(conf[res], self.plan_format.value, 2)
+            plan = Hc.convert(self.conf[res], self.plan_format.value, 2)
 
             print(f'\n{plan}')
 
@@ -97,14 +61,12 @@ class WieldPlan:
             self.delete(auto_approve)
             return
 
-        conf = Cf.parse_file(self.wield_path)
-
-        module_conf = conf[self.name]
+        module_conf = self.conf[self.name]
 
         self.namespace = module_conf.namespace
-        self.ordered_kube_resources = conf.ordered_kube_resources
+        self.ordered_kube_resources = self.conf.ordered_kube_resources
 
-        self.plan(conf)
+        self.plan()
 
         if action == action.APPLY:
 
@@ -141,9 +103,7 @@ class WieldPlan:
 
     def delete(self, auto_approve=False):
 
-        conf = Cf.parse_file(self.wield_path)
-
-        self.ordered_kube_resources = conf.ordered_kube_resources
+        self.ordered_kube_resources = self.conf.ordered_kube_resources
 
         if not auto_approve:
 
