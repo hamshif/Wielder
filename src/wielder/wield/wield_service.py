@@ -1,9 +1,47 @@
-from pyhocon import ConfigFactory as Cf
+import os
 from wielder.wield.enumerator import PlanType
 
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
-from wield_services.wield.deploy.util import get_conf_context_project, get_conf_ordered_files
+from wielder.util.hocon_util import get_conf_ordered_files
+
+
+def get_module_root(file_context=__file__):
+
+    dir_path = os.path.dirname(os.path.realpath(file_context))
+    print(f"\ncurrent working dir: {dir_path}\n")
+
+    module_root = dir_path[:dir_path.rfind('/') + 1]
+    print(f"Module root: {module_root}")
+
+    return module_root
+
+
+def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev', module_paths=[]):
+    """
+    Gets the configuration from environment specific config.
+    Config files gateways [specific include statements] have to be placed and named according to convention.
+    :param project_root: the project root for inferring config and plan paths
+    :param module_paths: paths to module files their values get overridden by project
+    :param deploy_env: Development stage [dev, int, qa, stage, prod]
+    :param runtime_env: Where the kubernetes cluster is running
+    :return: pyhocon configuration tree object
+    :except: If both data_conf_env are not None
+    """
+
+    project_conf_path = f'{project_root}conf/project.conf'
+    runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
+    deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
+    developer_conf_path = f'{project_root}conf/personal/developer.conf'
+
+    ordered_project_files = module_paths + [
+        project_conf_path,
+        runtime_conf_path,
+        deploy_env_conf_path,
+        developer_conf_path
+    ]
+
+    return get_conf_ordered_files(ordered_project_files)
 
 
 class WieldService:
@@ -15,11 +53,12 @@ class WieldService:
     It assumes specific fields in the configuration
     """
 
-    def __init__(self, name, module_root, project_override=False, mode=None, conf_dir=None,
+    def __init__(self, name, module_root, project_root, project_override=False, mode=None, conf_dir=None,
                  plan_dir=None, plan_format=PlanType.YAML):
 
         self.name = name
         self.module_root = module_root
+        self.project_root = project_root
         self.mode = mode if mode else WieldMode()
         self.conf_dir = conf_dir if conf_dir else f'{module_root}conf'
         self.plan_dir = plan_dir if plan_dir else f'{module_root}plan'
@@ -41,6 +80,7 @@ class WieldService:
             print(f'\nOverriding module conf with project conf\n')
 
             self.conf = get_conf_context_project(
+                project_root=self.project_root,
                 runtime_env=self.mode.runtime_env,
                 deploy_env=self.mode.deploy_env,
                 module_paths=module_paths
