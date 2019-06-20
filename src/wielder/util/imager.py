@@ -77,7 +77,7 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev', mount
     gcp_conf = conf.providers.gcp
 
     image_trace = async_cmd(
-        f'$(docker images | grep {name} | grep base);'
+        f'$(docker images | grep {tag} | grep {image_name});'
     )
 
     print(f"{name} image_trace: {image_trace}")
@@ -87,12 +87,11 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev', mount
 
         print(f"attempting to create image {name}")
 
-        # TODO add an error report and exit after failure in base
         os.system(
             f'docker build -t {image_name}:{tag} {dockerfile_dir};'
             # f'docker tag {name}:dev {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
             f'echo "These are the resulting images:";'
-            f'docker images | grep {name};'
+            f'docker images | grep {tag} | grep {image_name};'
         )
 
     if push:
