@@ -3,7 +3,7 @@ from wielder.wield.enumerator import PlanType
 
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
-from wield_services.wield.deploy.util import get_conf
+from wield_services.wield.deploy.util import get_conf_context_project, get_conf_ordered_files
 
 
 class WieldService:
@@ -28,18 +28,27 @@ class WieldService:
 
         self.pretty()
 
+        module_paths = [self.wield_path]
+
+        if self.mode.debug_mode:
+
+            # adding to self to facilitate debugging
+            self.debug_path = f'{self.conf_dir}/{name}-debug.conf'
+            module_paths.append(self.debug_path)
+
         if project_override:
 
             print(f'\nOverriding module conf with project conf\n')
 
-            self.conf = get_conf(
+            self.conf = get_conf_context_project(
                 runtime_env=self.mode.runtime_env,
                 deploy_env=self.mode.deploy_env,
-                module_paths=[self.wield_path]
+                module_paths=module_paths
             )
 
         else:
-            self.conf = Cf.parse_file(self.wield_path)
+
+            self.conf = get_conf_ordered_files(module_paths)
 
         print('break')
 
