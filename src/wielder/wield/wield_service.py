@@ -75,6 +75,12 @@ class WieldService:
             self.debug_path = f'{self.conf_dir}/{name}-debug.conf'
             module_paths.append(self.debug_path)
 
+        if self.mode.local_mount:
+
+            # adding to self to facilitate debugging
+            self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
+            module_paths.append(self.local_mount)
+
         if project_override:
 
             print(f'\nOverriding module conf with project conf\n')
