@@ -51,12 +51,10 @@ def push_image(gcp_conf, name):
     )
 
 
-def pack_image(conf, name, image_root, push=False, force=False, tag='dev', mount=False, code_path=None):
+def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
     """
 
     :param tag:
-    :param mount: if mount from local directory is to occur
-    :param code_path: Path to code which should be mounted to docker for local dev
     :param conf:
     :param name:
     :param push:
@@ -68,11 +66,6 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev', mount
     dockerfile_dir = f'{image_root}/{name}'
 
     image_name = f'{name}'
-
-    if mount:
-
-        dockerfile_dir = f'{dockerfile_dir}-mount'
-        image_name = f'{name}/mount'
 
     gcp_conf = conf.providers.gcp
 
