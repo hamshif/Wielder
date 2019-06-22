@@ -53,12 +53,14 @@ class WieldService:
     It assumes specific fields in the configuration
     """
 
-    def __init__(self, name, module_root, project_root, project_override=False, mode=None, conf_dir=None,
+    def __init__(self, name, module_root, project_root, super_project_root, project_override=False, mode=None, conf_dir=None,
                  plan_dir=None, plan_format=PlanType.YAML):
 
         self.name = name
         self.module_root = module_root
         self.project_root = project_root
+        self.super_project_root = super_project_root
+        self.project_override = project_override
         self.mode = mode if mode else WieldMode()
         self.conf_dir = conf_dir if conf_dir else f'{module_root}conf'
         self.plan_dir = plan_dir if plan_dir else f'{module_root}plan'
@@ -81,20 +83,12 @@ class WieldService:
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
             module_paths.append(self.local_mount)
 
-        if project_override:
+        self.local_path = f'{self.conf_dir}/{self.name}-local.conf'
+        module_paths.append(self.local_path)
 
-            print(f'\nOverriding module conf with project conf\n')
+        self.init_conf(module_paths=module_paths)
 
-            self.conf = get_conf_context_project(
-                project_root=self.project_root,
-                runtime_env=self.mode.runtime_env,
-                deploy_env=self.mode.deploy_env,
-                module_paths=module_paths
-            )
-
-        else:
-
-            self.conf = get_conf_ordered_files(module_paths)
+        self.make_sure_local_conf_exists(module_paths)
 
         print('break')
 
@@ -110,3 +104,39 @@ class WieldService:
     def pretty(self):
 
         [print(it) for it in self.__dict__.items()]
+
+    def make_sure_local_conf_exists(self, module_paths):
+
+        local_path = f'{self.conf_dir}/{self.name}-local.conf'
+
+        if not os.path.exists(local_path):
+
+            print(f'\ncould not find file: {local_path}\ncreating it on the fly!\n')
+
+            relative_code_path = self.conf[self.name]['relativeCodePath']
+
+            local_code_path = f'{self.super_project_root}/{relative_code_path}'
+
+            with open(local_path, 'wt') as file_out:
+
+                file_out.write(f'\n{self.name}.codePath : {local_code_path}')
+
+            self.init_conf(module_paths=module_paths)
+
+    def init_conf(self, module_paths):
+
+        if self.project_override:
+
+            print(f'\nOverriding module conf with project conf\n')
+
+            self.conf = get_conf_context_project(
+                project_root=self.project_root,
+                runtime_env=self.mode.runtime_env,
+                deploy_env=self.mode.deploy_env,
+                module_paths=module_paths
+            )
+
+        else:
+
+            self.conf = get_conf_ordered_files(module_paths)
+
