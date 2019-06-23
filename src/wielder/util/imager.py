@@ -128,7 +128,6 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
 
         os.system(
             f'docker build -t {image_name}:{tag} {dockerfile_dir};'
-            # f'docker tag {name}:dev {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
             f'echo "These are the resulting images:";'
             f'docker images | grep {tag} | grep {image_name};'
         )
