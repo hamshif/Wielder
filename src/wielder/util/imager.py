@@ -86,13 +86,14 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
     print(f"successfully replaced {full_destination}")
 
 
-# TODO untested
-def push_image(gcp_conf, name):
+def push_image(gcp_conf, name, group, tag):
 
-    # TODO repo as args
+    a = f'{gcp_conf.image_repo_zone}/{gcp_conf.project}/{group}/{name}'
+
     os.system(
-        f'gcloud docker -- push {gcp_conf.image_repo_zone}/{gcp_conf.project}/{name}:latest;'
-        f'gcloud container images list --repository={gcp_conf.image_repo_zone}/{gcp_conf.project}/rtp/{name};'
+        f'docker tag {name}:{tag} {a}:latest;'
+        f'gcloud docker -- push {a}:latest;'
+        f'gcloud container images list --repository={a};'
     )
 
 
