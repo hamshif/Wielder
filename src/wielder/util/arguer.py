@@ -131,6 +131,35 @@ def get_kube_parser():
     return parser
 
 
+def wielder_sanity(conf, mode):
+
+    context = async_cmd('kubectl config current-context')[0][:-1]
+
+    if conf.kube_context != context:
+
+        print(f"There is a discrepancy between the configured and actual contexts:"
+              f"\nkube context   : {conf.kube_context}"
+              f"\ncurrent context: {context} "
+              f"\neither add context in command-line args or in config file or"
+              f"\nto change context run:"
+              f"\nkubectl config use-context <the context you meant>"
+              f"\n!!! Exiting ...")
+        exit(1)
+    else:
+        print(f"kubernetes current context: {context}")
+
+    if context != 'docker-for-desktop' and mode.local_mount:
+
+        print(f"Local mount of code into container is only allowed on local development env:"
+              f"\nkube context   : {conf.kube_context}"
+              f"\nmode.local_mount is: {mode.local_mount} "
+              f"\neither change context or flag local_mount as false"
+              f"\nto change context run:"
+              f"\nkubectl config use-context <the context you meant>"
+              f"\n!!! Exiting ...")
+        exit(1)
+
+
 def sanity(conf):
 
     context = async_cmd('kubectl config current-context')[0][:-1]
@@ -140,7 +169,7 @@ def sanity(conf):
         print(f"There is a discrepancy between the configured and actual contexts:"
               f"\nkube context   : {conf.kube_context}"
               f"\ncurrent context: {context} "
-              f"\neither ad context in command-line args or in config file or"
+              f"\neither add context in command-line args or in config file or"
               f"\nto change context run:"
               f"\nkubectl config use-context <the context you meant>"
               f"\n!!! Exiting ...")
@@ -230,9 +259,9 @@ if __name__ == "__main__":
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
 
-    conf = process_args(kube_args)
+    _conf = process_args(kube_args)
 
-    destroy_sanity(conf)
+    destroy_sanity(_conf)
 
 
 

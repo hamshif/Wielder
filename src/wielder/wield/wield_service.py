@@ -4,6 +4,7 @@ from wielder.wield.enumerator import PlanType
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
+from wielder.util.arguer import wielder_sanity
 
 
 def get_module_root(file_context=__file__):
@@ -139,4 +140,6 @@ class WieldService:
         else:
 
             self.conf = get_conf_ordered_files(module_paths)
+
+        wielder_sanity(self.conf, self.mode)
 
