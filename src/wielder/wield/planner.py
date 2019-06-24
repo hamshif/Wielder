@@ -7,6 +7,7 @@ from pyhocon.tool import HOCONConverter as Hc
 from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wrx.deployer import get_pods, observe_pod
 from wielder.wrx.servicer import observe_service
+from wielder.util.arguer import destroy_sanity
 
 
 class WieldPlan:
@@ -102,6 +103,8 @@ class WieldPlan:
                     observe_pod(pod)
 
     def delete(self, auto_approve=False):
+
+        destroy_sanity(self.conf)
 
         self.ordered_kube_resources = self.conf.ordered_kube_resources
 
