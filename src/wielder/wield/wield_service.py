@@ -5,6 +5,7 @@ from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
 from wielder.util.arguer import wielder_sanity
+from pyhocon import ConfigFactory as Cf
 
 
 def get_module_root(file_context=__file__):
@@ -87,9 +88,24 @@ class WieldService:
         self.local_path = f'{self.conf_dir}/{self.name}-local.conf'
         module_paths.append(self.local_path)
 
-        self.init_conf(module_paths=module_paths)
-
         self.make_sure_local_conf_exists(module_paths)
+
+        if self.project_override:
+
+            print(f'\nOverriding module conf with project conf\n')
+
+            self.conf = get_conf_context_project(
+                project_root=self.project_root,
+                runtime_env=self.mode.runtime_env,
+                deploy_env=self.mode.deploy_env,
+                module_paths=module_paths
+            )
+
+        else:
+
+            self.conf = get_conf_ordered_files(module_paths)
+
+        wielder_sanity(self.conf, self.mode)
 
         print('break')
 
@@ -114,32 +130,15 @@ class WieldService:
 
             print(f'\ncould not find file: {local_path}\ncreating it on the fly!\n')
 
-            relative_code_path = self.conf[self.name]['relativeCodePath']
+            vars_file = f'{self.conf_dir}/{self.mode.runtime_env}/{self.name}-vars.conf'
+
+            tmp_conf = Cf.parse_file(vars_file)
+
+            relative_code_path = tmp_conf[self.name]['relativeCodePath']
 
             local_code_path = f'{self.super_project_root}/{relative_code_path}'
 
             with open(local_path, 'wt') as file_out:
 
                 file_out.write(f'\n{self.name}.codePath : {local_code_path}')
-
-            self.init_conf(module_paths=module_paths)
-
-    def init_conf(self, module_paths):
-
-        if self.project_override:
-
-            print(f'\nOverriding module conf with project conf\n')
-
-            self.conf = get_conf_context_project(
-                project_root=self.project_root,
-                runtime_env=self.mode.runtime_env,
-                deploy_env=self.mode.deploy_env,
-                module_paths=module_paths
-            )
-
-        else:
-
-            self.conf = get_conf_ordered_files(module_paths)
-
-        wielder_sanity(self.conf, self.mode)
 
