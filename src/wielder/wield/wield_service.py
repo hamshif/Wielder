@@ -55,8 +55,8 @@ class WieldService:
     It assumes specific fields in the configuration
     """
 
-    def __init__(self, name, module_root, project_root, super_project_root, project_override=False, mode=None, conf_dir=None,
-                 plan_dir=None, plan_format=PlanType.YAML):
+    def __init__(self, name, module_root, project_root, super_project_root, project_override=False,
+                 mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
 
         self.name = name
         self.module_root = module_root
@@ -88,7 +88,7 @@ class WieldService:
         self.local_path = f'{self.conf_dir}/{self.name}-local.conf'
         module_paths.append(self.local_path)
 
-        self.make_sure_local_conf_exists(module_paths)
+        self.make_sure_local_conf_exists()
 
         if self.project_override:
 
@@ -122,7 +122,7 @@ class WieldService:
 
         [print(it) for it in self.__dict__.items()]
 
-    def make_sure_local_conf_exists(self, module_paths):
+    def make_sure_local_conf_exists(self):
 
         local_path = f'{self.conf_dir}/{self.name}-local.conf'
 
