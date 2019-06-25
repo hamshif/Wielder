@@ -148,6 +148,21 @@ def wielder_sanity(conf, mode):
     else:
         print(f"kubernetes current context: {context}")
 
+    message = f"There is a discrepancy between context and runtime environment:" \
+        f"\nkube context   : {conf.kube_context}" \
+        f"\nmode.runtime_env is: {mode.runtime_env}" \
+        f"\neither change context or configure congruent runtime_env" \
+        f"\nto change context run:" \
+        f"\nkubectl config use-context <the context you meant>" \
+        f"\n!!! Exiting ..."
+
+    if context == 'docker-for-desktop' and mode.runtime_env != 'docker':
+        print(message)
+        exit(1)
+    elif 'gke' in context and mode.runtime_env != 'gcp':
+        print(message)
+        exit(1)
+
     if context != 'docker-for-desktop' and mode.local_mount:
 
         print(f"Local mount of code into container is only allowed on local development env:"
