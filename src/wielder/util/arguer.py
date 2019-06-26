@@ -78,22 +78,24 @@ def get_kube_parser():
     parser.add_argument(
         '-kc', '--kube_context',
         type=str,
-        help='Kubernetes context i.e. run locally on minikube or in cloud e.g.'
-             '\nmarketo-webpersonalization-dev'
+        help='Kubernetes context i.e. run locally on docker or in cloud e.g.'
+             '\ndocker-for-desktop'
     )
 
     parser.add_argument(
         '-re', '--runtime_env',
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure'],
-        help='Runtime environment refers to where the Kubernetes cluster is running'
+        help='Runtime environment refers to where the Kubernetes cluster is running',
+        default='docker'
     )
 
     parser.add_argument(
         '-de', '--deploy_env',
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
-        help='Deployment environment refers to stages of production'
+        help='Deployment environment refers to stages of production',
+        default='dev'
     )
 
     parser.add_argument(
