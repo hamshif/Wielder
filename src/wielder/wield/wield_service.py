@@ -52,9 +52,10 @@ class WieldService:
     """
     A class wrapping configuration and code to deploy a service on Kubernetes
     disambiguation: service => a set of kubernetes resources
-    e.g. micro-service comprised of deployment service storage ..
-    By default it assumes a specific project structure
-    It assumes specific fields in the configuration
+    e.g. micro-service comprised of configmap, deployment, service, storage, pvc..
+    By default it assumes:
+        * A specific project structure
+        * Specific fields in the configuration
     """
 
     def __init__(self, name, module_root, project_root, super_project_root, project_override=False,
