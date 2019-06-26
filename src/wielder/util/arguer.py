@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 
+from wielder.util.util import get_kube_context
+
 __author__ = 'Gideon Bar'
 
 import argparse
@@ -133,7 +135,7 @@ def get_kube_parser():
 
 def wielder_sanity(conf, mode):
 
-    context = async_cmd('kubectl config current-context')[0][:-1]
+    context = get_kube_context()
 
     if conf.kube_context != context:
 

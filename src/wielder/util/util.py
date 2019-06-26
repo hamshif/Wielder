@@ -2,6 +2,32 @@
 
 import os
 import re
+from requests import get
+
+from wielder.util.commander import async_cmd
+
+# This example requires the requests library be installed.  You can learn more
+# about the Requests library here: http://docs.python-requests.org/en/latest/
+
+
+def get_kube_context():
+
+    context = async_cmd('kubectl config current-context')[0][:-1]
+
+    return context
+
+
+def get_external_ip():
+
+    try:
+        ip = get('https://api.ipify.org').text
+    except Exception as e:
+        print(str(e))
+    else:
+        ip = 'couldnt get ip'
+
+    print(f'My public IP address is:{ip}')
+    return ip
 
 
 class DirContext:
@@ -88,6 +114,8 @@ def remove_line(filename, line):
 
 
 if __name__ == "__main__":
+
+    _ip = get_external_ip()
 
     _line = 'Do not yell in open space'
 

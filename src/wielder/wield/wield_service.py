@@ -1,10 +1,12 @@
 import os
+
+from wielder.util.util import get_external_ip
 from wielder.wield.enumerator import PlanType
 
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
-from wielder.util.arguer import wielder_sanity
+from wielder.util.arguer import wielder_sanity, get_kube_context
 from pyhocon import ConfigFactory as Cf
 
 
@@ -88,10 +90,11 @@ class WieldService:
         self.local_path = f'{self.conf_dir}/{self.name}-local.conf'
         module_paths.append(self.local_path)
 
-        self.make_sure_local_conf_exists()
+        self.make_sure_module_local_conf_exists()
 
         if self.project_override:
 
+            self.make_sure_project_local_conf_exists()
             print(f'\nOverriding module conf with project conf\n')
 
             self.conf = get_conf_context_project(
@@ -122,7 +125,47 @@ class WieldService:
 
         [print(it) for it in self.__dict__.items()]
 
-    def make_sure_local_conf_exists(self):
+    def make_sure_project_local_conf_exists(self):
+
+        personal_dir = f'{self.project_root}conf/personal'
+
+        if not os.path.exists(personal_dir):
+            os.makedirs(personal_dir)
+
+        local_path = f'{personal_dir}/developer.conf'
+
+        if not os.path.exists(local_path):
+
+            print(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
+
+            project_file = f'{self.project_root}conf/deploy_env/{self.mode.deploy_env}/project.conf'
+
+            # TODO use in the future
+            tmp_conf = Cf.parse_file(project_file)
+
+            current_kube_context = get_kube_context()
+
+            ip = '87.70.171.87'#get_external_ip()
+
+            local_properties = [
+                'explain = "This .gitignored file is where developers override configuration properties"',
+                f'runtime_env : {self.mode.runtime_env}',
+                '#replace the context below with the context of the kubernetes deployment your working on',
+                f'kube_context : {current_kube_context}',
+                f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]'
+            ]
+            #
+            # relative_code_path = tmp_conf[self.name]['relativeCodePath']
+            #
+            # local_code_path = f'{self.super_project_root}/{relative_code_path}'
+
+            with open(local_path, 'wt') as file_out:
+
+                for p in local_properties:
+
+                    file_out.write(f'{p}\n\n')
+
+    def make_sure_module_local_conf_exists(self):
 
         local_path = f'{self.conf_dir}/{self.name}-local.conf'
 
