@@ -58,18 +58,16 @@ class WieldService:
         * Specific fields in the configuration
     """
 
-    def __init__(self, name, module_root, project_root, super_project_root, project_override=False,
+    def __init__(self, name, locale, project_override=False,
                  mode=None, service_mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
 
         self.name = name
-        self.module_root = module_root
-        self.project_root = project_root
-        self.super_project_root = super_project_root
+        self.locale = locale
         self.project_override = project_override
         self.mode = mode if mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
-        self.conf_dir = conf_dir if conf_dir else f'{module_root}conf'
-        self.plan_dir = plan_dir if plan_dir else f'{module_root}plan'
+        self.conf_dir = conf_dir if conf_dir else f'{locale.module_root}conf'
+        self.plan_dir = plan_dir if plan_dir else f'{locale.module_root}plan'
 
         self.wield_path = f'{self.conf_dir}/{self.mode.runtime_env}/{name}-wield.conf'
 
@@ -100,7 +98,7 @@ class WieldService:
             print(f'\nOverriding module conf with project conf\n')
 
             self.conf = get_conf_context_project(
-                project_root=self.project_root,
+                project_root=self.locale.project_root,
                 runtime_env=self.mode.runtime_env,
                 deploy_env=self.mode.deploy_env,
                 module_paths=module_paths
@@ -129,7 +127,7 @@ class WieldService:
 
     def make_sure_project_local_conf_exists(self):
 
-        personal_dir = f'{self.project_root}conf/personal'
+        personal_dir = f'{self.locale.project_root}conf/personal'
 
         if not os.path.exists(personal_dir):
             os.makedirs(personal_dir)
@@ -140,7 +138,7 @@ class WieldService:
 
             print(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
 
-            project_file = f'{self.project_root}conf/deploy_env/{self.mode.deploy_env}/project.conf'
+            project_file = f'{self.locale.project_root}conf/deploy_env/{self.mode.deploy_env}/project.conf'
 
             # TODO use in the future
             tmp_conf = Cf.parse_file(project_file)
@@ -181,7 +179,7 @@ class WieldService:
 
             relative_code_path = tmp_conf[self.name]['relativeCodePath']
 
-            local_code_path = f'{self.super_project_root}/{relative_code_path}'
+            local_code_path = f'{self.locale.super_project_root}/{relative_code_path}'
 
             with open(local_path, 'wt') as file_out:
 
