@@ -3,7 +3,7 @@ import os
 from wielder.util.util import get_external_ip
 from wielder.wield.enumerator import PlanType
 
-from wielder.wield.modality import WieldMode
+from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
 from wielder.util.arguer import wielder_sanity, get_kube_context
@@ -59,7 +59,7 @@ class WieldService:
     """
 
     def __init__(self, name, module_root, project_root, super_project_root, project_override=False,
-                 mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
+                 mode=None, service_mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
 
         self.name = name
         self.module_root = module_root
@@ -67,6 +67,7 @@ class WieldService:
         self.super_project_root = super_project_root
         self.project_override = project_override
         self.mode = mode if mode else WieldMode()
+        self.service_mode = service_mode if service_mode else WieldServiceMode()
         self.conf_dir = conf_dir if conf_dir else f'{module_root}conf'
         self.plan_dir = plan_dir if plan_dir else f'{module_root}plan'
 
@@ -76,13 +77,13 @@ class WieldService:
 
         module_paths = [self.wield_path]
 
-        if self.mode.debug_mode:
+        if self.service_mode.debug_mode:
 
             # adding to self to facilitate debugging
             self.debug_path = f'{self.conf_dir}/{name}-debug.conf'
             module_paths.append(self.debug_path)
 
-        if self.mode.local_mount:
+        if self.service_mode.local_mount:
 
             # adding to self to facilitate debugging
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
@@ -109,7 +110,7 @@ class WieldService:
 
             self.conf = get_conf_ordered_files(module_paths)
 
-        wielder_sanity(self.conf, self.mode)
+        wielder_sanity(self.conf, self.mode, self.service_mode)
 
         print('break')
 

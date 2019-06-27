@@ -135,7 +135,7 @@ def get_kube_parser():
     return parser
 
 
-def wielder_sanity(conf, mode):
+def wielder_sanity(conf, mode, service_mode):
 
     context = get_kube_context()
 
@@ -167,11 +167,11 @@ def wielder_sanity(conf, mode):
         print(message)
         exit(1)
 
-    if context != 'docker-for-desktop' and mode.local_mount:
+    if context != 'docker-for-desktop' and service_mode.local_mount:
 
         print(f"Local mount of code into container is only allowed on local development env:"
               f"\nkube context   : {conf.kube_context}"
-              f"\nmode.local_mount is: {mode.local_mount} "
+              f"\nmode.local_mount is: {service_mode.local_mount} "
               f"\neither change context or flag local_mount as false"
               f"\nto change context run:"
               f"\nkubectl config use-context <the context you meant>"
