@@ -59,8 +59,19 @@ def destroy_sanity(conf):
 
 def get_kube_parser():
 
-    parser = argparse.ArgumentParser(description=
-                                     'Marketo Kubernetes Reactive Extensions Framework, Created by Gideon Bar.')
+    parser = argparse.ArgumentParser(
+        description='Three rings for the cloud-kings in the sky'
+                    'Seven for the CI-CD-lords in their halls of stone,'
+                    'Nine for mortal services doomed to die,'
+                    'One for the Wielder on his Python throne'
+                    'In the Land of Babylon where technologies lie.'
+                    'One Wielder to rule them all, One Wielder to find them,'
+                    'One Wielder to bring them all, and in production bind them,'
+                    'In the Land of Babylon where technologies lie.'
+                    
+                    'Created by Gideon Bar to tame Bash, Git, Terraform, Containers, Kubernetes, Cloud CLIs etc.'
+                    'In to one debugable understandable Python framework.'
+    )
 
     parser.add_argument(
         '-cf', '--conf_file',
@@ -87,7 +98,7 @@ def get_kube_parser():
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure'],
         help='Runtime environment refers to where the Kubernetes cluster is running',
-        default='docker'
+        default=None
     )
 
     parser.add_argument(
@@ -95,7 +106,7 @@ def get_kube_parser():
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
         help='Deployment environment refers to stages of production',
-        default='dev'
+        default=None
     )
 
     parser.add_argument(

@@ -21,6 +21,85 @@ def get_module_root(file_context=__file__):
     return module_root
 
 
+def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
+
+    personal_dir = f'{project_root}conf/personal'
+
+    if not os.path.exists(personal_dir):
+        os.makedirs(personal_dir)
+
+    local_path = f'{personal_dir}/developer.conf'
+
+    if not os.path.exists(local_path):
+
+        print(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
+
+        if not runtime_env:
+            runtime_env = 'docker'
+
+        if not deploy_env:
+            deploy_env = 'dev'
+
+        project_file = f'{project_root}conf/deploy_env/{deploy_env}/project.conf'
+
+        # TODO use in the future
+        tmp_conf = Cf.parse_file(project_file)
+
+        current_kube_context = get_kube_context()
+
+        ip = '87.70.171.87'#get_external_ip()
+
+        local_properties = [
+            'explain = "This .gitignored file is where developers override configuration properties"',
+            f'runtime_env : {runtime_env}',
+            f'deploy_env : {deploy_env}',
+            '#replace the context below with the context of the kubernetes deployment your working on',
+            f'kube_context : {current_kube_context}',
+            f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
+            f'# Example how to override module WieldServiceMode\n'
+            f'slate.WieldServiceMode : {{\n\n'
+            f'  observe : true\n'
+            f'  service_only : false\n'
+            f'  debug_mode : true\n'
+            f'  local_mount : true\n'
+            f'}}'
+        ]
+        #
+        # relative_code_path = tmp_conf[self.name]['relativeCodePath']
+        #
+        # local_code_path = f'{self.super_project_root}/{relative_code_path}'
+
+        with open(local_path, 'wt') as file_out:
+
+            for p in local_properties:
+
+                file_out.write(f'{p}\n\n')
+
+
+def get_wield_mode(project_root, runtime_env=None, deploy_env=None):
+
+    if not runtime_env or not deploy_env:
+
+        make_sure_project_local_conf_exists(
+            project_root=project_root,
+            runtime_env=runtime_env,
+            deploy_env=deploy_env
+        )
+
+        developer_conf_path = f'{project_root}conf/personal/developer.conf'
+        dev_conf = Cf.parse_file(developer_conf_path)
+
+        if not runtime_env:
+            runtime_env = dev_conf.runtime_env
+
+        if not deploy_env:
+            deploy_env = dev_conf.deploy_env
+
+    wield_mode = WieldMode(runtime_env=runtime_env, deploy_env=deploy_env)
+
+    return wield_mode
+
+
 def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev', module_paths=[]):
     """
     Gets the configuration from environment specific config.
@@ -94,7 +173,11 @@ class WieldService:
 
         if self.project_override:
 
-            self.make_sure_project_local_conf_exists()
+            make_sure_project_local_conf_exists(
+                project_root=locale.project_root,
+                runtime_env=mode.runtime_env,
+                deploy_env=mode.deploy_env
+            )
             print(f'\nOverriding module conf with project conf\n')
 
             self.conf = get_conf_context_project(
@@ -124,46 +207,6 @@ class WieldService:
     def pretty(self):
 
         [print(it) for it in self.__dict__.items()]
-
-    def make_sure_project_local_conf_exists(self):
-
-        personal_dir = f'{self.locale.project_root}conf/personal'
-
-        if not os.path.exists(personal_dir):
-            os.makedirs(personal_dir)
-
-        local_path = f'{personal_dir}/developer.conf'
-
-        if not os.path.exists(local_path):
-
-            print(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
-
-            project_file = f'{self.locale.project_root}conf/deploy_env/{self.mode.deploy_env}/project.conf'
-
-            # TODO use in the future
-            tmp_conf = Cf.parse_file(project_file)
-
-            current_kube_context = get_kube_context()
-
-            ip = '87.70.171.87'#get_external_ip()
-
-            local_properties = [
-                'explain = "This .gitignored file is where developers override configuration properties"',
-                f'runtime_env : {self.mode.runtime_env}',
-                '#replace the context below with the context of the kubernetes deployment your working on',
-                f'kube_context : {current_kube_context}',
-                f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]'
-            ]
-            #
-            # relative_code_path = tmp_conf[self.name]['relativeCodePath']
-            #
-            # local_code_path = f'{self.super_project_root}/{relative_code_path}'
-
-            with open(local_path, 'wt') as file_out:
-
-                for p in local_properties:
-
-                    file_out.write(f'{p}\n\n')
 
     def make_sure_module_local_conf_exists(self):
 
