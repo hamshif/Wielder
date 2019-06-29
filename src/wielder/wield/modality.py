@@ -12,6 +12,10 @@ class WieldMode:
         :param runtime_env: kubernetes on docker, minikube, gc, aws, azure ....
         :param deploy_env: dev, int qa, prod ...
         """
+
+        runtime_env = runtime_env if runtime_env else 'docker'
+        deploy_env = deploy_env if deploy_env else 'dev'
+
         self.runtime_env = runtime_env
         self.deploy_env = deploy_env
 

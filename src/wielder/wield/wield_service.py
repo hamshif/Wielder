@@ -21,6 +21,31 @@ def get_module_root(file_context=__file__):
     return module_root
 
 
+def get_basic_module_properties(runtime_env, deploy_env, name):
+
+    current_kube_context = get_kube_context()
+
+    ip = '87.70.171.87'  # get_external_ip()
+
+    local_properties = [
+        'explain = "This .gitignored file is where developers override configuration properties"',
+        f'runtime_env : {runtime_env}',
+        f'deploy_env : {deploy_env}',
+        '#replace the context below with the context of the kubernetes deployment your working on',
+        f'kube_context : {current_kube_context}',
+        f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
+        f'# Override module WieldServiceMode\n'
+        f'{name}.WieldServiceMode : {{\n\n'
+        f'  observe : true\n'
+        f'  service_only : false\n'
+        f'  debug_mode : true\n'
+        f'  local_mount : true\n'
+        f'}}'
+    ]
+
+    return local_properties
+
+
 def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
 
     personal_dir = f'{project_root}conf/personal'
@@ -45,25 +70,12 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
         # TODO use in the future
         tmp_conf = Cf.parse_file(project_file)
 
-        current_kube_context = get_kube_context()
+        local_properties = get_basic_module_properties(runtime_env, deploy_env)
 
-        ip = '87.70.171.87'#get_external_ip()
+        # TODO
+        namespace = 'default'
 
-        local_properties = [
-            'explain = "This .gitignored file is where developers override configuration properties"',
-            f'runtime_env : {runtime_env}',
-            f'deploy_env : {deploy_env}',
-            '#replace the context below with the context of the kubernetes deployment your working on',
-            f'kube_context : {current_kube_context}',
-            f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
-            f'# Example how to override module WieldServiceMode\n'
-            f'slate.WieldServiceMode : {{\n\n'
-            f'  observe : true\n'
-            f'  service_only : false\n'
-            f'  debug_mode : true\n'
-            f'  local_mount : true\n'
-            f'}}'
-        ]
+        local_properties.append(f'namespace : {namespace}')
         #
         # relative_code_path = tmp_conf[self.name]['relativeCodePath']
         #
@@ -166,7 +178,7 @@ class WieldService:
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
             module_paths.append(self.local_mount)
 
-        self.local_path = f'{self.conf_dir}/{self.name}-local.conf'
+        self.local_path = f'{self.conf_dir}/{mode.runtime_env}/{self.name}-local.conf'
         module_paths.append(self.local_path)
 
         self.make_sure_module_local_conf_exists()
@@ -210,7 +222,7 @@ class WieldService:
 
     def make_sure_module_local_conf_exists(self):
 
-        local_path = f'{self.conf_dir}/{self.name}-local.conf'
+        local_path = f'{self.conf_dir}/{self.mode.runtime_env}/{self.name}-local.conf'
 
         if not os.path.exists(local_path):
 
@@ -224,7 +236,13 @@ class WieldService:
 
             local_code_path = f'{self.locale.super_project_root}/{relative_code_path}'
 
+            local_properties = get_basic_module_properties(self.mode.runtime_env, self.mode.deploy_env, self.name)
+
+            local_properties.append(f'{self.name}.codePath : {local_code_path}')
+
             with open(local_path, 'wt') as file_out:
 
-                file_out.write(f'\n{self.name}.codePath : {local_code_path}')
+                for p in local_properties:
+
+                    file_out.write(f'{p}\n\n')
 
