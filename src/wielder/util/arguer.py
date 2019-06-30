@@ -2,6 +2,8 @@
 import os
 
 from wielder.util.util import get_kube_context
+from wielder.wield.enumerator import WieldAction
+from wielder.wield.modality import WieldMode
 
 __author__ = 'Gideon Bar'
 
@@ -57,6 +59,26 @@ def destroy_sanity(conf):
     #         exit(1)
 
 
+def ensure_action_and_mode_from_args(action, mode):
+
+    if not mode or not action:
+
+        kube_parser = get_kube_parser()
+        kube_args = kube_parser.parse_args()
+
+        if not mode:
+
+            mode = WieldMode(
+                runtime_env=kube_args.runtime_env,
+                deploy_env=kube_args.deploy_env
+            )
+
+        if not action:
+            action = kube_args.wield
+
+    return action, mode
+
+
 def get_kube_parser():
 
     parser = argparse.ArgumentParser(
@@ -71,6 +93,15 @@ def get_kube_parser():
                     
                     'Created by Gideon Bar to tame Bash, Git, Terraform, Containers, Kubernetes, Cloud CLIs etc.'
                     'In to one debugable understandable Python framework.'
+    )
+
+    parser.add_argument(
+        '-w', '--wield',
+        type=WieldAction,
+        choices=list(WieldAction),
+        help='Wield actions:\n'
+             'plan: produces the configuration without applying it e.g. yaml for kubernetes or terraform vars',
+        default=WieldAction.APPLY
     )
 
     parser.add_argument(
@@ -286,10 +317,10 @@ def process_args(cmd_args, perform_sanity=True):
 
 if __name__ == "__main__":
 
-    kube_parser = get_kube_parser()
-    kube_args = kube_parser.parse_args()
+    _kube_parser = get_kube_parser()
+    _kube_args = _kube_parser.parse_args()
 
-    _conf = process_args(kube_args)
+    _conf = process_args(_kube_args)
 
     destroy_sanity(_conf)
 

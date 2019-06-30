@@ -32,5 +32,10 @@ def bash_command(command, shell=False):
 
 if __name__ == "__main__":
 
-    subprocess_cmd('echo a; echo b')
+    a = async_cmd('/usr/local/bin/kubectl config current-context')
+    print(a)
+
+    a = async_cmd('kubectl config current-context')
+    print(a)
+    # subprocess_cmd('echo a; echo b')
 
