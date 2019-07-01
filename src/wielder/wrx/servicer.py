@@ -45,6 +45,8 @@ def get_service(name, namespace="default"):
 
 
 # TODO merge this with init_observe_service or deprecate
+# TODO find a better way to make sure the service is up
+# make sure the service in the cloud is up by checking ip
 def observe_service(svc_name, svc_namespace):
 
     interval = 5

@@ -19,8 +19,11 @@ class WieldPlan:
         self.plan_dir = plan_dir
         self.plan_format = plan_format
         self.ordered_kube_resources = []
-        # TODO consider where to get namespace
-        self.namespace = 'default'
+
+        self.module_conf = self.conf[self.name]
+        self.namespace = self.module_conf.namespace
+        self.ordered_kube_resources = self.module_conf.ordered_kube_resources
+
         self.plans = []
         self.plan_paths = []
 
@@ -62,16 +65,11 @@ class WieldPlan:
             self.delete(auto_approve)
             return
 
-        module_conf = self.conf[self.name]
-
-        self.namespace = module_conf.namespace
-        self.ordered_kube_resources = self.conf.ordered_kube_resources
-
         self.plan()
 
         if action == action.APPLY:
 
-            self.apply(module_conf.observe_deploy, module_conf.observe_svc)
+            self.apply(self.module_conf.observe_deploy, self.module_conf.observe_svc)
 
         print('break')
 
@@ -84,11 +82,9 @@ class WieldPlan:
 
             if res == 'service' and observe_svc:
 
-                # TODO find a better way to make sure the service is up
-                # make sure the service in the cloud is up by checking ip
                 observe_service(
-                    self.name,
-                    namespace=self.namespace
+                    svc_name=self.name,
+                    svc_namespace=self.namespace
                 )
 
             elif res == 'deploy' and observe_deploy:
@@ -105,8 +101,6 @@ class WieldPlan:
     def delete(self, auto_approve=False):
 
         destroy_sanity(self.conf)
-
-        self.ordered_kube_resources = self.conf.ordered_kube_resources
 
         if not auto_approve:
 
