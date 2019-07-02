@@ -185,12 +185,10 @@ class WieldService(WielderBase):
         * Specific fields in the configuration
     """
 
-    def __init__(self, name, locale, project_override=False,
-                 mode=None, service_mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
+    def __init__(self, name, locale, mode=None, service_mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
 
         self.name = name
         self.locale = locale
-        self.project_override = project_override
         self.mode = mode if mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
         self.conf_dir = conf_dir if conf_dir else f'{locale.module_root}conf'
@@ -219,7 +217,7 @@ class WieldService(WielderBase):
 
         self.make_sure_module_local_conf_exists()
 
-        if self.project_override:
+        if self.service_mode.project_override:
 
             make_sure_project_local_conf_exists(
                 project_root=locale.project_root,
