@@ -1,6 +1,7 @@
 import os
 
 from wielder.util.util import get_external_ip
+from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType
 
 from wielder.wield.modality import WieldMode, WieldServiceMode
@@ -139,7 +140,42 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     return get_conf_ordered_files(ordered_project_files)
 
 
-class WieldService:
+class WieldProject(WielderBase):
+    """
+
+    """
+    def __init__(self, name, locale, conf, mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
+
+        self.name = name
+        self.locale = locale
+        self.conf = conf
+        self.mode = mode if mode else WieldMode()
+        self.conf_dir = conf_dir if conf_dir else f'{locale.project_root}conf'
+        self.plan_dir = plan_dir if plan_dir else f'{locale.project_root}plan'
+
+        self.pretty()
+
+        make_sure_project_local_conf_exists(
+            project_root=locale.project_root,
+            runtime_env=mode.runtime_env,
+            deploy_env=mode.deploy_env
+        )
+
+        wielder_sanity(self.conf, self.mode)
+
+        print('break')
+
+        self.plan = WieldPlan(
+            name=self.name,
+            conf=self.conf,
+            plan_dir=self.plan_dir,
+            plan_format=plan_format
+        )
+
+        self.plan.pretty()
+
+
+class WieldService(WielderBase):
     """
     A class wrapping configuration and code to deploy a service on Kubernetes
     disambiguation: service => a set of kubernetes resources
@@ -215,10 +251,6 @@ class WieldService:
         )
 
         self.plan.pretty()
-
-    def pretty(self):
-
-        [print(it) for it in self.__dict__.items()]
 
     def make_sure_module_local_conf_exists(self):
 

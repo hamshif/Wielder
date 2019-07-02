@@ -177,7 +177,7 @@ def get_kube_parser():
     return parser
 
 
-def wielder_sanity(conf, mode, service_mode):
+def wielder_sanity(conf, mode, service_mode=None):
 
     context = get_kube_context()
 
@@ -208,6 +208,9 @@ def wielder_sanity(conf, mode, service_mode):
     elif 'gke' in context and mode.runtime_env != 'gcp':
         print(message)
         exit(1)
+
+    if not service_mode:
+        return
 
     if context != 'docker-for-desktop' and service_mode.local_mount:
 

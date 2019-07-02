@@ -4,13 +4,14 @@ import sys
 import select
 
 from pyhocon.tool import HOCONConverter as Hc
+from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wrx.deployer import get_pods, observe_pod
 from wielder.wrx.servicer import observe_service
 from wielder.util.arguer import destroy_sanity
 
 
-class WieldPlan:
+class WieldPlan(WielderBase):
 
     def __init__(self, name, conf, plan_dir, plan_format=PlanType.YAML):
 
@@ -18,7 +19,6 @@ class WieldPlan:
         self.conf = conf
         self.plan_dir = plan_dir
         self.plan_format = plan_format
-        self.ordered_kube_resources = []
 
         self.module_conf = self.conf[self.name]
         self.namespace = self.module_conf.namespace
@@ -26,10 +26,6 @@ class WieldPlan:
 
         self.plans = []
         self.plan_paths = []
-
-    def pretty(self):
-
-        [print(it) for it in self.__dict__.items()]
 
     def to_plan_path(self, res):
 
