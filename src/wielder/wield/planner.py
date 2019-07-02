@@ -57,11 +57,11 @@ class WieldPlan(WielderBase):
         if not isinstance(action, WieldAction):
             raise TypeError("action must of type WieldAction")
 
+        self.plan()
+
         if action == action.DELETE:
             self.delete(auto_approve)
             return
-
-        self.plan()
 
         if action == action.APPLY:
 
