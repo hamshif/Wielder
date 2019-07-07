@@ -26,6 +26,7 @@ def get_basic_module_properties(runtime_env, deploy_env, name):
 
     current_kube_context = get_kube_context()
 
+    # TODO find out why getting ip fails when accessed through rx multi process
     ip = '87.70.171.87'  # get_external_ip()
 
     local_properties = [

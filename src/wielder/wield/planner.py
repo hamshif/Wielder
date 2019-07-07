@@ -52,7 +52,7 @@ class WieldPlan(WielderBase):
 
             self.plan_paths.append(plan_path)
 
-    def wield(self, action=WieldAction.PLAN, auto_approve=False):
+    def wield(self, action=WieldAction.PLAN, auto_approve=False, service_only=False):
 
         if not isinstance(action, WieldAction):
             raise TypeError("action must of type WieldAction")
@@ -65,34 +65,52 @@ class WieldPlan(WielderBase):
 
         if action == action.APPLY:
 
-            self.apply(self.module_conf.observe_deploy, self.module_conf.observe_svc)
+            self.apply(
+                self.module_conf.observe_deploy,
+                self.module_conf.observe_svc,
+                service_only
+            )
 
         print('break')
 
-    def apply(self, observe_deploy=False, observe_svc=False):
+    def apply(self, observe_deploy=False, observe_svc=False, service_only=False):
 
-        for res in self.ordered_kube_resources:
+        if service_only:
 
-            plan_path = self.to_plan_path(res=res)
+            plan_path = self.to_plan_path(res='service')
             os.system(f"kubectl apply -f {plan_path};")
 
-            if res == 'service' and observe_svc:
+        else:
 
-                observe_service(
-                    svc_name=self.name,
-                    svc_namespace=self.namespace
-                )
+            for res in self.ordered_kube_resources:
 
-            elif res == 'deploy' and observe_deploy:
+                plan_path = self.to_plan_path(res=res)
+                os.system(f"kubectl apply -f {plan_path};")
 
-                # Observe the pods created
-                pods = get_pods(
-                    self.name,
-                    namespace=self.namespace
-                )
+                if res == 'service' and observe_svc:
 
-                for pod in pods:
-                    observe_pod(pod)
+                    observe_service(
+                        svc_name=self.name,
+                        svc_namespace=self.namespace
+                    )
+
+                elif res == 'deploy' and observe_deploy:
+
+                    # Observe the pods created
+                    pods = get_pods(
+                        self.name,
+                        namespace=self.namespace
+                    )
+
+                    for pod in pods:
+                        observe_pod(pod)
+
+        if self.module_conf.observe_svc:
+
+            observe_service(
+                svc_name=self.name,
+                svc_namespace=self.namespace
+            )
 
     def delete(self, auto_approve=False):
 

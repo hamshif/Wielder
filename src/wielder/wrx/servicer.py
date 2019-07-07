@@ -22,9 +22,6 @@ def get_svc_ip(svc):
     if ingress is None:
         return None
 
-    ingress = svc.status.load_balancer.ingress
-    print(f"ingress: {ingress} is of type: {type(ingress)}")
-
     outer_ip = ingress[0].ip
     print(f"outer ip: {outer_ip} is of type: {type(outer_ip)}")
     return outer_ip
@@ -53,6 +50,7 @@ def observe_service(svc_name, svc_namespace):
 
     time_waiting = 0
     svc = None
+    ip = None
 
     while ip is None:
 
