@@ -60,10 +60,10 @@ class WieldPlan(WielderBase):
         self.plan()
 
         if action == action.DELETE:
-            self.delete(auto_approve)
-            return
 
-        if action == action.APPLY:
+            self.delete(auto_approve)
+
+        elif action == action.APPLY:
 
             self.apply(
                 self.module_conf.observe_deploy,

@@ -3,7 +3,7 @@ import os
 
 from wielder.util.util import get_kube_context
 from wielder.wield.enumerator import WieldAction
-from wielder.wield.modality import WieldMode
+from wielder.wield.modality import WieldMode, WieldServiceMode
 
 __author__ = 'Gideon Bar'
 
@@ -59,39 +59,51 @@ def destroy_sanity(conf):
     #         exit(1)
 
 
-def ensure_action_and_mode_from_args(action, mode):
+def ensure_none_variables_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
 
-    if not mode or not action:
+    kube_parser = get_kube_parser()
+    kube_args = kube_parser.parse_args()
 
-        kube_parser = get_kube_parser()
-        kube_args = kube_parser.parse_args()
+    if not mode:
 
-        if not mode:
+        mode = WieldMode(
+            runtime_env=kube_args.runtime_env,
+            deploy_env=kube_args.deploy_env
+        )
 
-            mode = WieldMode(
-                runtime_env=kube_args.runtime_env,
-                deploy_env=kube_args.deploy_env
-            )
+    if not action:
+        action = kube_args.wield
 
-        if not action:
-            action = kube_args.wield
+    if not enable_debug:
+        enable_debug = kube_args.enable_debug
 
-    return action, mode
+    if not local_mount:
+        local_mount = kube_args.local_mount
+
+    if not service_mode:
+
+        service_mode = WieldServiceMode(
+            debug_mode=enable_debug,
+            local_mount=local_mount,
+            project_override=project_override
+        )
+
+    return action, mode, enable_debug, local_mount, service_mode
 
 
 def get_kube_parser():
 
     parser = argparse.ArgumentParser(
-        description='Three rings for the cloud-kings in the sky'
-                    'Seven for the CI-CD-lords in their halls of stone,'
-                    'Nine for mortal services doomed to die,'
-                    'One for the Wielder on his Python throne'
-                    'In the Land of Babylon where technologies lie.'
-                    'One Wielder to rule them all, One Wielder to find them,'
-                    'One Wielder to bring them all, and in production bind them,'
-                    'In the Land of Babylon where technologies lie.'
+        description='Three rings for the cloud-kings in the sky,\n'
+                    'Seven for the CI-CD-lords in their halls of stone,\n'
+                    'Nine for mortal services doomed to die,\n'
+                    'One for the Wielder on his Python throne\n'
+                    'In the Land of Babylon where technologies lie.\n'
+                    'One ring to rule them all, One ring to find them,\n'
+                    'One ring to bring them all, and in the a framework bind them,\n'
+                    'In the Land of Babylon where technologies lie.\n\n'
                     
-                    'Created by Gideon Bar to tame Bash, Git, Terraform, Containers, Kubernetes, Cloud CLIs etc.'
+                    'Created by Gideon Bar to tame Bash, Git, Terraform, Containers, Kubernetes, Cloud CLIs etc.\n'
                     'In to one debugable understandable Python framework.'
     )
 
@@ -100,21 +112,16 @@ def get_kube_parser():
         type=WieldAction,
         choices=list(WieldAction),
         help='Wield actions:\n'
-             'plan: produces the configuration without applying it e.g. yaml for kubernetes or terraform vars',
-        default=WieldAction.APPLY
+             'plan: produces the configuration without applying it e.g. yaml for kubernetes or terraform vars\n'
+             'apply: deploys the plan\n'
+             'delete: deletes the deployed resources',
+        default=WieldAction.PLAN
     )
 
     parser.add_argument(
         '-cf', '--conf_file',
         type=str,
         help='Full path to config file with all arguments.\nCommandline args override those in the file.'
-    )
-
-    parser.add_argument(
-        '-pl', '--plan',
-        type=bool,
-        default=False,
-        help='plan means to create kube yaml files but not deploy.'
     )
 
     parser.add_argument(
@@ -156,22 +163,30 @@ def get_kube_parser():
     )
 
     parser.add_argument(
-        '-ds', '--deploy_strategy',
-        type=str,
-        help='Deployment strategy e.g. "lean" means:\n'
-             'single mongo and redis pods to conserve resources while developing or testing'
-    )
-
-    parser.add_argument(
         '-edb', '--enable_debug',
         type=bool,
+        default=False,
         help='Enabling Debug ports for remote debugging:'
     )
 
     parser.add_argument(
         '-edv', '--enable_dev',
         type=bool,
-        help='Enabling Development on pods e.g. mot running the java process on cep:'
+        help='Enabling Development on pods e.g. running a dud while loop instead of the server process:'
+    )
+
+    parser.add_argument(
+        '-lm', '--local_mount',
+        type=bool,
+        default=False,
+        help='If kubernetes should mount a local directory to the docker, used for local development'
+    )
+
+    parser.add_argument(
+        '-ds', '--deploy_strategy',
+        type=str,
+        help='Deployment strategy e.g. "lean" means:\n'
+             'single mongo and redis pods to conserve resources while developing or testing'
     )
 
     return parser
