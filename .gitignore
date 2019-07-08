@@ -29,7 +29,6 @@
 /__pycache__
 
 *.egg*
-__init__.py
 conf/
 deploy/slate-deploy.yaml.tmpl
 deploy/slate-pv.yaml.tmpl
