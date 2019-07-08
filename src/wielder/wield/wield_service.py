@@ -8,7 +8,8 @@ from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
 from wielder.util.arguer import wielder_sanity
-from wielder.wield.wield_project import make_sure_project_local_conf_exists, get_basic_module_properties
+from wielder.wield.wield_project import make_sure_project_local_conf_exists, get_basic_module_properties, \
+    get_conf_context_project
 
 
 def get_module_root(file_context=__file__):
@@ -20,33 +21,6 @@ def get_module_root(file_context=__file__):
     print(f"Module root: {module_root}")
 
     return module_root
-
-
-def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev', module_paths=[]):
-    """
-    Gets the configuration from environment specific config.
-    Config files gateways [specific include statements] have to be placed and named according to convention.
-    :param project_root: the project root for inferring config and plan paths
-    :param module_paths: paths to module files their values get overridden by project
-    :param deploy_env: Development stage [dev, int, qa, stage, prod]
-    :param runtime_env: Where the kubernetes cluster is running
-    :return: pyhocon configuration tree object
-    :except: If both data_conf_env are not None
-    """
-
-    project_conf_path = f'{project_root}conf/project.conf'
-    runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
-    deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
-    developer_conf_path = f'{project_root}conf/personal/developer.conf'
-
-    ordered_project_files = module_paths + [
-        project_conf_path,
-        runtime_conf_path,
-        deploy_env_conf_path,
-        developer_conf_path
-    ]
-
-    return get_conf_ordered_files(ordered_project_files)
 
 
 class WieldService(WielderBase):
