@@ -59,7 +59,7 @@ def destroy_sanity(conf):
     #         exit(1)
 
 
-def ensure_none_variables_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
+def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
 
     kube_parser = get_kube_parser()
     kube_args = kube_parser.parse_args()
