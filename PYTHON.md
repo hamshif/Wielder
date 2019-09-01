@@ -45,7 +45,7 @@ dependencies
 
  ```
  workon wielder
- pip install kubernetes flask rx
+ pip install kubernetes flask rx pyhocon
  ```
 or Use requirements.txt in rxkube dir to fill the environment:
  
