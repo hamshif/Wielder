@@ -1,0 +1,33 @@
+cachetools==3.1.1
+certifi==2019.6.16
+chardet==3.0.4
+Click==7.0
+Cython==0.29.13
+-e git+https://github.com/hamshif/data-common.git@756a6a7197bb79fead628b36b17d0b6de504153f#egg=data_common&subdirectory=../../data-common/src
+Flask==1.1.1
+google-auth==1.6.3
+idna==2.8
+itsdangerous==1.1.0
+Jinja2==2.10.1
+jprops==2.0.2
+kubernetes==10.0.1
+MarkupSafe==1.1.1
+mysql==0.0.2
+mysqlclient==1.4.4
+oauthlib==3.1.0
+pyasn1==0.4.7
+pyasn1-modules==0.2.6
+pyhocon==0.3.51
+pyparsing==2.4.2
+python-dateutil==2.8.0
+PyYAML==5.1.2
+requests==2.22.0
+requests-oauthlib==1.2.0
+rsa==4.0
+Rx==1.6.1
+six==1.12.0
+urllib3==1.25.3
+websocket-client==0.56.0
+Werkzeug==0.15.5
+-e git+https://github.com/hamshif/wield-services.git@70d9651bbcb93db853382f4c4637be65ba0fa661#egg=wield_services&subdirectory=../../wield-services/src
+-e git+https://github.com/hamshif/Wielder.git@3e2312fc8b364e93ba76b53717356252554b41b3#egg=wielder&subdirectory=../../Wielder/src
