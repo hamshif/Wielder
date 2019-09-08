@@ -25,6 +25,7 @@ def get_basic_module_properties(runtime_env, deploy_env, name):
         '#replace the context below with the context of the kubernetes deployment your working on',
         f'kube_context : {current_kube_context}',
         f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
+        f'deployments : [\n{name}\n]',
         f'# Override module WieldServiceMode\n'
         f'{name}.WieldServiceMode : {{\n\n'
         f'  observe : true\n'
@@ -61,7 +62,11 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
         # TODO use in the future
         tmp_conf = Cf.parse_file(project_file)
 
-        local_properties = get_basic_module_properties(runtime_env, deploy_env)
+        local_properties = get_basic_module_properties(
+            runtime_env=runtime_env,
+            deploy_env=deploy_env,
+            name='slate'
+        )
 
         # TODO
         namespace = 'default'
