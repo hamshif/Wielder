@@ -16,7 +16,7 @@ from collections import namedtuple
 from wielder.util.commander import async_cmd
 
 CONTEXT_MINI = 'minikube'
-CONTEXT_DOCKER = 'docker-for-desktop'
+CONTEXT_DOCKER = 'docker-desktop'
 
 LOCAL_CONTEXTS = [CONTEXT_DOCKER, CONTEXT_MINI]
 
@@ -127,8 +127,8 @@ def get_kube_parser():
     parser.add_argument(
         '-kc', '--kube_context',
         type=str,
-        help='Kubernetes context i.e. run locally on docker or in cloud e.g.'
-             '\ndocker-for-desktop'
+        help=f'Kubernetes context i.e. run locally on docker or in cloud e.g.'
+             '\n{CONTEXT_DOCKER}'
     )
 
     parser.add_argument(
@@ -217,7 +217,7 @@ def wielder_sanity(conf, mode, service_mode=None):
         f"\nkubectl config use-context <the context you meant>" \
         f"\n!!! Exiting ..."
 
-    if context == 'docker-for-desktop' and mode.runtime_env != 'docker':
+    if context == CONTEXT_DOCKER and mode.runtime_env != 'docker':
         print(message)
         exit(1)
     elif 'gke' in context and mode.runtime_env != 'gcp':
@@ -227,7 +227,7 @@ def wielder_sanity(conf, mode, service_mode=None):
     if not service_mode:
         return
 
-    if context != 'docker-for-desktop' and service_mode.local_mount:
+    if context != CONTEXT_DOCKER and service_mode.local_mount:
 
         print(f"Local mount of code into container is only allowed on local development env:"
               f"\nkube context   : {conf.kube_context}"
