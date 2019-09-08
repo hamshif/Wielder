@@ -39,3 +39,6 @@ if __name__ == "__main__":
     print(a)
     # subprocess_cmd('echo a; echo b')
 
+    a = async_cmd('docker images | grep dev | grep perl;')
+    print(a)
+

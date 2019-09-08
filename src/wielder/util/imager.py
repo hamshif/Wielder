@@ -54,7 +54,7 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
     :param origin_regex: Origin file regex e.g. App*.zip (AppV1.zip, AppV2.zip ...)
            to be found in path for sanity check
     :param destination_path: A destination directory
-           where an the content of the executable directory can be copied to
+           where the content of the executable directory can be copied to
     :param destination_dir_name: the name of the destination directory defaults to: artifacts
     :return:
     """
@@ -115,8 +115,10 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
 
     gcp_conf = conf.providers.gcp
 
+    _cmd = f'docker images | grep {tag} | grep {image_name};'
+
     image_trace = async_cmd(
-        f'$(docker images | grep {tag} | grep {image_name});'
+        _cmd
     )
 
     print(f"{name} image_trace: {image_trace}")
