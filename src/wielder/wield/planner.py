@@ -141,7 +141,7 @@ class WieldPlan(WielderBase):
 
             os.system(f"kubectl delete -f {plan_path} --wait=false;")
 
-        os.system(f"kubectl delete po -l app={self.name} --force --grace-period=0;")
+        os.system(f"kubectl delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
 
 
 
