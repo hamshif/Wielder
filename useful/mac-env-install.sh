@@ -2,7 +2,7 @@
 
 xcode-select --install
 
-# git credentials for marketo
+# git credentials for
 if [[ $(command ssh-add -l | grep  `ssh-keygen -lf ~/.ssh/id_rsa  | awk '{print $2}'`) == "" ]]; then
     echo "Adding key to  ~/.ssh/id_rsa"
     ssh-add -K ~/.ssh/id_rsa

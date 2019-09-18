@@ -157,7 +157,7 @@ def get_kube_parser():
     parser.add_argument(
         '-gp', '--gcp_project',
         type=str,
-        choices=['marketo-webpersonalization-dev', 'rtp-gcp-poc'],
+        choices=['wielder-dev', 'wielder-gcp-poc'],
         help='GCP project for GKE means:\n'
              'Which project to use for deploy and resources.'
     )

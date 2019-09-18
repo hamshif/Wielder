@@ -22,8 +22,8 @@ cloud_provider: gcp
 # ----------- GCP ---------------
 
 gcp:
-  project: marketo-datalake-dev
-  zone: eu.gcr.io
+  project: hamshif-datalake-dev
+#  zone: eu.gcr.io
   is_shared_vpc: True
   region: global
   zone: us-west1-a
