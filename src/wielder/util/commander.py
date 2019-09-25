@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import subprocess as sp
+import shlex
 
 
 def async_cmd(args, verbose=False, executable='/bin/sh'):
@@ -28,6 +29,33 @@ def bash_command(command, shell=False):
         return output.strip()
     except Exception as e:
         raise Exception(f"Error occurred while trying to run bash command: {e}")
+
+
+def cmd_for_return_code(command):
+    """
+    Runs a linux shell command and:
+    1. Ignores standard output.
+    2. Listens for errors.
+    3. Waits for return code.
+    :param command: compound Linux command
+    :return: return code.
+    """
+
+    args = shlex.split(command)
+
+    # p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE)
+
+    p = sp.Popen(args, stderr=sp.PIPE)
+
+    output, err = p.communicate()
+    print(f'output: {output}')
+    print(f'err: {err}')
+
+    rc = p.returncode
+
+    print(f'Shell return code: {rc}')
+
+    return rc
 
 
 if __name__ == "__main__":
