@@ -85,6 +85,8 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
 
     print(f"successfully replaced {full_destination}")
 
+    return target_file
+
 
 def push_image(gcp_conf, name, group, tag):
 
