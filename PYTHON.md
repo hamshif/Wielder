@@ -2,68 +2,37 @@
 Python
 =
 
-create virtualenv
+Virtual Environment
 -
- ```
- brew install python3
- pip3 install virtualenv virtualenvwrapper
- mkvirtualenv -p $(which python3) wielder
- ```
- in .zshrc
- 
- add these lines:
- 
+pyenv virtualenvs 
 ```
-  
-# set where virutal environments will live
-export WORKON_HOME=$HOME/.virtualenvs
-# ensure all new environments are isolated from the site-packages directory
-export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages'
-# use the same directory for virtualenvs as virtualenvwrapper
-export PIP_VIRTUALENV_BASE=$WORKON_HOME
+brew install pyenv
+pyenv install 3.6.5
+brew install pyenv-virtualenv pyenv-virtualenvwrapper
+```
+To config add these lines in .zshrc or .bashrc
+```
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+```
 
-# makes pip detect an active virtualenv and install to it
-export PIP_RESPECT_VIRTUALENV=true
-if [[ -r /usr/local/bin/virtualenvwrapper.sh ]]; then
- source /usr/local/bin/virtualenvwrapper.sh
-else
- echo "WARNING: Can't find virtualenvwrapper.sh"
-fi
- 
-VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
- 
-source /usr/local/bin/virtualenvwrapper.sh
-  ```
- 
-dependencies
--
- ```
- cd RtpKube
- echo "export PYTHONPATH=$(PYTHONPATH):$(pwd)" >> ~/.bashrc
- source ~/.bashrc
- ```
+Create virtualenv
+```
+pyenv virtualenv 3.6.5 wielder
+pyenv activate wielder 
+```
 
- ```
- workon wielder
- pip install kubernetes flask rx==1.6.1
- pip install kubernetes flask pyhocon Cython
- ```
-or Use requirements.txt in rxkube dir to fill the environment:
+dependencies while in virtualenv active shell
+```
+pip install rx==1.6.1
+pip install kubernetes flask pyhocon Cython Kazoo Kafka apache-airflow
+```
+while wielder virtualenv is active run package_py.bash files in
+1. Wielder
+1. wield-services
+1. data-common
  
- ```
- workon wielder
- pip install -r requirements.txt --no-index --find-links file:///tmp/packages
- ```
 
- 
-use virtualenv in any shell
--
- ```
- workon wielder
- which python 
- python --version
- deactivate
- ```
 from virtualenv context in any shell call any project script (right click -> copy path)  
 to see help add -h 
 
