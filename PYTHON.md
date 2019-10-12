@@ -5,6 +5,7 @@ Python
 Virtual Environment
 -
 pyenv virtualenvs 
+https://github.com/pyenv/pyenv-virtualenv
 ```
 brew install pyenv
 pyenv install 3.6.5
