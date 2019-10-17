@@ -27,6 +27,7 @@ dependencies while in virtualenv active shell
 ```
 pip install rx==1.6.1
 pip install kubernetes flask pyhocon Cython Kazoo Kafka apache-airflow
+pip install kafka-python
 ```
 while wielder virtualenv is active run package_py.bash files in
 1. Wielder
