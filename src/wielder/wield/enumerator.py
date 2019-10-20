@@ -22,3 +22,10 @@ class WieldAction(Enum):
     DELETE = 'delete'
 
 
+class Languages(Enum):
+    PYTHON = 'Python'
+    JAVA = 'Java'
+    SCALA = 'Scala'
+    PERL = 'Perl'
+
+

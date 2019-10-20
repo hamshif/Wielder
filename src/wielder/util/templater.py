@@ -5,7 +5,85 @@ import jprops
 from jprops import _CommentSentinel
 from pyhocon import ConfigTree
 
-from wielder.util.arguer import get_kube_parser, process_args, Conf
+from wielder.util.arguer import Conf
+
+IGNORED_DIRS = ['__pycache__', 'plan', 'artifacts']
+
+
+def variation_copy_dir(origin_path, dest_path, _old='slate', _new='micro'):
+    """
+
+    :param origin_path:
+    :param dest_path:
+    :param slate:
+    :param instance:
+    :return:
+    """
+
+    os.makedirs(dest_path, exist_ok=True)
+
+    for subdir, dirs, files in os.walk(origin_path):
+        # print(f"dirs: \n{dirs}")
+
+        dir_name = subdir[subdir.rfind('/') + 1:]
+        _new_dir = subdir.replace(origin_path, dest_path).replace(_old, _new)
+
+        if dir_name not in IGNORED_DIRS:
+
+            print(_new_dir)
+
+            os.makedirs(_new_dir, exist_ok=True)
+
+            for file in files:
+
+                origin_file = os.path.join(subdir, file)
+                print(f"origin:      {origin_file}")
+
+                destination_path = origin_file.replace(origin_path, dest_path).replace(_old, _new)
+
+                print(f"destination: {destination_path}")
+                replace_all_in_file(
+                        origin_path=origin_file,
+                        dest_path=destination_path,
+                        _old=_old,
+                        _new=_new
+                    )
+
+                print('break')
+
+        else:
+            print(f"ignoring dir_name: {dir_name}")
+
+    return None
+
+
+def replace_all_in_file(origin_path, dest_path, _old='slate', _new='micro'):
+    """
+
+    :param origin_path:
+    :param dest_path:
+    :param slate:
+    :param instance:
+    :return:
+    """
+
+    try:
+
+        with open(origin_path, "rt") as file_in:
+
+            with open(dest_path, "wt") as file_out:
+
+                for line in file_in:
+
+                    if _old in line:
+
+                        line = line.replace(_old, _new)
+
+                    file_out.write(line)
+    except Exception as e:
+
+        print(f'origin_path: {origin_path}')
+        print(e)
 
 
 # TODO Consider switching from tuples to dict
@@ -20,7 +98,7 @@ def get_template_var_by_key(template_variables, key):
 
 def gather_templates(dir_path, conf):
     """
-    This function produces a list of full paths of files ending with .tmpl from all sub  directories that are not ignored in conf
+    This function produces a list of full paths of files ending with .tmpl from all sub  directories that are not IGNORED_DIRS in conf
     :param dir_path: Path to the directory to be purged
     :return: None
     """
@@ -49,7 +127,7 @@ def gather_templates(dir_path, conf):
 
 def remove_non_templates(dir_path, conf):
     """
-    This function will delete files ending with .yaml .json from all sub  directories that are not ignored in conf
+    This function will delete files ending with .yaml .json from all sub  directories that are not IGNORED_DIRS in conf
     :param dir_path: Path to the directory to be purged
     :return: None
     """
