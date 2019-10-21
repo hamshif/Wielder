@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+from shutil import copyfile
 
 from wielder.util.arguer import replace_none_vars_from_args
 from wielder.wield.enumerator import Languages
@@ -23,9 +24,11 @@ def has_end(whole, ends):
     return False
 
 
-def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored_dirs=[], ignored_files=[]):
+def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored_dirs=[],
+                       ignored_files=[], replace_in_copy=True):
     """
 
+    :param replace_in_copy:
     :param ignored_files:
     :param ignored_dirs:
     :param origin_path:
@@ -60,12 +63,17 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
                 destination_path = origin_file.replace(origin_path, dest_path).replace(origin_name, target_name)
 
                 print(f"destination: {destination_path}")
-                variation_copy_file(
-                    origin_path=origin_file,
-                    dest_path=destination_path,
-                    origin_name=origin_name,
-                    target_name=target_name
-                )
+
+                if replace_in_copy:
+
+                    variation_copy_file(
+                        origin_path=origin_file,
+                        dest_path=destination_path,
+                        origin_name=origin_name,
+                        target_name=target_name
+                    )
+                else:
+                    copyfile(origin_file, destination_path)
 
                 print('break')
 
@@ -152,7 +160,8 @@ def create_infrastructure(
             origin_name=origin_module,
             target_name=target_module,
             ignored_dirs=PROJECT_IGNORED_DIRS,
-            ignored_files=IGNORED_FILE_TYPES
+            ignored_files=IGNORED_FILE_TYPES,
+            replace_in_copy=False
         )
 
         modules_root = f'{project_root}{standard_module_sub_path}'
