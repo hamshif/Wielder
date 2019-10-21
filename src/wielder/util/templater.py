@@ -7,63 +7,77 @@ from pyhocon import ConfigTree
 
 from wielder.util.arguer import Conf
 
-IGNORED_DIRS = ['__pycache__', 'plan', 'artifacts']
+
+def has_end(whole, ends):
+
+    for end in ends:
+
+        if whole.endswith(end):
+
+            return True
+
+    return False
 
 
-def variation_copy_dir(origin_path, dest_path, _old='slate', _new='micro'):
+def variation_copy_dir(origin_path, dest_path, origin_name='slate', target_name='micro', ignored_dirs=[], ignored_files=[]):
     """
 
+    :param ignored_files: 
+    :param ignored_dirs:
     :param origin_path:
     :param dest_path:
-    :param slate:
-    :param instance:
+    :param origin_name:
+    :param target_name:
     :return:
     """
 
     os.makedirs(dest_path, exist_ok=True)
 
     for subdir, dirs, files in os.walk(origin_path):
-        # print(f"dirs: \n{dirs}")
+
+        dirs[:] = [d for d in dirs if not has_end(d, ignored_dirs)]
+
+        print(f"subdir: {subdir} \ndirs: \n{dirs}")
 
         dir_name = subdir[subdir.rfind('/') + 1:]
-        _new_dir = subdir.replace(origin_path, dest_path).replace(_old, _new)
+        _new_dir = subdir.replace(origin_path, dest_path).replace(origin_name, target_name)
 
-        if dir_name not in IGNORED_DIRS:
+        print(_new_dir)
 
-            print(_new_dir)
+        os.makedirs(_new_dir, exist_ok=True)
 
-            os.makedirs(_new_dir, exist_ok=True)
+        for _file in files:
 
-            for file in files:
+            if not has_end(_file, ignored_files):
 
-                origin_file = os.path.join(subdir, file)
+                origin_file = os.path.join(subdir, _file)
                 print(f"origin:      {origin_file}")
 
-                destination_path = origin_file.replace(origin_path, dest_path).replace(_old, _new)
+                destination_path = origin_file.replace(origin_path, dest_path).replace(origin_name, target_name)
 
                 print(f"destination: {destination_path}")
-                replace_all_in_file(
+                variation_copy_file(
                         origin_path=origin_file,
                         dest_path=destination_path,
-                        _old=_old,
-                        _new=_new
+                        origin_name=origin_name,
+                        target_name=target_name
                     )
 
                 print('break')
 
-        else:
-            print(f"ignoring dir_name: {dir_name}")
+            else:
+                print(f"ignoring dir_name: {dir_name}")
 
     return None
 
 
-def replace_all_in_file(origin_path, dest_path, _old='slate', _new='micro'):
+def variation_copy_file(origin_path, dest_path, origin_name='slate', target_name='micro'):
     """
 
     :param origin_path:
     :param dest_path:
-    :param slate:
-    :param instance:
+    :param origin_name:
+    :param target_name:
     :return:
     """
 
@@ -75,9 +89,9 @@ def replace_all_in_file(origin_path, dest_path, _old='slate', _new='micro'):
 
                 for line in file_in:
 
-                    if _old in line:
+                    if origin_name in line:
 
-                        line = line.replace(_old, _new)
+                        line = line.replace(origin_name, target_name)
 
                     file_out.write(line)
     except Exception as e:
@@ -98,7 +112,7 @@ def get_template_var_by_key(template_variables, key):
 
 def gather_templates(dir_path, conf):
     """
-    This function produces a list of full paths of files ending with .tmpl from all sub  directories that are not IGNORED_DIRS in conf
+    This function produces a list of full paths of files ending with .tmpl from all sub  directories that are not PROJECT_IGNORED_DIRS in conf
     :param dir_path: Path to the directory to be purged
     :return: None
     """
@@ -127,7 +141,7 @@ def gather_templates(dir_path, conf):
 
 def remove_non_templates(dir_path, conf):
     """
-    This function will delete files ending with .yaml .json from all sub  directories that are not IGNORED_DIRS in conf
+    This function will delete files ending with .yaml .json from all sub  directories that are not PROJECT_IGNORED_DIRS in conf
     :param dir_path: Path to the directory to be purged
     :return: None
     """
