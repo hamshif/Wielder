@@ -2,7 +2,6 @@
 import os
 
 from wielder.util.arguer import replace_none_vars_from_args
-from wielder.util.templater import variation_copy_dir
 from wielder.wield.enumerator import Languages
 from wielder.wield.wield_service import get_module_root
 from wielder.wield.wielder_project_locale import Locale
@@ -11,6 +10,98 @@ PROJECT_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'deploy'
 MODULE_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'egg-info']
 
 IGNORED_FILE_TYPES = ['.iml', '.DS_Store', '.git', 'local.conf']
+
+
+def has_end(whole, ends):
+
+    for end in ends:
+
+        if whole.endswith(end):
+
+            return True
+
+    return False
+
+
+def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored_dirs=[], ignored_files=[]):
+    """
+
+    :param ignored_files:
+    :param ignored_dirs:
+    :param origin_path:
+    :param dest_path:
+    :param origin_name:
+    :param target_name:
+    :return:
+    """
+
+    os.makedirs(dest_path, exist_ok=True)
+
+    for subdir, dirs, files in os.walk(origin_path):
+
+        dirs[:] = [d for d in dirs if not has_end(d, ignored_dirs)]
+
+        print(f"subdir: {subdir} \ndirs: \n{dirs}")
+
+        dir_name = subdir[subdir.rfind('/') + 1:]
+        _new_dir = subdir.replace(origin_path, dest_path).replace(origin_name, target_name)
+
+        print(_new_dir)
+
+        os.makedirs(_new_dir, exist_ok=True)
+
+        for _file in files:
+
+            if not has_end(_file, ignored_files):
+
+                origin_file = os.path.join(subdir, _file)
+                print(f"origin:      {origin_file}")
+
+                destination_path = origin_file.replace(origin_path, dest_path).replace(origin_name, target_name)
+
+                print(f"destination: {destination_path}")
+                variation_copy_file(
+                    origin_path=origin_file,
+                    dest_path=destination_path,
+                    origin_name=origin_name,
+                    target_name=target_name
+                )
+
+                print('break')
+
+            else:
+                print(f"ignoring dir_name: {dir_name}")
+
+    return None
+
+
+def variation_copy_file(origin_path, dest_path, origin_name, target_name):
+    """
+
+    :param origin_path:
+    :param dest_path:
+    :param origin_name:
+    :param target_name:
+    :return:
+    """
+
+    try:
+
+        with open(origin_path, "rt") as file_in:
+
+            with open(dest_path, "wt") as file_out:
+
+                for line in file_in:
+
+                    if origin_name in line:
+
+                        line = line.replace(origin_name, target_name)
+
+                    file_out.write(line)
+    except Exception as e:
+
+        print(f'origin_path: {origin_path}')
+        print(e)
 
 
 def get_locale(__file__1, project_root=None, super_project_root=None):
