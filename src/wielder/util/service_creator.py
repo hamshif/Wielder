@@ -5,9 +5,8 @@ from shutil import copyfile
 from wielder.util.arguer import get_create_parser
 from wielder.util.wgit import clone_or_update
 from wielder.wield.enumerator import CodeLanguage
-from wielder.wield.wield_service import get_module_root
-from wielder.wield.wielder_project_locale import Locale
 
+# TODO get these hardcoded constants from config
 PROJECT_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'deploy', 'egg-info', 'datastores', '.git']
 MODULE_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'egg-info', '.git']
 
@@ -126,29 +125,8 @@ def variation_copy_file(origin_path, dest_path, origin_name, target_name):
         print(e)
 
 
-def get_locale(__file__1, project_root=None, super_project_root=None):
-
-    module_root = get_module_root(__file__1)
-    print(f"Module root: {module_root}")
-
-    if not project_root:
-        project_root = module_root
-    if not super_project_root:
-        super_project_root = project_root.replace('/Wielder/src/wielder/', '')
-
-    locale = Locale(
-        project_root=project_root,
-        super_project_root=super_project_root,
-        module_root=module_root,
-        code_path=None
-    )
-
-    return locale
-
-
-def create_infrastructure(
-        create_wield_services, target_root, project_name,
-        target_module='micro', origin_module='slate'):
+def create_infrastructure(create_wield_services, target_root, project_name,
+                          target_module='micro', origin_module='slate'):
 
     wield_services_root = f'{target_root}/{project_name}/wield-services'
 
@@ -187,41 +165,12 @@ def create_infrastructure(
     )
 
 
-def test():
-
-    home = os.environ['HOME']
-
-    # TODO CLI
-    _target_root = f'{home}/experiment'
-    _project_name = 'Dagdahuda'
-
-    # TODO map type to origin
-    # _module_type = Languages.PERL
-    _origin_module = 'pep'
-    _module_name = 'micro'
-
-    create_infrastructure(
-        create_wield_services=True,
-        target_root=_target_root,
-        project_name=_project_name,
-        target_module=_module_name,
-        origin_module=_origin_module
-    )
-
-    # create independent module
-    create_infrastructure(
-        create_wield_services=False,
-        target_root=_target_root,
-        project_name=_project_name,
-        target_module=_module_name,
-        origin_module=_origin_module
-    )
-
-
 def create(create_args):
 
     container_lang = create_args.language
 
+    # TODO map type and framework to origin [in config file]
+    #  origin_module derived from CodeLanguage.PYTHON LanguageFramework.FLASK
     origin_module = lang_module_map.get(container_lang)
 
     create_infrastructure(
@@ -229,6 +178,34 @@ def create(create_args):
         target_root=create_args.target_root,
         project_name=create_args.project_name,
         target_module=create_args.module_name,
+        origin_module=origin_module
+    )
+
+
+def test():
+
+    target_root = '/tmp/test/wielder-services'
+
+    print(f'testing project module creation in \n{target_root}')
+
+    project_name = 'Dagdahuda'
+    origin_module = 'pep'
+    module_name = 'micro'
+
+    create_infrastructure(
+        create_wield_services=True,
+        target_root=target_root,
+        project_name=project_name,
+        target_module=module_name,
+        origin_module=origin_module
+    )
+
+    # create independent module
+    create_infrastructure(
+        create_wield_services=False,
+        target_root=target_root,
+        project_name=project_name,
+        target_module=module_name,
         origin_module=origin_module
     )
 
@@ -241,7 +218,6 @@ if __name__ == "__main__":
     if _create_args.test:
         test()
     else:
-        print('boo')
-
+        print('creating module')
         create(_create_args)
 
