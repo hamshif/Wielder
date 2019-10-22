@@ -132,7 +132,7 @@ def get_locale(__file__1, project_root=None, super_project_root=None):
 
 
 def create_infrastructure(
-        origin_root, create_project, project_root, project_name='wielder-services',
+        origin_root, create_wield_services, wield_services_root,
         target_module='micro', origin_module='slate',
         destination=None, action=None):
 
@@ -151,11 +151,11 @@ def create_infrastructure(
 
     standard_module_sub_path = '/src/wield_services/deploy'
 
-    if create_project:
+    if create_wield_services:
 
         variation_copy_dir(
             origin_root,
-            project_root,
+            wield_services_root,
             origin_name=origin_module,
             target_name=target_module,
             ignored_dirs=PROJECT_IGNORED_DIRS,
@@ -163,10 +163,10 @@ def create_infrastructure(
             replace_in_copy=False
         )
 
-        modules_root = f'{project_root}{standard_module_sub_path}'
+        modules_root = f'{wield_services_root}{standard_module_sub_path}'
 
     else:
-        modules_root = f'{project_root}'
+        modules_root = f'{wield_services_root}'
 
     origin_path = f'{origin_root}{standard_module_sub_path}/{origin_module}'
     target_path = f'{modules_root}/{target_module}'
@@ -186,8 +186,11 @@ if __name__ == "__main__":
 
     # TODO get origin from CLI
     _origin_root = f'{home}/dev/data/wield-services'
-    _project_name = 'dagdahuda-services'
-    _project_root = f'{home}/dev/{_project_name}'
+
+    _target_root = f'{home}/experiment'
+    _project_name = 'Dagdahuda'
+
+    _wield_services_root = f'{home}/experiment/{_project_name}/wield-services'
 
     # TODO map type to origin
     # _module_type = Languages.PERL
@@ -196,9 +199,8 @@ if __name__ == "__main__":
 
     create_infrastructure(
         origin_root=_origin_root,
-        create_project=True,
-        project_root=_project_root,
-        project_name=_project_name,
+        create_wield_services=True,
+        wield_services_root=_wield_services_root,
         target_module=_module_name,
         origin_module=_origin_module
     )
@@ -206,9 +208,8 @@ if __name__ == "__main__":
     # create independent module
     create_infrastructure(
         origin_root=_origin_root,
-        create_project=False,
-        project_root=_project_root,
-        project_name=_project_name,
+        create_wield_services=False,
+        wield_services_root=_wield_services_root,
         target_module=_module_name,
         origin_module=_origin_module
     )
