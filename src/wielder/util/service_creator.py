@@ -3,6 +3,7 @@ import os
 from shutil import copyfile
 
 from wielder.util.arguer import replace_none_vars_from_args
+from wielder.util.wgit import clone_or_update
 from wielder.wield.wield_service import get_module_root
 from wielder.wield.wielder_project_locale import Locale
 
@@ -10,6 +11,8 @@ PROJECT_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'deploy'
 MODULE_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'egg-info']
 
 IGNORED_FILE_TYPES = ['.iml', '.DS_Store', '.git', 'local.conf']
+
+WIELD_SERVICES_SRC = 'https://github.com/hamshif/wield-services.git'
 
 
 def has_end(whole, ends):
@@ -132,7 +135,7 @@ def get_locale(__file__1, project_root=None, super_project_root=None):
 
 
 def create_infrastructure(
-        origin_root, create_wield_services, wield_services_root,
+        create_wield_services, wield_services_root,
         target_module='micro', origin_module='slate',
         destination=None, action=None):
 
@@ -148,6 +151,10 @@ def create_infrastructure(
     )
 
     print('break')
+
+    origin_root = '/tmp/wield-services'
+
+    clone_or_update(WIELD_SERVICES_SRC, origin_root, name=None, branch='master', local=False)
 
     standard_module_sub_path = '/src/wield_services/deploy'
 
@@ -184,9 +191,6 @@ if __name__ == "__main__":
 
     home = os.environ['HOME']
 
-    # TODO get origin from CLI
-    _origin_root = f'{home}/dev/data/wield-services'
-
     _target_root = f'{home}/experiment'
     _project_name = 'Dagdahuda'
 
@@ -198,7 +202,6 @@ if __name__ == "__main__":
     _module_name = 'micro'
 
     create_infrastructure(
-        origin_root=_origin_root,
         create_wield_services=True,
         wield_services_root=_wield_services_root,
         target_module=_module_name,
@@ -207,7 +210,6 @@ if __name__ == "__main__":
 
     # create independent module
     create_infrastructure(
-        origin_root=_origin_root,
         create_wield_services=False,
         wield_services_root=_wield_services_root,
         target_module=_module_name,
