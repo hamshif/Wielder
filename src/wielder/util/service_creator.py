@@ -2,17 +2,24 @@
 import os
 from shutil import copyfile
 
-from wielder.util.arguer import replace_none_vars_from_args
+from wielder.util.arguer import get_create_parser
 from wielder.util.wgit import clone_or_update
+from wielder.wield.enumerator import CodeLanguage
 from wielder.wield.wield_service import get_module_root
 from wielder.wield.wielder_project_locale import Locale
 
-PROJECT_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'deploy', 'egg-info', 'datastores']
-MODULE_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'egg-info']
+PROJECT_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'deploy', 'egg-info', 'datastores', '.git']
+MODULE_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'egg-info', '.git']
 
 IGNORED_FILE_TYPES = ['.iml', '.DS_Store', '.git', 'local.conf']
 
 WIELD_SERVICES_SRC = 'https://github.com/hamshif/wield-services.git'
+
+lang_module_map = {
+    CodeLanguage.PYTHON: 'slate',
+    CodeLanguage.PERL: 'pep',
+    CodeLanguage.JAVA: 'boot',
+}
 
 
 def has_end(whole, ends):
@@ -62,7 +69,12 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
                 origin_file = os.path.join(subdir, _file)
                 print(f"origin:      {origin_file}")
 
-                destination_path = origin_file.replace(origin_path, dest_path).replace(origin_name, target_name)
+                # TODO add more insurances preventing bug where an incidental substring is replaced
+                #  or one is accidentally excluded.
+                destination_path = origin_file.replace(origin_path, dest_path)
+                destination_path = destination_path.replace(f'/{origin_name}/', f'/{target_name}/')
+                destination_path = destination_path.replace(f'{origin_name}-', f'{target_name}-')
+                destination_path = destination_path.replace(f'{origin_name}_', f'{target_name}_')
 
                 print(f"destination: {destination_path}")
 
@@ -135,22 +147,10 @@ def get_locale(__file__1, project_root=None, super_project_root=None):
 
 
 def create_infrastructure(
-        create_wield_services, wield_services_root,
-        target_module='micro', origin_module='slate',
-        destination=None, action=None):
+        create_wield_services, target_root, project_name,
+        target_module='micro', origin_module='slate'):
 
-    locale = get_locale(__file__1=__file__, project_root=destination)
-
-    action, mode, enable_debug, local_mount, service_mode = replace_none_vars_from_args(
-        action=action,
-        mode=None,
-        enable_debug=None,
-        local_mount=None,
-        service_mode=None,
-        project_override=None
-    )
-
-    print('break')
+    wield_services_root = f'{target_root}/{project_name}/wield-services'
 
     origin_root = '/tmp/wield-services'
 
@@ -187,14 +187,13 @@ def create_infrastructure(
     )
 
 
-if __name__ == "__main__":
+def test():
 
     home = os.environ['HOME']
 
+    # TODO CLI
     _target_root = f'{home}/experiment'
     _project_name = 'Dagdahuda'
-
-    _wield_services_root = f'{home}/experiment/{_project_name}/wield-services'
 
     # TODO map type to origin
     # _module_type = Languages.PERL
@@ -203,7 +202,8 @@ if __name__ == "__main__":
 
     create_infrastructure(
         create_wield_services=True,
-        wield_services_root=_wield_services_root,
+        target_root=_target_root,
+        project_name=_project_name,
         target_module=_module_name,
         origin_module=_origin_module
     )
@@ -211,8 +211,37 @@ if __name__ == "__main__":
     # create independent module
     create_infrastructure(
         create_wield_services=False,
-        wield_services_root=_wield_services_root,
+        target_root=_target_root,
+        project_name=_project_name,
         target_module=_module_name,
         origin_module=_origin_module
     )
+
+
+def create(create_args):
+
+    container_lang = create_args.language
+
+    origin_module = lang_module_map.get(container_lang)
+
+    create_infrastructure(
+        create_wield_services=create_args.create_project,
+        target_root=create_args.target_root,
+        project_name=create_args.project_name,
+        target_module=create_args.module_name,
+        origin_module=origin_module
+    )
+
+
+if __name__ == "__main__":
+
+    create_parser = get_create_parser()
+    _create_args = create_parser.parse_args()
+
+    if _create_args.test:
+        test()
+    else:
+        print('boo')
+
+        create(_create_args)
 

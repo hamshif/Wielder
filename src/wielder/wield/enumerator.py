@@ -22,3 +22,17 @@ class WieldAction(Enum):
     DELETE = 'delete'
 
 
+class CodeLanguage(Enum):
+    PYTHON = 'PYTHON'
+    JAVA = 'JAVA'
+    SCALA = 'SCALA'
+    PERL = 'PERL'
+
+
+class LanguageFramework(Enum):
+    FLASK = 'FLASK'
+    DJANGO = 'DJANGO'
+    TORNADO = 'TORNADO'
+    BOOT = 'BOOT'
+    PLAY = 'PLAY'
+    LAGOM = 'LAGOM'

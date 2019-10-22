@@ -2,7 +2,7 @@
 import os
 
 from wielder.util.util import get_kube_context
-from wielder.wield.enumerator import WieldAction
+from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework
 from wielder.wield.modality import WieldMode, WieldServiceMode
 
 __author__ = 'Gideon Bar'
@@ -331,6 +331,69 @@ def process_args(cmd_args, perform_sanity=True):
     conf.attr_list(True)
 
     return conf
+
+
+def get_create_parser():
+
+    parser = argparse.ArgumentParser(
+        description='CLI for automatic creation of Wield Services module\n'
+                    'Optional adding of wield services module container project'
+                    'We suggest you make it a separate Git repository\n'
+                    'We suggest you make the separate Git repository a submodule of the project\n'
+    )
+
+    parser.add_argument(
+        '-ts', '--test',
+        type=bool,
+        default=False,
+        help='Disregards other arguments and tests creation of a container project and modules'
+    )
+
+    parser.add_argument(
+        '-c', '--create_project',
+        type=bool,
+        default=True,
+        help='Should a wrapper project be created to contain multiple modules'
+    )
+
+    parser.add_argument(
+        '-tr', '--target_root',
+        type=str,
+        help='The directory in which you want to place wield-services'
+    )
+
+    parser.add_argument(
+        '-pn', '--project_name',
+        type=str,
+        default='micro-services',
+        help='The project name'
+    )
+
+    parser.add_argument(
+        '-mn', '--module_name',
+        type=str,
+        default='micro',
+        help='The definitive microservice name'
+    )
+
+    parser.add_argument(
+        '-l', '--language',
+        type=CodeLanguage,
+        choices=list(CodeLanguage),
+        help='Code language for containers of the microservice',
+        default=CodeLanguage.PYTHON
+    )
+
+    parser.add_argument(
+        '-fr', '--framework',
+        type=LanguageFramework,
+        choices=list(LanguageFramework),
+        help='A framework corresponding to code language for containers of the microservice '
+             'e.g python flask or java spring-boot',
+        default=LanguageFramework.FLASK
+    )
+
+    return parser
 
 
 if __name__ == "__main__":
