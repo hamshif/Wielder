@@ -60,3 +60,10 @@ For IDE support
 
 
 TODO Automate
+
+If you want confluent kafka
+```
+brew install librdkafka
+pyenv activate wielder
+pip install confluent-kafka
+```
