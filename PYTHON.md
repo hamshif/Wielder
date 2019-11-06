@@ -67,3 +67,13 @@ brew install librdkafka
 pyenv activate wielder
 pip install confluent-kafka
 ```
+
+```
+pyenv virtualenv 3.7.4 test
+pyenv activate  test
+pip install --upgrade pip
+pip install Cython
+
+pip install 'apache-airflow[mysql]'
+pip install 'apache-airflow[all]'
+```
