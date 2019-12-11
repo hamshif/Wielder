@@ -3,16 +3,42 @@ from __future__ import print_function
 
 import os
 import time
-import inspect
 import rx
 import concurrent.futures
 from kubernetes import client, config
 
+from wielder.util.commander import async_cmd
 
-# TODO move default string to constant
+
+def delete_pv(pvc_type, namespace='default'):
+    """
+    This function deletes persistent volumes even if they are protected.
+    :param pvc_type: claim name or prefix for storage claim automatic creations or stateful sets
+    :param namespace:
+    """
+
+    escaped = """'{"metadata":{"finalizers": []}}'"""
+    pvc_strings = async_cmd('kubectl get pv')
+
+    for pv_str in pvc_strings:
+        pv = pv_str.split('   ')[0]
+        print(pv)
+
+        if f'{namespace}/{pvc_type}' in pv_str:
+            cmd = f"""kubectl patch persistentvolume/{pv} -p {escaped} --type=merge"""
+            print(f'cmd: {cmd}')
+            response = async_cmd(cmd)
+            print(f'response: {response}')
+
+            cmd = f"kubectl delete persistentvolume/{pv}"
+            print(f'cmd: {cmd}')
+            response = async_cmd(cmd)
+            print(f'response: {response}')
+
+
 def get_pods(name, exact=False, namespace='default'):
 
-    # TODO check if this could be created once and passed as variable.
+    # TODO check if this could be created once in an object.
     config.load_kube_config(os.path.join(os.environ["HOME"], '.kube/config'))
 
     v1 = client.CoreV1Api()
@@ -165,13 +191,4 @@ def mount_to_minikube_in_background(mount_name, local_mount_path, minikube_desti
 # Contents of main is project specific
 if __name__ == "__main__":
 
-    d = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-    print(f"current dir: {d}")
-    root_path = d[:d.rfind('/')]
-    root_path = root_path[:root_path.rfind('/')]
-    print(f"two dirs above where we start path to files: {d}")
-
-    deploy_name = 'rtp-mysql'
-    deploy_file = f"{root_path}/deploy/mysql/deploy/mysql-deploy.yaml"
-
-    init_observe_pods((deploy_name, deploy_file))
+    delete_pv(namespace='kafka', pvc_type='data')
