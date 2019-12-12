@@ -43,7 +43,7 @@ def delete_pv(pv_type, namespace='default'):
             response = async_cmd(cmd)
             print(f'response: {response}')
 
-            cmd = f"kubectl delete persistentvolume/{pv}"
+            cmd = f"kubectl delete persistentvolume/{pv}  --wait=false"
             print(f'cmd: {cmd}')
             response = async_cmd(cmd)
             print(f'response: {response}')
@@ -64,7 +64,7 @@ def delete_pvc(pvc_type, namespace='default'):
 
         if f'{pvc_type}' in pvc_str:
 
-            cmd = f"kubectl delete pvc {pvc} -n {namespace}"
+            cmd = f"kubectl delete pvc {pvc} -n {namespace}  --wait=false"
             print(f'cmd: {cmd}')
             response = async_cmd(cmd)
             print(f'response: {response}')
