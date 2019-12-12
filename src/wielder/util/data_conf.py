@@ -128,7 +128,7 @@ def process_args(cmd_args):
         cmd_args.conf_file = dir_path + '/data_conf.yaml'
 
     with open(cmd_args.conf_file, 'r') as yaml_file:
-        conf_args = yaml.load(yaml_file)
+        conf_args = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     if not hasattr(conf_args, 'plan'):
         conf_args['plan'] = False
