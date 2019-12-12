@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import logging
 import os
+from enum import Enum
 
 from wielder.util.util import get_kube_context
 from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework
@@ -15,10 +17,41 @@ from collections import namedtuple
 
 from wielder.util.commander import async_cmd
 
+
+# TODO use enum
 CONTEXT_MINI = 'minikube'
 CONTEXT_DOCKER = 'docker-desktop'
 
 LOCAL_CONTEXTS = [CONTEXT_DOCKER, CONTEXT_MINI]
+
+
+class LogLevel(Enum):
+
+    CRITICAL = 'critical'
+    FATAL = 'fatal'
+    ERROR = 'error'
+    WARN = 'warn'
+    INFO = 'info'
+    DEBUG = 'debug'
+    NOTSET = 'notest'
+
+
+def convert_log_level(log_level):
+
+    if log_level is LogLevel.CRITICAL:
+        return logging.CRITICAL
+    elif log_level is LogLevel.FATAL:
+        return logging.FATAL
+    elif log_level is LogLevel.ERROR:
+        return logging.ERROR
+    elif log_level is LogLevel.WARN:
+        return logging.WARN
+    elif log_level is LogLevel.INFO:
+        return logging.INFO
+    elif log_level is LogLevel.DEBUG:
+        return logging.DEBUG
+    else:
+        raise Exception('Input must be LogLevel enumeration value')
 
 
 class Conf:
@@ -189,6 +222,14 @@ def get_kube_parser():
              'single mongo and redis pods to conserve resources while developing or testing'
     )
 
+    parser.add_argument(
+        '-ll', '--log_level',
+        type=LogLevel,
+        choices=list(LogLevel),
+        help='LogLevel: as in Python logging',
+        default=LogLevel.INFO
+    )
+
     return parser
 
 
@@ -288,6 +329,14 @@ def process_args(cmd_args, perform_sanity=True):
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
         cmd_args.conf_file = dir_path + '/wielder_conf.yaml'
+
+    log_level = convert_log_level(cmd_args.log_level)
+
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s :%(message)s',
+        level=log_level,
+        datefmt='%m/%d/%Y %I:%M:%S %p'
+    )
 
     with open(cmd_args.conf_file, 'r') as yaml_file:
         conf_args = yaml.load(yaml_file, Loader=yaml.UnsafeLoader)
@@ -391,6 +440,14 @@ def get_create_parser():
         help='A framework corresponding to code language for containers of the microservice '
              'e.g python flask or java spring-boot',
         default=LanguageFramework.FLASK
+    )
+
+    parser.add_argument(
+        '-ll', '--log_level',
+        type=LogLevel,
+        choices=list(LogLevel),
+        help='LogLevel: as in Python logging',
+        default=LogLevel.INFO
     )
 
     return parser

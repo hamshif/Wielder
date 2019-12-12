@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-import os
 
 __author__ = 'Gideon Bar'
 
+import os
 import argparse
-
 import yaml
-
 from collections import namedtuple
+import logging
+
+from wielder.util.arguer import LogLevel, convert_log_level
 
 
 class Conf:
@@ -21,8 +22,8 @@ class Conf:
         items = self.__dict__.items()
         if should_print:
 
-            print("Conf items:\n______\n")
-            [print(f"attribute: {k}    value: {v}") for k, v in items]
+            logging.debug("Conf items:\n______\n")
+            [logging.debug(f"attribute: {k}    value: {v}") for k, v in items]
 
         return items
 
@@ -73,9 +74,11 @@ def get_datalake_parser():
     )
 
     parser.add_argument(
-        '-edv', '--enable_dev',
-        type=bool,
-        help='Enabling Development on pods e.g. mot running the java process on cep:'
+        '-ll', '--log_level',
+        type=LogLevel,
+        choices=list(LogLevel),
+        help='LogLevel: as in Python logging',
+        default=LogLevel.INFO
     )
 
     return parser
@@ -127,13 +130,21 @@ def process_args(cmd_args):
 
         cmd_args.conf_file = dir_path + '/data_conf.yaml'
 
+    log_level = convert_log_level(cmd_args.log_level)
+
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s :%(message)s',
+        level=log_level,
+        datefmt='%m/%d/%Y %I:%M:%S %p'
+    )
+
     with open(cmd_args.conf_file, 'r') as yaml_file:
         conf_args = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     if not hasattr(conf_args, 'plan'):
         conf_args['plan'] = False
 
-    print('Configuration File Arguments:')
+    logging.debug('Configuration File Arguments:')
 
     config_items = cmd_args.__dict__.items()
 
@@ -179,10 +190,10 @@ if __name__ == "__main__":
 
     _conf = process_args(datalake_args)
 
-    print('break point')
+    logging.debug('break point')
 
-    print(f"datalake_args:\n{datalake_args}\n")
-    print(f"other_args:\n{other_args}")
+    logging.info(f"datalake_args:\n{datalake_args}\n")
+    logging.info(f"other_args:\n{other_args}")
 
 
 
