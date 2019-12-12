@@ -2,13 +2,15 @@ from enum import Enum
 
 
 class KubeResType(Enum):
+
+    GENERAL = 'general'
     DEPLOY = 'deploy'
     POD = 'pod'
-    STATEFUL = 'stateful'
+    STATEFUL_SET = 'statefulsets'
     SERVICE = 'service'
     PV = 'pv'
     PVC = 'pvc'
-    STORAGE = 'storage'
+    STORAGE = 'storageclasses'
 
 
 class PlanType(Enum):
