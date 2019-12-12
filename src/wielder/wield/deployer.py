@@ -8,6 +8,55 @@ import concurrent.futures
 from kubernetes import client, config
 
 from wielder.util.commander import async_cmd
+from wielder.wield.enumerator import KubeResType
+from wielder.wield.servicer import observe_service
+
+
+def delete_multiple(res_tuples, module_root):
+
+    for res_tup in res_tuples:
+        name, namespace, res_path, _type = res_tup
+
+        if _type == KubeResType.PV:
+
+            delete_pv(namespace=namespace, pv_type=name)
+        else:
+            os.system(f'kubectl delete -f {module_root}/{res_path} --wait=false;')
+
+            if _type == KubeResType.DEPLOY or _type == KubeResType.STATEFUL_SET:
+
+                pods = get_pods(
+                    name,
+                    namespace=namespace
+                )
+
+                for pod in pods:
+                    os.system(f"kubectl delete -n {namespace} {pod} --force --grace-period=0;")
+
+
+def apply_multiple(res_tuples, module_root, observe_svc=False):
+
+    for res_tup in res_tuples:
+        name, namespace, res_path, _type = res_tup
+
+        os.system(f'kubectl apply -f {module_root}/{res_path}')
+
+        if _type == KubeResType.SERVICE and observe_svc:
+
+            observe_service(
+                svc_name=name,
+                svc_namespace=namespace
+            )
+
+        elif _type == KubeResType.DEPLOY or _type == KubeResType.STATEFUL_SET:
+
+            pods = get_pods(
+                name,
+                namespace=namespace
+            )
+
+            for pod in pods:
+                observe_pod(pod)
 
 
 def delete_pvc_pv(pvc_type, pv_type=None, namespace='default'):

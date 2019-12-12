@@ -6,8 +6,8 @@ import select
 from pyhocon.tool import HOCONConverter as Hc
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
-from wielder.wrx.deployer import get_pods, observe_pod
-from wielder.wrx.servicer import observe_service
+from wielder.wield.deployer import get_pods, observe_pod
+from wielder.wield.servicer import observe_service
 from wielder.util.arguer import destroy_sanity
 
 
