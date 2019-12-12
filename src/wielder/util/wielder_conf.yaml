@@ -7,7 +7,7 @@ supported_deploy_envs:
   - dev
   - int
 
-kube_context: minikube
+kube_context: docker-desktop
 
 # ----------- GCP ---------------
 

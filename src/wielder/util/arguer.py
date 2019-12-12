@@ -1,24 +1,20 @@
 #!/usr/bin/env python
+
+__author__ = 'Gideon Bar'
+
 import logging
 import os
 from enum import Enum
+import argparse
+import yaml
+from collections import namedtuple
+from wielder.util.commander import async_cmd
 
 from wielder.util.util import get_kube_context
 from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework
 from wielder.wield.modality import WieldMode, WieldServiceMode
 
-__author__ = 'Gideon Bar'
 
-import argparse
-
-import yaml
-
-from collections import namedtuple
-
-from wielder.util.commander import async_cmd
-
-
-# TODO use enum
 CONTEXT_MINI = 'minikube'
 CONTEXT_DOCKER = 'docker-desktop'
 
@@ -65,8 +61,8 @@ class Conf:
         items = self.__dict__.items()
         if should_print:
 
-            print("Conf items:\n______\n")
-            [print(f"attribute: {k}    value: {v}") for k, v in items]
+            logging.info("Conf items:\n______\n")
+            [logging.info(f"attribute: {k}    value: {v}") for k, v in items]
 
         return items
 
@@ -75,8 +71,10 @@ def destroy_sanity(conf):
 
     if conf.deploy_env is 'prod':
 
-        print('You are trying to destroy a production environment!!!'
-              'Exiting!!!')
+        logging.error(
+            'You are trying to destroy a production environment!!!'
+            'Exiting!!!'
+        )
 
         exit(1)
 
@@ -87,7 +85,7 @@ def destroy_sanity(conf):
     #
     #     if confirm_destroy is not 'Y':
     #
-    #         print('Exiting')
+    #         logging.error('Exiting')
     #
     #         exit(1)
 
@@ -239,16 +237,18 @@ def wielder_sanity(conf, mode, service_mode=None):
 
     if conf.kube_context != context:
 
-        print(f"There is a discrepancy between the configured and actual contexts:"
-              f"\nkube context   : {conf.kube_context}"
-              f"\ncurrent context: {context} "
-              f"\neither add context in command-line args or in config file or"
-              f"\nto change context run:"
-              f"\nkubectl config use-context <the context you meant>"
-              f"\n!!! Exiting ...")
+        logging.warning(
+            f"There is a discrepancy between the configured and actual contexts:"
+            f"\nkube context          : {conf.kube_context}"
+            f"\ncurrent context       : {context} "
+            f"\neither add context in command-line args or in config file or"
+            f"\nto change context run :"
+            f"\nkubectl config use-context <the context you meant>"
+            f"\n!!! Exiting ..."
+        )
         exit(1)
     else:
-        print(f"kubernetes current context: {context}")
+        logging.warning(f"kubernetes current context: {context}")
 
     message = f"There is a discrepancy between context and runtime environment:" \
         f"\nkube context   : {conf.kube_context}" \
@@ -259,10 +259,10 @@ def wielder_sanity(conf, mode, service_mode=None):
         f"\n!!! Exiting ..."
 
     if context == CONTEXT_DOCKER and mode.runtime_env != 'docker':
-        print(message)
+        logging.ERROR(message)
         exit(1)
     elif 'gke' in context and mode.runtime_env != 'gcp':
-        print(message)
+        logging.error(message)
         exit(1)
 
     if not service_mode:
@@ -270,13 +270,15 @@ def wielder_sanity(conf, mode, service_mode=None):
 
     if context != CONTEXT_DOCKER and service_mode.local_mount:
 
-        print(f"Local mount of code into container is only allowed on local development env:"
-              f"\nkube context   : {conf.kube_context}"
-              f"\nmode.local_mount is: {service_mode.local_mount} "
-              f"\neither change context or flag local_mount as false"
-              f"\nto change context run:"
-              f"\nkubectl config use-context <the context you meant>"
-              f"\n!!! Exiting ...")
+        logging.error(
+            f"Local mount of code into container is only allowed on local development env:"
+            f"\nkube context   : {conf.kube_context}"
+            f"\nmode.local_mount is: {service_mode.local_mount} "
+            f"\neither change context or flag local_mount as false"
+            f"\nto change context run:"
+            f"\nkubectl config use-context <the context you meant>"
+            f"\n!!! Exiting ..."
+        )
         exit(1)
 
 
@@ -286,36 +288,41 @@ def sanity(conf):
 
     if conf.kube_context != context:
 
-        print(f"There is a discrepancy between the configured and actual contexts:"
-              f"\nkube context   : {conf.kube_context}"
-              f"\ncurrent context: {context} "
-              f"\neither add context in command-line args or in config file or"
-              f"\nto change context run:"
+        logging.error(
+            f"There is a discrepancy between the configured and actual contexts:"
+            f"\nkube context   : {conf.kube_context}"
+            f"\ncurrent context: {context} "
+            f"\neither add context in command-line args or in config file or"
+            f"\nto change context run:"
               f"\nkubectl config use-context <the context you meant>"
-              f"\n!!! Exiting ...")
+              f"\n!!! Exiting ..."
+        )
         exit(1)
     else:
-        print(f"kubernetes current context: {context}")
+        logging.info(f"kubernetes current context: {context}")
 
     if conf.deploy_env == 'local':
 
         if conf.kube_context not in LOCAL_CONTEXTS:
 
-            print(f"There is a discrepancy between deploy_env: {conf.deploy_env} "
-                  f"and kube_context: {conf.kube_context}.\n"
-                  f"If you meant to one of these:\n{LOCAL_CONTEXTS} run:\n"
-                  f"kubectl config use-context <some local-context>\n"
-                  f"!!! Exiting ...")
+            logging.error(
+                f"There is a discrepancy between deploy_env: {conf.deploy_env} "
+                f"and kube_context: {conf.kube_context}.\n"
+                f"If you meant to one of these:\n{LOCAL_CONTEXTS} run:\n"
+                f"kubectl config use-context <some local-context>\n"
+                f"!!! Exiting ...")
             exit(1)
 
-    print(f"conf.supported_deploy_envs: {conf.supported_deploy_envs}")
+    logging.info(f"conf.supported_deploy_envs: {conf.supported_deploy_envs}")
 
     if conf.deploy_env not in conf.supported_deploy_envs:
 
-        print(f"We do not support deploy_env: {conf.deploy_env}!!!\n"
-              f"If you want to support it add it in:\n"
-              f"conf file in supported_deploy_envs field\n"
-              f"!!! Exiting ...")
+        logging.error(
+            f"We do not support deploy_env: {conf.deploy_env}!!!\n"
+            f"If you want to support it add it in:\n"
+            f"conf file in supported_deploy_envs field\n"
+            f"!!! Exiting ..."
+        )
         exit(1)
 
     # TODO add sanity for debug flag
@@ -344,7 +351,7 @@ def process_args(cmd_args, perform_sanity=True):
     if not hasattr(conf_args, 'plan'):
         conf_args['plan'] = False
 
-    print('Configuration File Arguments:')
+    logging.info('Configuration File Arguments:')
 
     config_items = cmd_args.__dict__.items()
 
