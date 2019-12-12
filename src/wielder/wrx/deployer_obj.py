@@ -7,7 +7,7 @@ import os
 import rx
 from rx import Observer
 
-from wielder.wrx.servicer import init_observe_service
+from wielder.wield.servicer import init_observe_service
 from wielder.util.arguer import get_kube_parser, process_args
 import concurrent.futures
 
