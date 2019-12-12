@@ -1,22 +1,27 @@
 Wielder
 =
-A reactive debuggable CI-CD automation tool
+Reactive debuggable CI-CD
 -
-Reactive deployments, updates, scaling and rollbacks.
-Wielder packs Git, Docker packing, Terraform, Kubernetes, ETL's & more into reactive debuggable events; 
-wielding them from development through testing to production using Airflow Dags. 
+
+Kubernetes polymorphic plan apply (A reactive debuggable alternative to Helm declarative charts)
+
+Reactive deployments, canaries, updates, scaling and rollbacks.
+
+Wielder wields Git, Docker, Terraform, Kubernetes, Airflow, ETL's & more into reactive debuggable event sequences; 
+to guide code from development through testing to production. 
 
 * Functionality:
     * Kubernetes polymorphic plan apply (A reactive debuggable alternative to Helm declarative charts)
     * Packing code to docker containers and repositories (A reactive debuggable alternative to Jenkins, Travis ..).
     * Weaving Terraform and Kubernetes events into reactive, debuggable elastic scaling mechanisms. 
     * Automation of local development in Intellij and Kubernetes.
+    * One stop shop for CLI and configuration.
 * Examples:
+    * Waiting for Zookeper to come online before deploying or scaling Kafka nodes.
     * Waiting for Redis sentinels to find a master and come online before deploying another slave.
-    * Waiting for Kafka to scale before scaling a deployment.
     * Provisioning additional cluster nodes and volumes with terraform before scaling a MongoDB stateful set.
     * Scheduled provisioning of hadoop clusters -> Running ETL's -> Deprovisioning the clusters
-    * Listening to kubernetes service throughput -> provisioning infrastructure scaling -> provisioning kubernetes node scaling.
+    * Listening to Kubernetes service throughput -> provisioning infrastructure scaling with terraform -> provisioning kubernetes node scaling.
     * Use of the same infrastructure as code to develop locally and on deploy to the cloud.
 
 
