@@ -10,10 +10,23 @@ from kubernetes import client, config
 from wielder.util.commander import async_cmd
 
 
-def delete_pv(pvc_type, namespace='default'):
+def delete_pvc_pv(pvc_type, pv_type=None, namespace='default'):
     """
-    This function deletes persistent volumes even if they are protected.
+    Deletes persistent volumes and their claims even if they are protected provided their claims are deleted.
     :param pvc_type: claim name or prefix for storage claim automatic creations or stateful sets
+    :param pv_type: defaults to pvc_type, claim name or prefix for storage claim automatic creations or stateful sets
+    :param namespace:
+    """
+    pv_type = pvc_type if pv_type is None else pv_type
+
+    delete_pvc(pvc_type, namespace=namespace)
+    delete_pv(pv_type, namespace=namespace)
+
+
+def delete_pv(pv_type, namespace='default'):
+    """
+    Deletes persistent volumes even if they are protected provided their claims are deleted.
+    :param pv_type: volume name or prefix for pv automatic creations or stateful sets
     :param namespace:
     """
 
@@ -24,13 +37,34 @@ def delete_pv(pvc_type, namespace='default'):
         pv = pv_str.split('   ')[0]
         print(pv)
 
-        if f'{namespace}/{pvc_type}' in pv_str:
+        if f'{namespace}/{pv_type}' in pv_str:
             cmd = f"""kubectl patch persistentvolume/{pv} -p {escaped} --type=merge"""
             print(f'cmd: {cmd}')
             response = async_cmd(cmd)
             print(f'response: {response}')
 
             cmd = f"kubectl delete persistentvolume/{pv}"
+            print(f'cmd: {cmd}')
+            response = async_cmd(cmd)
+            print(f'response: {response}')
+
+
+def delete_pvc(pvc_type, namespace='default'):
+    """
+    Deletes persistent volume claims.
+    :param pvc_type: claim name or prefix for storage claim automatic creations or stateful sets
+    :param namespace:
+    """
+
+    pvc_strings = async_cmd(f'kubectl get pvc -n {namespace}')
+
+    for pvc_str in pvc_strings:
+        pvc = pvc_str.split('   ')[0]
+        print(pvc)
+
+        if f'{pvc_type}' in pvc_str:
+
+            cmd = f"kubectl delete pvc {pvc} -n {namespace}"
             print(f'cmd: {cmd}')
             response = async_cmd(cmd)
             print(f'response: {response}')
@@ -191,4 +225,4 @@ def mount_to_minikube_in_background(mount_name, local_mount_path, minikube_desti
 # Contents of main is project specific
 if __name__ == "__main__":
 
-    delete_pv(namespace='kafka', pvc_type='data')
+    delete_pv(namespace='kafka', pv_type='data')
