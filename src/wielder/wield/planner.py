@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+__author__ = 'Gideon Bar'
+
+import logging
 import os
 import sys
 import select
@@ -71,7 +75,7 @@ class WieldPlan(WielderBase):
                 service_only
             )
 
-        print('break')
+        logging.debug('break')
 
     def apply(self, observe_deploy=False, observe_svc=False, service_only=False):
 
@@ -118,7 +122,7 @@ class WieldPlan(WielderBase):
 
         if not auto_approve:
 
-            print(
+            logging.warning(
                 f'If your sure you want to delete all {self.name} plan resources\n'
                 f'{self.ordered_kube_resources}\n type Y\n'
                 f'You have 10 seconds to answer!'
@@ -132,7 +136,7 @@ class WieldPlan(WielderBase):
                 answer = 'N'
 
             if answer is not 'Y':
-                print(f'\nAborting deletion of {self.name} resources\n')
+                logging.warning(f'\nAborting deletion of {self.name} resources\n')
                 return
 
         for res in self.ordered_kube_resources:

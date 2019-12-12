@@ -8,6 +8,8 @@ from enum import Enum
 import argparse
 import yaml
 from collections import namedtuple
+
+from wielder.util.log_util import setup_logging
 from wielder.util.commander import async_cmd
 
 from wielder.util.util import get_kube_context
@@ -34,20 +36,23 @@ class LogLevel(Enum):
 
 def convert_log_level(log_level):
 
+    converted = None
     if log_level is LogLevel.CRITICAL:
-        return logging.CRITICAL
+        converted = logging.CRITICAL
     elif log_level is LogLevel.FATAL:
-        return logging.FATAL
+        converted = logging.FATAL
     elif log_level is LogLevel.ERROR:
-        return logging.ERROR
+        converted = logging.ERROR
     elif log_level is LogLevel.WARN:
-        return logging.WARN
+        converted = logging.WARN
     elif log_level is LogLevel.INFO:
-        return logging.INFO
+        converted = logging.INFO
     elif log_level is LogLevel.DEBUG:
-        return logging.DEBUG
+        converted = logging.DEBUG
     else:
         raise Exception('Input must be LogLevel enumeration value')
+
+    return converted
 
 
 class Conf:
@@ -92,8 +97,14 @@ def destroy_sanity(conf):
 
 def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
 
+    logging.info('Configured logging')
+    print('psyche')
+
     kube_parser = get_kube_parser()
+
     kube_args = kube_parser.parse_args()
+
+    log_level = convert_log_level(kube_args.log_level)
 
     if not mode:
 
@@ -248,7 +259,7 @@ def wielder_sanity(conf, mode, service_mode=None):
         )
         exit(1)
     else:
-        logging.warning(f"kubernetes current context: {context}")
+        logging.info(f"kubernetes current context: {context}")
 
     message = f"There is a discrepancy between context and runtime environment:" \
         f"\nkube context   : {conf.kube_context}" \
@@ -339,11 +350,14 @@ def process_args(cmd_args, perform_sanity=True):
 
     log_level = convert_log_level(cmd_args.log_level)
 
-    logging.basicConfig(
-        format='%(asctime)s %(levelname)s :%(message)s',
-        level=log_level,
-        datefmt='%m/%d/%Y %I:%M:%S %p'
-    )
+    logger = logging.getLogger()
+
+    logger.setLevel(log_level)
+
+    for handler in logger.handlers:
+        handler.setLevel(log_level)
+
+    logging.debug(f'Set Log level to: {cmd_args.log_level} {log_level}')
 
     with open(cmd_args.conf_file, 'r') as yaml_file:
         conf_args = yaml.load(yaml_file, Loader=yaml.UnsafeLoader)
@@ -461,6 +475,8 @@ def get_create_parser():
 
 
 if __name__ == "__main__":
+
+    setup_logging()
 
     _kube_parser = get_kube_parser()
     _kube_args = _kube_parser.parse_args()

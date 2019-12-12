@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import logging
 import os
 import time
 import rx
@@ -274,4 +275,5 @@ def mount_to_minikube_in_background(mount_name, local_mount_path, minikube_desti
 # Contents of main is project specific
 if __name__ == "__main__":
 
-    delete_pv(namespace='kafka', pv_type='data')
+    logging.info('TODO')
+    # delete_pv(namespace='kafka', pv_type='data')
