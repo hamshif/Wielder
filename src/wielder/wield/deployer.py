@@ -235,7 +235,7 @@ def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init
 def output(result):
 
     logging.info(f"result: {result[0]}")
-    # [logging.info(f"result: {r}") for r in result]
+    [logging.debug(f"result: {r}") for r in result]
 
 
 # TODO delete all pods try using python kube library if possible
