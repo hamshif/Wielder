@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import logging
 import os
 import re
 from requests import get
@@ -8,6 +8,7 @@ from wielder.util.commander import async_cmd
 
 # This example requires the requests library be installed.  You can learn more
 # about the Requests library here: http://docs.python-requests.org/en/latest/
+from wielder.util.log_util import setup_logging
 
 
 def get_kube_context():
@@ -26,7 +27,7 @@ def get_external_ip():
     else:
         ip = 'couldnt get ip'
 
-    print(f'My public IP address is:{ip}')
+    logging.info(f'My public IP address is:{ip}')
     return ip
 
 
@@ -115,19 +116,21 @@ def remove_line(filename, line):
 
 if __name__ == "__main__":
 
+    setup_logging(log_level=logging.DEBUG)
+
     _ip = get_external_ip()
 
     _line = 'Do not yell in open space'
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {dir_path}")
+    logging.debug(f"current working dir: {dir_path}")
 
     full_path = f'{dir_path}/punishment.conf'
 
     for a in range(100):
         line_prepender(full_path, _line, once=False)
 
-    print('break point')
+    logging.debug('break point')
 
     remove_line(full_path, _line)
 

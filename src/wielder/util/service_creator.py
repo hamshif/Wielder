@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+import logging
 import os
 from shutil import copyfile
 
 from wielder.util.arguer import get_create_parser
+from wielder.util.log_util import setup_logging
 from wielder.util.wgit import clone_or_update
 from wielder.wield.enumerator import CodeLanguage
 
@@ -52,12 +54,12 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
 
         dirs[:] = [d for d in dirs if not has_end(d, ignored_dirs)]
 
-        print(f"subdir: {subdir} \ndirs: \n{dirs}")
+        logging.info(f"subdir: {subdir} \ndirs: \n{dirs}")
 
         dir_name = subdir[subdir.rfind('/') + 1:]
         _new_dir = subdir.replace(origin_path, dest_path).replace(origin_name, target_name)
 
-        print(_new_dir)
+        logging.info(f'new dir: {_new_dir}')
 
         os.makedirs(_new_dir, exist_ok=True)
 
@@ -66,7 +68,7 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
             if not has_end(_file, ignored_files):
 
                 origin_file = os.path.join(subdir, _file)
-                print(f"origin:      {origin_file}")
+                logging.info(f"origin:      {origin_file}")
 
                 # TODO add more insurances preventing bug where an incidental substring is replaced
                 #  or one is accidentally excluded.
@@ -75,7 +77,7 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
                 destination_path = destination_path.replace(f'{origin_name}-', f'{target_name}-')
                 destination_path = destination_path.replace(f'{origin_name}_', f'{target_name}_')
 
-                print(f"destination: {destination_path}")
+                logging.info(f"destination: {destination_path}")
 
                 if replace_in_copy:
 
@@ -88,10 +90,10 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
                 else:
                     copyfile(origin_file, destination_path)
 
-                print('break')
+                logging.debug('break')
 
             else:
-                print(f"ignoring dir_name: {dir_name}")
+                logging.info(f"ignoring dir_name: {dir_name}")
 
     return None
 
@@ -121,8 +123,8 @@ def variation_copy_file(origin_path, dest_path, origin_name, target_name):
                     file_out.write(line)
     except Exception as e:
 
-        print(f'origin_path: {origin_path}')
-        print(e)
+        logging.error(f'origin_path: {origin_path}')
+        logging.error(e)
 
 
 def create_infrastructure(create_wield_services, target_root, project_name,
@@ -186,7 +188,7 @@ def test():
 
     target_root = '/tmp/test/wielder-services'
 
-    print(f'testing project module creation in \n{target_root}')
+    logging.info(f'testing project module creation in \n{target_root}')
 
     project_name = 'Dagdahuda'
     origin_module = 'pep'
@@ -212,12 +214,13 @@ def test():
 
 if __name__ == "__main__":
 
+    setup_logging(log_level=logging.DEBUG)
     create_parser = get_create_parser()
     _create_args = create_parser.parse_args()
 
     if _create_args.test:
         test()
     else:
-        print('creating module')
+        logging.info('creating module')
         create(_create_args)
 

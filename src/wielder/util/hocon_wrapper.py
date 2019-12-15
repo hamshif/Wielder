@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-
+import logging
 import os
 from pyhocon import ConfigFactory as Cf
+
+from wielder.util.log_util import setup_logging
 from wielder.util.util import line_prepender, remove_line
 
 
@@ -17,13 +19,13 @@ def include_configs(base_path, included_paths, remove_includes=True):
     for included_path in included_paths:
 
         line = f'include file("{included_path}")'
-        # print(f'Trying to add {line} to {base_path}')
+        # logging.debug(f'Trying to add {line} to {base_path}')
         line_prepender(filename=base_path, line=line, once=True)
-        print(f'Added {line} to {base_path}')
+        logging.info(f'Added {line} to {base_path}')
 
-    # print(f'Trying to parse {base_path}')
+    # logging.debug(f'Trying to parse {base_path}')
     conf = Cf.parse_file(base_path)
-    # print(f'parsed {base_path}')
+    # logging.debug(f'parsed {base_path}')
 
     if remove_includes:
 
@@ -36,8 +38,12 @@ def include_configs(base_path, included_paths, remove_includes=True):
 
 if __name__ == "__main__":
 
+    setup_logging(
+        log_level=logging.DEBUG
+    )
+
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {dir_path}")
+    logging.debug(f"current working dir: {dir_path}")
 
     dir_path = ''
 
@@ -46,4 +52,4 @@ if __name__ == "__main__":
 
     _conf = include_configs(base_path=_base_path, included_paths=_included_files)
 
-    print('break point')
+    logging.debug('break point')

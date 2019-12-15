@@ -98,7 +98,6 @@ def destroy_sanity(conf):
 def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
 
     logging.info('Configured logging')
-    print('psyche')
 
     kube_parser = get_kube_parser()
 

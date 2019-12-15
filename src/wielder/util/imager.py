@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import logging
 import os
 from shutil import rmtree, copyfile, copytree
 from wielder.util.commander import async_cmd
+from wielder.util.log_util import setup_logging
 
 
 def replace_file(origin_path, origin_regex, destination_path, final_name):
@@ -19,14 +21,14 @@ def replace_file(origin_path, origin_regex, destination_path, final_name):
 
     target_file = async_cmd(f"find {origin_path} -name {origin_regex}")[0][:-1]
 
-    print(f'Regex "{origin_regex}"" is fount in origin_path:  {target_file}')
+    logging.info(f'Regex "{origin_regex}"" is fount in origin_path:  {target_file}')
 
     if target_file == '':
 
-        print(f"couldn't find {origin_path}/{origin_regex} please run: ")
+        logging.warning(f"couldn't find {origin_path}/{origin_regex} please run: ")
         return
 
-    print(f"Found {target_file} in target")
+    logging.info(f"Found {target_file} in target")
 
     full_destination = f"{destination_path}/{final_name}"
 
@@ -34,11 +36,11 @@ def replace_file(origin_path, origin_regex, destination_path, final_name):
         os.remove(full_destination)
 
     except Exception as e:
-        print(str(e))
+        logging.error(str(e))
 
     copytree(target_file, full_destination)
 
-    print(f"successfully replaced {full_destination}")
+    logging.info(f"successfully replaced {full_destination}")
 
 
 def replace_dir_contents(origin_path, origin_regex, destination_path, destination_dir_name='artifacts'):
@@ -61,17 +63,17 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
 
     target_file = async_cmd(f"find {origin_path} -name {origin_regex}")[0][:-1]
 
-    print(
+    logging.info(
         f'Search results for regex <{origin_regex}> in origin_path:  {origin_path}:\n'
         f'{target_file}'
     )
 
     if target_file == '':
 
-        print(f"couldn't find {origin_path}/{origin_regex}\nPlease make sure it exists in path")
+        logging.error(f"couldn't find {origin_path}/{origin_regex}\nPlease make sure it exists in path")
         return
 
-    print(f"Found {target_file} in target")
+    logging.info(f"Found {target_file} in target")
 
     full_destination = f"{destination_path}/{destination_dir_name}"
 
@@ -79,11 +81,11 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
         rmtree(full_destination)
 
     except Exception as e:
-        print(str(e))
+        logging.error(str(e))
 
     copytree(origin_path, full_destination)
 
-    print(f"successfully replaced {full_destination}")
+    logging.info(f"successfully replaced {full_destination}")
 
     return target_file
 
@@ -123,12 +125,12 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
         _cmd
     )
 
-    print(f"{name} image_trace: {image_trace}")
+    logging.info(f"{name} image_trace: {image_trace}")
 
     # Check if the list is empty
     if force or not image_trace:
 
-        print(f"attempting to create image {name}")
+        logging.info(f"attempting to create image {name}")
 
         os.system(
             f'docker build -t {image_name}:{tag} {dockerfile_dir};'
@@ -140,5 +142,8 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
         push_image(gcp_conf)
 
 
+if __name__ == "__main__":
 
-
+    setup_logging(log_level=logging.DEBUG)
+    logging.info('Poomba')
+    logging.debug('Simba')

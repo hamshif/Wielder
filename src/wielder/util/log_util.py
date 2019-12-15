@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 import logging
-
-import os
 import logging.config
-
+import os
 import yaml
 
 
 def setup_logging(
         default_path='logging.yaml',
-        default_level=None,
+        log_level=None,
         env_key='LOG_CFG'
 ):
     """
@@ -25,14 +23,21 @@ def setup_logging(
 
         logging.config.dictConfig(config)
     else:
-        default_level = logging.INFO if default_level is None else default_level
-        logging.basicConfig(level=default_level)
+        log_level = logging.INFO if log_level is None else log_level
+        # logging.basicConfig(level=log_level)
+
+    if log_level is not None:
+        logger = logging.getLogger()
+        logger.setLevel(log_level)
+
+        for handler in logger.handlers:
+            handler.setLevel(log_level)
 
 
 if __name__ == "__main__":
 
     setup_logging(
-        default_level=logging.DEBUG
+        log_level=logging.DEBUG
     )
 
     logging.info('Configured logging')

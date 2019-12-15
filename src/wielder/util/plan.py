@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import logging
+
 from wielder.util.arguer import get_kube_parser, process_args
 from wielder.util.templater import remove_non_templates, gather_templates, templates_to_instances
 
@@ -16,7 +18,7 @@ if __name__ == "__main__":
 
     templates = gather_templates(where, conf)
 
-    print(f"templates:\n{templates}")
+    logging.info(f"templates:\n{templates}")
     templates_to_instances(templates, conf.template_variables)
 
 

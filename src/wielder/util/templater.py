@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import logging
 import os
 import jprops
 from jprops import _CommentSentinel
@@ -9,6 +9,9 @@ from wielder.util.arguer import get_kube_parser, process_args, Conf
 
 
 # TODO Consider switching from tuples to dict
+from wielder.util.log_util import setup_logging
+
+
 def get_template_var_by_key(template_variables, key):
 
     for r in template_variables:
@@ -27,22 +30,22 @@ def gather_templates(dir_path, conf):
     template_files = []
 
     for subdir, dirs, files in os.walk(dir_path):
-        # print(f"dirs: \n{dirs}")
+        logging.debug(f"dirs: \n{dirs}")
 
         dir_name = subdir[subdir.rfind('/') + 1:]
 
         if dir_name not in conf.template_ignore_dirs:
-            print(f"searching in dir_name: {dir_name}")
+            logging.info(f"searching in dir_name: {dir_name}")
 
             for file in files:
-                # print(f"file: {os.path.join(subdir, file)}")
+                logging.debug(f"file: {os.path.join(subdir, file)}")
                 file_path = subdir + os.sep + file
 
                 if file_path.endswith(".tmpl"):
 
                     template_files.append(file_path)
         else:
-            print(f"ignoring dir_name: {dir_name}")
+            logging.info(f"ignoring dir_name: {dir_name}")
 
     return template_files
 
@@ -55,22 +58,22 @@ def remove_non_templates(dir_path, conf):
     """
 
     for subdir, dirs, files in os.walk(dir_path):
-        # print(f"dirs: \n{dirs}")
+        logging.debug(f"dirs: \n{dirs}")
 
         dir_name = subdir[subdir.rfind('/') + 1:]
 
         if dir_name not in conf.template_ignore_dirs:
-            print(f"searching in dir_name: {dir_name}")
+            logging.info(f"searching in dir_name: {dir_name}")
 
             for file in files:
-                # print(f"file: {os.path.join(subdir, file)}")
+                logging.debug(f"file: {os.path.join(subdir, file)}")
                 full_path = subdir + os.sep + file
 
                 if full_path.endswith(".yaml") or full_path.endswith(".json"):
 
                     os.remove(full_path)
         else:
-            print(f"ignoring dir_name: {dir_name}")
+            logging.info(f"ignoring dir_name: {dir_name}")
 
     return None
 
@@ -85,7 +88,7 @@ def templates_to_instances(file_paths, tmpl_vars):
     """
     for file_path in file_paths:
 
-        print(f"file path: {file_path}")
+        logging.info(f"file path: {file_path}")
 
         yaml_file = file_path.replace('.tmpl', '')
 
@@ -105,7 +108,7 @@ def templates_to_instances(file_paths, tmpl_vars):
                         for r in tmpl_vars:
                             if r[0] in line:
 
-                                print(f"line: {line}     replacing {r[0]} with {r[1]}")
+                                logging.info(f"line: {line}     replacing {r[0]} with {r[1]}")
                                 line = line.replace(r[0], f'{r[1]}')
 
                                 if '#' not in line:
@@ -131,11 +134,11 @@ def prop_templates_to_instances(var_file_path, template_files, print_variables=F
 
             tuple_list_vars = jprops.iter_properties(fp, comments=False)
 
-            print(f'\n\nproperties:\n')
+            logging.info(f'\n\nproperties:\n')
 
             for prop in list(tuple_list_vars):
 
-                print(prop)
+                logging.info(prop)
 
     for template_file in template_files:
 
@@ -154,7 +157,7 @@ def prop_templates_to_instances(var_file_path, template_files, print_variables=F
 
                 for prop in props:
 
-                    print(f'prop: {prop}   of type:  {type(prop[0])}')
+                    logging.info(f'prop: {prop}   of type:  {type(prop[0])}')
 
                     if not isinstance(prop[0], _CommentSentinel):
 
@@ -162,14 +165,14 @@ def prop_templates_to_instances(var_file_path, template_files, print_variables=F
 
                         if '#' in prop[1]:
 
-                            # print(prop)
+                            logging.debug(prop)
                             vrs = get_vars_from_string(prop[1], '#')
-                            # print(a)
+                            logging.debug(vrs)
 
                             new_val = prop[1]
 
                             for k in vrs:
-                                # print(f'key: {k}    value:{variable_map[k]}')
+                                logging.debug(f'key: {k}    value:{variable_map[k]}')
                                 new_val = new_val.replace(k, variable_map[k])
 
                             new_val = new_val.replace('#', '')
@@ -239,6 +242,7 @@ def get_raw_arg(conf, key, default_value=None):
     try:
         default_value = conf.raw_config_args[key]
     except:
+        logging.error()
         pass
 
     return default_value
@@ -257,7 +261,7 @@ def config_tree_to_tuple(tree, print_vars=True, template=True, escape_sequence='
 
     template_variables = []
 
-    print(f'shana tova{type(tree)}')
+    logging.debug(f'type(tree): {type(tree)}')
 
     for k in tree:
 
@@ -267,7 +271,7 @@ def config_tree_to_tuple(tree, print_vars=True, template=True, escape_sequence='
             k = f"{escape_sequence}{k}{escape_sequence}"
 
         if print_vars:
-            print(f"k: {k}   v: {v}")
+            logging.info(f"k: {k}   v: {v}")
 
         template_variables.append((k, v))
 
@@ -290,7 +294,7 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
     try:
         os.remove(config_file)
     except OSError:
-        print("Error while deleting file ", config_file)
+        logging.error("Error while deleting file ", config_file)
 
     with open(config_file, "a") as file_out:
 
@@ -321,8 +325,10 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
 
 if __name__ == "__main__":
 
+    setup_logging(log_level=logging.DEBUG)
+
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(f"current working dir: {dir_path}")
+    logging.debug(f"current working dir: {dir_path}")
 
     conf = Conf()
     conf.template_variables = [
@@ -332,7 +338,7 @@ if __name__ == "__main__":
 
     templates = gather_templates(dir_path, conf)
 
-    print(f"templates:\n{templates}")
+    logging.info(f"templates:\n{templates}")
     templates_to_instances(templates, conf.template_variables)
 
 
