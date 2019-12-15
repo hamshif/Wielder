@@ -187,9 +187,7 @@ def process_args(cmd_args):
 
 if __name__ == "__main__":
 
-    setup_logging(
-        log_level=logging.DEBUG
-    )
+    setup_logging(log_level=logging.DEBUG)
 
     datalake_args, other_args = get_datalake_parser().parse_known_args()
 
