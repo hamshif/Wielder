@@ -1,3 +1,5 @@
+import logging
+
 from pyhocon import ConfigFactory as Cf
 
 
@@ -24,11 +26,11 @@ def get_conf_ordered_files(ordered_conf_files):
 
     conf_include_string = wrap_included(ordered_conf_files)
 
-    print(f"\nconf_include_string:  {conf_include_string}\n")
+    logging.info(f"\nconf_include_string:  {conf_include_string}\n")
 
     conf = Cf.parse_string(conf_include_string)
 
-    print(conf)
+    logging.info(f'conf Hocon object:\n{conf}')
 
     return conf
 

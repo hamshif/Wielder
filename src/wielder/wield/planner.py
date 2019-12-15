@@ -42,7 +42,7 @@ class WieldPlan(WielderBase):
 
             plan = Hc.convert(self.conf[res], self.plan_format.value, 2)
 
-            print(f'\n{plan}')
+            logging.info(f'\n{plan}')
 
             self.plans.append(plan)
 

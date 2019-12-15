@@ -1,3 +1,4 @@
+import logging
 import os
 from pyhocon import ConfigFactory as Cf
 
@@ -15,10 +16,10 @@ from wielder.wield.wield_project import make_sure_project_local_conf_exists, get
 def get_module_root(file_context=__file__):
 
     dir_path = os.path.dirname(os.path.realpath(file_context))
-    print(f"\ncurrent working dir: {dir_path}\n")
+    logging.debug(f"\ncurrent working dir: {dir_path}\n")
 
     module_root = dir_path[:dir_path.rfind('/') + 1]
-    print(f"Module root: {module_root}")
+    logging.info(f"Module root: {module_root}")
 
     return module_root
 
@@ -87,7 +88,7 @@ class WieldService(WielderBase):
 
         wielder_sanity(self.conf, self.mode, self.service_mode)
 
-        print('break')
+        logging.debug('break')
 
         self.plan = WieldPlan(
             name=self.name,
@@ -104,7 +105,7 @@ class WieldService(WielderBase):
 
         if not os.path.exists(local_path):
 
-            print(f'\ncould not find file: {local_path}\ncreating it on the fly!\n')
+            logging.info(f'\ncould not find file: {local_path}\ncreating it on the fly!\n')
 
             vars_file = f'{self.conf_dir}/{self.mode.runtime_env}/{self.name}-vars.conf'
 

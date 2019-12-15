@@ -1,3 +1,4 @@
+import logging
 import os
 
 from wielder.util.util import get_external_ip
@@ -49,7 +50,7 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
 
     if not os.path.exists(local_path):
 
-        print(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
+        logging.info(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
 
         if not runtime_env:
             runtime_env = 'docker'
@@ -158,7 +159,7 @@ class WieldProject(WielderBase):
 
         wielder_sanity(self.conf, self.mode)
 
-        print('break')
+        logging.debug('break')
 
         self.plan = WieldPlan(
             name=self.name,

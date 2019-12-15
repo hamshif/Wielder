@@ -1,6 +1,8 @@
+import logging
+
 
 class WielderBase:
 
     def pretty(self):
 
-        [print(it) for it in self.__dict__.items()]
+        [logging.info(it) for it in self.__dict__.items()]

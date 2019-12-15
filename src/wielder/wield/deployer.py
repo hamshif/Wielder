@@ -85,18 +85,18 @@ def delete_pv(pv_type, namespace='default'):
 
     for pv_str in pvc_strings:
         pv = pv_str.split('   ')[0]
-        print(pv)
+        logging.info(f'{pv}')
 
         if f'{namespace}/{pv_type}' in pv_str:
             cmd = f"""kubectl patch persistentvolume/{pv} -p {escaped} --type=merge"""
-            print(f'cmd: {cmd}')
+            logging.info(f'cmd: {cmd}')
             response = async_cmd(cmd)
-            print(f'response: {response}')
+            logging.info(f'response: {response}')
 
             cmd = f"kubectl delete persistentvolume/{pv}  --wait=false"
-            print(f'cmd: {cmd}')
+            logging.info(f'cmd: {cmd}')
             response = async_cmd(cmd)
-            print(f'response: {response}')
+            logging.info(f'response: {response}')
 
 
 def delete_pvc(pvc_type, namespace='default'):
@@ -110,14 +110,14 @@ def delete_pvc(pvc_type, namespace='default'):
 
     for pvc_str in pvc_strings:
         pvc = pvc_str.split('   ')[0]
-        print(pvc)
+        logging.info(pvc)
 
         if f'{pvc_type}' in pvc_str:
 
             cmd = f"kubectl delete pvc {pvc} -n {namespace}  --wait=false"
-            print(f'cmd: {cmd}')
+            logging.info(f'cmd: {cmd}')
             response = async_cmd(cmd)
-            print(f'response: {response}')
+            logging.info(f'response: {response}')
 
 
 def get_pods(name, exact=False, namespace='default'):
@@ -139,12 +139,13 @@ def get_pods(name, exact=False, namespace='default'):
 
 def print_pod_gist(pod):
 
-    # print(f"\npod status: {pod.status}\n")
-    print(f"pod name: {pod.metadata.name}\n"
-          f"pod message: {pod.status.message}\n"
-          f"pod phase: {pod.status.phase}\n"
-          f"pod reason: {pod.status.reason}\n\n"
-          )
+    # logging.info(f"\npod status: {pod.status}\n")
+    logging.info(
+        f"pod name: {pod.metadata.name}\n"
+        f"pod message: {pod.status.message}\n"
+        f"pod phase: {pod.status.phase}\n"
+        f"pod reason: {pod.status.reason}\n\n"
+    )
 
 
 def observe_pod(pod):
@@ -159,12 +160,12 @@ def observe_pod(pod):
     while 'Running' not in pod.status.phase:
 
         if time_elapsed > 400:
-            print(f"waited {time_elapsed} that'sn enough exiting")
+            logging.info(f"waited {time_elapsed} that'sn enough exiting")
             return "timeout either provisioning might be too long or some code problem", name, pod
             break
 
         try:
-            print(f"\n\nWaited {time_elapsed} for {name} going to sleep for {interval}")
+            logging.info(f"\n\nWaited {time_elapsed} for {name} going to sleep for {interval}")
             time.sleep(interval)
             time_elapsed += interval
 
@@ -200,7 +201,7 @@ def observe_pods(name, callback=None):
 
 def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init=True, namespace='default'):
 
-    print(f"callback: str(callback)")
+    logging.info(f"callback: {str(callback)}")
 
     name = deploy_tuple[0]
 
@@ -214,7 +215,7 @@ def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init
         # a deployment might have n pods!
         result = os.system(f"kubectl apply -f {file_path}")
 
-        print(f"result: {result}")
+        logging.info(f"result: {result}")
 
     pods = get_pods(name, namespace=namespace)
 
@@ -233,8 +234,8 @@ def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init
 # TODO write error and progress discerning logic or use Observer
 def output(result):
 
-    print(f"result: {result[0]}")
-    # [print(f"result: {r}") for r in result]
+    logging.info(f"result: {result[0]}")
+    # [logging.info(f"result: {r}") for r in result]
 
 
 # TODO delete all pods try using python kube library if possible
