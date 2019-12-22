@@ -91,14 +91,14 @@ class WieldPlan(WielderBase):
                 plan_path = self.to_plan_path(res=res)
                 os.system(f"kubectl apply -f {plan_path};")
 
-                if res == 'service' and observe_svc:
+                if 'service' in res and observe_svc:
 
                     observe_service(
                         svc_name=self.name,
                         svc_namespace=self.namespace
                     )
 
-                elif res == 'deploy' and observe_deploy:
+                elif ('deploy' in res or 'statefulset' in res) and observe_deploy:
 
                     # Observe the pods created
                     pods = get_pods(
