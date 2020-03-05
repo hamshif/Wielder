@@ -5,6 +5,7 @@ import logging
 import os
 import time
 import rx
+from rx import operators as ops
 import concurrent.futures
 from kubernetes import client, config
 
@@ -193,10 +194,16 @@ def observe_pods(name, callback=None):
 
     if len(pods) > 0:
 
+        source = rx.from_(pods)
+
         with concurrent.futures.ProcessPoolExecutor(len(pods)) as executor:
-            rx.Observable.from_(pods).flat_map(
-                lambda pod: executor.submit(observe_pod, pod)
-            ).subscribe(output if callback is None else callback)
+
+            composed = source.pipe(
+                ops.flat_map(
+                    lambda pod: executor.submit(observe_pod, pod)
+                )
+            )
+            composed.subscribe(output if callback is None else callback)
 
 
 def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init=True, namespace='default'):
@@ -223,12 +230,18 @@ def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init
     # [observe_pod(pod) for pod in pods]
 
     # this is concurrent
+    # TODO refactor to not repeat code
     if len(pods) > 0:
 
+        source = rx.from_(pods)
+
         with concurrent.futures.ProcessPoolExecutor(len(pods)) as executor:
-            rx.Observable.from_(pods).flat_map(
-                lambda pod: executor.submit(observe_pod, pod)
-            ).subscribe(output if callback is None else callback)
+            composed = source.pipe(
+                ops.flat_map(
+                    lambda pod: executor.submit(observe_pod, pod)
+                )
+            )
+            composed.subscribe(output if callback is None else callback)
 
 
 # TODO write error and progress discerning logic or use Observer

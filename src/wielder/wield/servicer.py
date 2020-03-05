@@ -6,7 +6,7 @@ import os
 import time
 import inspect
 import rx
-from rx import Observer
+from rx import operators as ops
 import concurrent.futures
 from kubernetes import client, config
 
@@ -129,18 +129,6 @@ def output(result):
     [logging.info(f"result: {r}") for r in result]
 
 
-class ServicerObserver(Observer):
-
-    def on_error(self, error):
-        logging.error(f"error occurred:\n{str(error)}")
-
-    def on_completed(self):
-        logging.info("Done!")
-
-    def on_next(self, value):
-        logging.info(f"{value}")
-
-
 # Contents of main is project specific
 if __name__ == "__main__":
 
@@ -150,11 +138,17 @@ if __name__ == "__main__":
     root_path = root_path[:root_path.rfind('/')]
     logging.debug(f"two dirs above where we start path to files: {d}")
 
+    # TODO get the service names from config
     svc_names = ['cep', 'data-exchange', 'sso', 'backoffice']
     svc_tup_gen = get_tuple_generator(lambda sn: f"{root_path}/deploy/{sn}/gcp/{sn}-service.yaml", svc_names)
 
+    source = rx.from_(svc_tup_gen)
+
     with concurrent.futures.ProcessPoolExecutor(len(svc_names)) as executor:
-        rx.Observable.from_(svc_tup_gen).flat_map(
-            lambda s: executor.submit(init_observe_service, s)
-        ).subscribe(output)
+        composed = source.pipe(
+            ops.flat_map(
+                lambda service_name: executor.submit(init_observe_service, service_name)
+            )
+        )
+        composed.subscribe(output)
 
