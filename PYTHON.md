@@ -26,7 +26,7 @@ pyenv activate wielder
 dependencies while in virtualenv active shell
 ```
 pip install gitpython
-pip install rx==1.6.1
+pip install rx
 pip install kubernetes flask pyhocon Cython Kazoo Kafka apache-airflow
 pip install kafka-python
 ```
