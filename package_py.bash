@@ -7,5 +7,5 @@ echo "$0 is running from: $DIR"
 cd "$(dirname "$0")"
 
 
-echo 'workon wielder virtualenvwrapper if using locally'
-pip install -e ./src/
+echo 'pyenv activate wielder if using locally'
+pip install -e ./
