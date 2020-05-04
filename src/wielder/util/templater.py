@@ -303,7 +303,7 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
             v = tree[k]
 
             if print_vars:
-                print(f"k: {k}   v: {v}")
+                logging.info(f"k: {k}   v: {v}")
 
             if isinstance(v, str):
                 v = f'"{v}"'

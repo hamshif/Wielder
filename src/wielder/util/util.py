@@ -23,7 +23,7 @@ def get_external_ip():
     try:
         ip = get('https://api.ipify.org').text
     except Exception as e:
-        print(str(e))
+        logging.error(str(e))
     else:
         ip = 'couldnt get ip'
 
@@ -62,7 +62,6 @@ def replace_last(full, sub, rep=''):
     for c in reversed(full):
         count = count + 1
         end = c + end
-        # print(end)
 
         if sub in end:
             return full[:-count] + end.replace(sub, rep)

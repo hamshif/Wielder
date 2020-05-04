@@ -42,4 +42,3 @@ if __name__ == "__main__":
 
     logging.info('Configured logging')
     logging.debug('Configured logging')
-    print('psyche')

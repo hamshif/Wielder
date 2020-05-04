@@ -73,7 +73,7 @@ class WieldService(WielderBase):
                 runtime_env=mode.runtime_env,
                 deploy_env=mode.deploy_env
             )
-            print(f'\nOverriding module conf with project conf\n')
+            logging.info(f'\nOverriding module conf with project conf\n')
 
             self.conf = get_conf_context_project(
                 project_root=self.locale.project_root,

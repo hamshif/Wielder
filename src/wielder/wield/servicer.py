@@ -109,7 +109,7 @@ def init_observe_service(svc_tuple):
 
         if ip is None:
             try:
-                print(f"\n\nWaited {time_waiting} for {svc_name} going to sleep for {interval}")
+                logging.info(f"\n\nWaited {time_waiting} for {svc_name} going to sleep for {interval}")
                 time.sleep(interval)
                 time_waiting += interval
 
