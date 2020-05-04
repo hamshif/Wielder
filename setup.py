@@ -12,7 +12,7 @@ setup(
       license='Apache License Version 2.0',
       packages=find_packages(),
       zip_safe=False,
-      install_requires=['kubernetes', 'rx', 'jprops', 'pyhocon', 'requests'],
+      install_requires=['gitpython', 'pyyaml', 'kubernetes', 'rx', 'jprops', 'pyhocon', 'requests'],
       keywords=['CI-CD', 'Kubernetes', 'Reactive'],
       classifiers=[
             'Development Status :: 4 - Beta',
