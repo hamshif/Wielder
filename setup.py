@@ -6,7 +6,7 @@ setup(
       description='A reactive debuggable CI-CD & orchestration management tool'
                   ' for local & cloud deployments e.g. kubernetes, airflow & data lakes',
       url='https://github.com/hamshif/Wielder.git',
-      download_url='https://github.com/hamshif/Wielder/archive/v_01.tar.gz',
+      download_url='https://github.com/hamshif/Wielder/archive/v0.1-beta.tar.gz',
       author='Hamshif',
       author_email='hamshif@gmail.com',
       license='Apache License Version 2.0',
