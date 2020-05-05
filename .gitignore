@@ -29,7 +29,7 @@
 /__pycache__
 
 *.egg*
-conf/
+#conf/
 deploy/slate-deploy.yaml.tmpl
 deploy/slate-pv.yaml.tmpl
 deploy/slate-pvc.yaml.tmpl
