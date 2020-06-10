@@ -21,6 +21,8 @@ else
     pyenv virtualenv 3.8.0 wielder
 fi
 
+pip install --upgrade pip
+
 pyenv activate wielder
 
 pip install gitpython
