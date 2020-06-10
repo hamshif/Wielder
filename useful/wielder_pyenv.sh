@@ -19,11 +19,15 @@ if [[ "$existing_envs" == *"$v"* ]]; then
 else
     echo "$v virtualenv doesn't exist."
     pyenv virtualenv 3.8.0 wielder
+
+    echo activate wielder and restart
+    echo 'pyenv activate wielder'
+    exit 0
 fi
 
 pip install --upgrade pip
 
-pyenv activate wielder
+
 
 pip install gitpython
 pip install rx
