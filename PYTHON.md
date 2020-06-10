@@ -19,7 +19,7 @@ eval "$(pyenv virtualenv-init -)"
 
 Create virtualenv
 ```
-pyenv virtualenv 3.6.5 wielder
+pyenv virtualenv 3.8.0 wielder
 pyenv activate wielder 
 ```
 
