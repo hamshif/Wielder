@@ -25,11 +25,16 @@ pyenv activate wielder
 
 dependencies while in virtualenv active shell
 ```
-pip install gitpython
-pip install rx
-pip install kubernetes flask pyhocon Cython Kazoo Kafka apache-airflow
-pip install kafka-python
+pip install --upgrade pip 
+pip install gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes apache-airflow 
+
 ```
+
+To delete 
+```
+pyenv virtualenv-delete <name>
+```
+
 while wielder virtualenv is active run package_py.bash files in
 1. Wielder
 1. wield-services
