@@ -61,7 +61,7 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
     :return:
     """
 
-    target_file = async_cmd(f"find {origin_path} -name {origin_regex}")[0][:-1]
+    target_file = async_cmd(f"find {origin_path} -name '{origin_regex}*'")[0][:-1]
 
     logging.info(
         f'Search results for regex <{origin_regex}> in origin_path:  {origin_path}:\n'

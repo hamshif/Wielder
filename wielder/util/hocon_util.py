@@ -26,7 +26,7 @@ def get_conf_ordered_files(ordered_conf_files):
 
     conf_include_string = wrap_included(ordered_conf_files)
 
-    logging.info(f"\nconf_include_string:  {conf_include_string}\n")
+    logging.info(f"\nconf_include_string:\n{conf_include_string}\n")
 
     conf = Cf.parse_string(conf_include_string)
 

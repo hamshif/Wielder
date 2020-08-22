@@ -8,7 +8,7 @@ pyenv virtualenvs
 https://github.com/pyenv/pyenv-virtualenv
 ```
 brew install pyenv
-pyenv install 3.6.5
+pyenv install 3.6.5 / 3.7.5 not tested with airflow / 3.8.0 (problems with hocon parsing)
 brew install pyenv-virtualenv pyenv-virtualenvwrapper
 ```
 To config add these lines in .zshrc or .bashrc
@@ -29,6 +29,9 @@ pip install --upgrade pip
 pip install gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes apache-airflow 
 
 ```
+
+you can Either use wielder locally with .package_by_bash.sh script or pip install wielder
+
 
 To delete 
 ```
