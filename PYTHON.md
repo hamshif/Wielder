@@ -25,9 +25,11 @@ pyenv activate wielder
 
 dependencies while in virtualenv active shell
 ```
-pip install --upgrade pip 
-pip install gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes apache-airflow 
+pip install --upgrade pip
 
+pip install gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes kafka
+
+pip install apache-airflow
 ```
 
 you can Either use wielder locally with .package_by_bash.sh script or pip install wielder

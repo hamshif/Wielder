@@ -18,7 +18,7 @@ if [[ "$existing_envs" == *"$v"* ]]; then
     echo "$v virtualenv exists."
 else
     echo "$v virtualenv doesn't exist."
-    pyenv virtualenv 3.8.0 wielder
+    pyenv virtualenv 3.7.5 wielder
 
     echo activate wielder and restart
     echo 'pyenv activate wielder'
@@ -27,14 +27,6 @@ fi
 
 pip install --upgrade pip
 
-
-
-pip install gitpython
-pip install rx
-pip install Cython
-pip install kubernetes flask pyhocon Kazoo Kafka
-pip install kafka-python
-pip install confluent-kafka
-pip install cassandra-driver
+pip install gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes kafka
 
 pip install apache-airflow
