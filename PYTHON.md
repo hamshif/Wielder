@@ -66,4 +66,17 @@ For IDE support
   1. apply / ok ...
   1. wait a bit for intellij to process.
  
+ PyPI
+ =
  
+https://packaging.python.org/tutorials/packaging-projects/
+
+make sure you have pypirc by loging into pypi project and getting a token
+```
+cd <path to>/Wielder
+
+pyenv activate wielder
+python -m pip install --upgrade twine
+
+twine upload -r pypi dist/*
+```
