@@ -1,17 +1,19 @@
 from setuptools import setup, find_packages
 
+_version = '0.2.1'
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
       name='wielder',
-      version='0.2.1',
+      version=_version,
       description='A reactive debuggable CI-CD & orchestration management tool'
                   ' for local & cloud deployments e.g. kubernetes, airflow & data lakes',
       long_description=long_description,
       long_description_content_type="text/markdown",
       url='https://github.com/hamshif/Wielder.git',
-      download_url='https://github.com/hamshif/Wielder/archive/v0.2-beta.tar.gz',
+      download_url=f'https://github.com/hamshif/Wielder/archive/v{_version}-beta.tar.gz',
       author='Hamshif',
       author_email='hamshif@gmail.com',
       license='Apache License Version 2.0',
