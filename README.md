@@ -1,5 +1,14 @@
+
 Wielder
 =
+
+<h2> 
+One Lib to rule them all,<br>
+One Lib to find them,<br>
+One Lib to bring them all<br>  
+and in the darkness bind them.  
+</h2>
+
 Reactive debuggable CI-CD
 -
 
@@ -19,7 +28,7 @@ to guide code from development through testing to production.
 * Examples:
     * Waiting for Zookeeper to come online before deploying or scaling Kafka nodes.
     * Waiting for Redis sentinels to find a master and come online before deploying another slave.
-    * Provisioning additional cluster nodes and volumes with terraform before scaling a MongoDB stateful set.
+    * Provisioning additional cluster nodes and volumes with terraform before scaling a Cassandra stateful set.
     * Scheduled provisioning of hadoop clusters -> Running ETL's -> Deprovisioning the clusters
     * Listening to Kubernetes service throughput -> provisioning infrastructure scaling with terraform -> provisioning kubernetes node scaling.
     * Use of the same infrastructure as code to develop locally and on deploy to the cloud.

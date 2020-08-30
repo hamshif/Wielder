@@ -1,4 +1,5 @@
-
+build
+dist
 *.iml
 /.project
 *dump.rdb
