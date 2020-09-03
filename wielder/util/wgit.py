@@ -39,6 +39,7 @@ def clone_or_update(source, destination, name=None, branch='master', local=False
     subprocess_cmd(f"git -C {destination} stash")
     subprocess_cmd(f"git -C {destination} fetch")
     subprocess_cmd(f"git -C {destination} checkout {branch}")
+    subprocess_cmd(f"git -C {destination} config pull.rebase false")
     subprocess_cmd(f"git -C {destination} pull")
 
 
