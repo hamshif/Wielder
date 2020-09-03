@@ -77,11 +77,7 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
 
     full_destination = f"{destination_path}/{destination_dir_name}"
 
-    try:
-        rmtree(full_destination)
-
-    except Exception as e:
-        logging.error(str(e))
+    rmtree(full_destination, ignore_errors=True)
 
     copytree(origin_path, full_destination)
 
