@@ -20,20 +20,14 @@ def get_basic_module_properties(runtime_env, deploy_env, name):
     ip = '87.70.171.87'  # get_external_ip()
 
     local_properties = [
-        'explain = "This .gitignored file is where developers override configuration properties"',
+        'explain = "This file is where developers override project level configuration properties '
+        'it is .gitignored"',
         f'runtime_env : {runtime_env}',
         f'deploy_env : {deploy_env}',
         '#replace the context below with the context of the kubernetes deployment your working on',
         f'kube_context : {current_kube_context}',
         f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
         f'deployments : [\n{name}\n]',
-        f'# Override module WieldServiceMode\n'
-        f'{name}.WieldServiceMode : {{\n\n'
-        f'  observe : true\n'
-        f'  service_only : false\n'
-        f'  debug_mode : true\n'
-        f'  local_mount : true\n'
-        f'}}'
     ]
 
     return local_properties
@@ -43,8 +37,28 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
 
     personal_dir = f'{project_root}conf/personal'
 
-    if not os.path.exists(personal_dir):
-        os.makedirs(personal_dir)
+    os.makedirs(personal_dir, exist_ok=True)
+
+    local_path = f'{personal_dir}/modules_override.conf'
+
+    if not os.path.exists(local_path):
+
+        local_properties = [
+            'explain = "This file is where developers override configuration properties '
+            'at module level and project context"',
+            f'# Override module WieldServiceMode\n'
+            f'slate.WieldServiceMode : {{\n\n'
+            f'  observe : true\n'
+            f'  service_only : false\n'
+            f'  debug_mode : true\n'
+            f'  local_mount : true\n'
+            f'}}'
+        ]
+
+        with open(local_path, 'wt') as file_out:
+
+            for p in local_properties:
+                file_out.write(f'{p}\n\n')
 
     local_path = f'{personal_dir}/developer.conf'
 
@@ -83,6 +97,8 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
             for p in local_properties:
 
                 file_out.write(f'{p}\n\n')
+
+    return personal_dir
 
 
 def get_wield_mode(project_root, runtime_env=None, deploy_env=None):
@@ -125,12 +141,14 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
     developer_conf_path = f'{project_root}conf/personal/developer.conf'
+    module_override_path = f'{project_root}conf/personal/modules_override.conf'
 
     ordered_project_files = module_paths + [
         project_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
-        developer_conf_path
+        developer_conf_path,
+        module_override_path
     ]
 
     return get_conf_ordered_files(ordered_project_files)

@@ -64,16 +64,18 @@ class WieldService(WielderBase):
         self.local_path = f'{self.conf_dir}/{mode.runtime_env}/{self.name}-local.conf'
         module_paths.append(self.local_path)
 
-        self.make_sure_module_local_conf_exists()
+        self.local_path = self.make_sure_module_local_conf_exists()
+        module_paths.append(self.local_path)
 
         if self.service_mode.project_override:
 
-            make_sure_project_local_conf_exists(
+            self.project_module_override_path = make_sure_project_local_conf_exists(
                 project_root=locale.project_root,
                 runtime_env=mode.runtime_env,
                 deploy_env=mode.deploy_env
             )
-            logging.info(f'\nOverriding module conf with project conf\n')
+
+            logging.info(f'\nTo Override module conf with project conf use\n{self.project_module_override_path}')
 
             self.conf = get_conf_context_project(
                 project_root=self.locale.project_root,
@@ -124,4 +126,6 @@ class WieldService(WielderBase):
                 for p in local_properties:
 
                     file_out.write(f'{p}\n\n')
+
+        return local_path
 
