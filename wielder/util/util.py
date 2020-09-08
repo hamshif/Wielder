@@ -2,6 +2,9 @@
 import logging
 import os
 import re
+from time import sleep
+
+import yaml
 from requests import get
 
 from wielder.util.commander import async_cmd
@@ -113,6 +116,77 @@ def remove_line(filename, line):
     f.close()
 
 
+def write_action_report(name, value):
+
+    dir_path = '/tmp/actions'
+    os.makedirs(dir_path, exist_ok=True)
+
+    report_path = f'{dir_path}/actions_report.yaml'
+
+    actions = {}
+
+    if os.path.isfile(report_path):
+        with open(report_path) as f:
+            actions = yaml.load(f, Loader=yaml.FullLoader)
+
+    actions[name] = value
+
+    report = yaml.dump(actions)
+
+    with open(report_path, 'wt') as file_out:
+        file_out.write(report)
+
+
+def get_pod_env_var_value(namespace, pod, var_name):
+
+    reply = async_cmd(f'kubectl exec -it -n {namespace} {pod} printenv')
+
+    for var in reply:
+
+        tup = var.split('=')
+
+        if len(tup) > 1:
+            logging.debug(f'{tup[0]}  :  {tup[1]}')
+
+            if tup[0] == var_name:
+
+                return tup[1]
+
+
+def get_pod_actions(namespace, pod_name):
+
+    report_path = '/tmp/actions/actions_report.yaml'
+
+    reply = async_cmd(f'kubectl exec -it -n {namespace} {pod_name} cat {report_path}')
+
+    logging.debug(reply[1])
+
+    boo = yaml.safe_load(reply[1])
+
+    logging.debug(boo)
+
+    return boo
+
+
+def block_for_action(namespace, pod, var_name, expected_value, slumber=5):
+
+    while True:
+
+        actions = get_pod_actions(namespace, pod)
+
+        var_value = actions[var_name]
+
+        logging.debug(f'{var_name} value is: {var_value}, expected value: {expected_value}')
+
+        if var_value is not None:
+
+            if var_value == expected_value:
+                break
+
+        logging.debug(f'sleeping for {slumber}')
+        sleep(slumber)
+
+
 if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
@@ -121,10 +195,10 @@ if __name__ == "__main__":
 
     _line = 'Do not yell in open space'
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    logging.debug(f"current working dir: {dir_path}")
+    _dir_path = os.path.dirname(os.path.realpath(__file__))
+    logging.debug(f"current working dir: {_dir_path}")
 
-    full_path = f'{dir_path}/punishment.conf'
+    full_path = f'{_dir_path}/punishment.conf'
 
     for a in range(100):
         line_prepender(full_path, _line, once=False)
