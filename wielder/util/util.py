@@ -159,9 +159,14 @@ def get_pod_actions(namespace, pod_name):
 
     reply = async_cmd(f'kubectl exec -it -n {namespace} {pod_name} cat {report_path}')
 
-    logging.debug(reply[1])
+    logging.debug(reply[1:])
 
-    boo = yaml.safe_load(reply[1])
+    boo = {}
+
+    for ac in reply[1:]:
+
+        book = yaml.safe_load(ac)
+        boo.update(book)
 
     logging.debug(boo)
 
