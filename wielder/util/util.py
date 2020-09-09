@@ -3,7 +3,8 @@ import logging
 import os
 import re
 from time import sleep
-
+import random
+import string
 import yaml
 from requests import get
 
@@ -192,6 +193,14 @@ def block_for_action(namespace, pod, var_name, expected_value, slumber=5):
 
         logging.debug(f'sleeping for {slumber}')
         sleep(slumber)
+
+
+def get_random_string(length):
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    print("Random string of length", length, "is:", result_str)
+
+    return result_str
 
 
 if __name__ == "__main__":
