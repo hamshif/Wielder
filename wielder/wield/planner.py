@@ -11,6 +11,7 @@ from pyhocon.tool import HOCONConverter as Hc
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wield.deployer import get_pods, observe_pod
+from wielder.wield.kube_probe import observe_set
 from wielder.wield.servicer import observe_service
 from wielder.util.arguer import destroy_sanity
 
@@ -108,6 +109,12 @@ class WieldPlan(WielderBase):
 
                     for pod in pods:
                         observe_pod(pod)
+
+                    if '-' in res:
+
+                        res_tup = res.split('-')
+
+                        observe_set(self.namespace, res_tup[0], res_tup[1])
 
         if self.module_conf.observe_svc:
 

@@ -149,6 +149,20 @@ def print_pod_gist(pod):
     )
 
 
+def all_pod_containers_ready(pod):
+
+    containers_statuses = pod.status.init_container_statuses
+
+    if containers_statuses is not None:
+
+        for container_status in containers_statuses:
+
+            if not container_status.ready:
+                return False
+
+    return True
+
+
 def observe_pod(pod):
 
     namespace = pod.metadata.namespace
@@ -158,12 +172,14 @@ def observe_pod(pod):
     interval = 5
     time_elapsed = 0
 
-    while 'Running' not in pod.status.phase:
+    while True:
+
+        if 'Running' in pod.status.phase and all_pod_containers_ready(pod):
+            break
 
         if time_elapsed > 400:
             logging.info(f"waited {time_elapsed} that'sn enough exiting")
             return "timeout either provisioning might be too long or some code problem", name, pod
-            break
 
         try:
             logging.info(f"\n\nWaited {time_elapsed} for {name} going to sleep for {interval}")

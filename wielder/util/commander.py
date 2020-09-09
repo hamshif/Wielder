@@ -24,6 +24,8 @@ def subprocess_cmd(command, executable='/bin/sh'):
     proc_stdout = process.communicate()[0].strip()
     logging.info(proc_stdout)
 
+    return proc_stdout
+
 
 def bash_command(command, shell=False):
     try:
