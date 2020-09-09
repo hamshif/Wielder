@@ -177,16 +177,18 @@ def block_for_action(namespace, pod, var_name, expected_value, slumber=5):
 
     while True:
 
-        actions = get_pod_actions(namespace, pod)
+        try:
+            actions = get_pod_actions(namespace, pod)
 
-        var_value = actions[var_name]
+            var_value = actions[var_name]
 
-        logging.debug(f'{var_name} value is: {var_value}, expected value: {expected_value}')
+            logging.debug(f'{var_name} value is: {var_value}, expected value: {expected_value}')
 
-        if var_value is not None:
-
-            if var_value == expected_value:
+            if var_value is not None and var_value == expected_value:
                 break
+
+        except Exception as e:
+            logging.error(str(e))
 
         logging.debug(f'sleeping for {slumber}')
         sleep(slumber)
