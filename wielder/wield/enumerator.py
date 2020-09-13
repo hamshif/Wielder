@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+class CloudProvider(Enum):
+    GCP = 'gcp'
+    AWS = 'aws'
+    AZURE = 'azure'
+
+
 class KubeResType(Enum):
 
     GENERAL = 'general'

@@ -4,6 +4,7 @@ import os
 from shutil import rmtree, copyfile, copytree
 from wielder.util.commander import async_cmd
 from wielder.util.log_util import setup_logging
+from wielder.wield.enumerator import CloudProvider
 
 
 def replace_file(origin_path, origin_regex, destination_path, final_name):
@@ -86,15 +87,43 @@ def replace_dir_contents(origin_path, origin_regex, destination_path, destinatio
     return target_file
 
 
-def push_image(gcp_conf, name, group, tag):
+def gcp_push_image(gcp_conf, name, env, tag):
 
-    gcp_name = f'{gcp_conf.image_repo_zone}/{gcp_conf.project}/{group}/{name}'
+    gcp_name = f'{gcp_conf.image_repo_zone}/{gcp_conf.project}/{env}/{name}'
 
     os.system(
         f'docker tag {name}:{tag} {gcp_name}:latest;'
         f'gcloud docker -- push {gcp_name}:latest;'
         f'gcloud container images list --repository={gcp_name};'
     )
+
+
+def push_image(cloud_conf, name, env, tag, cloud=CloudProvider.GCP.value):
+
+    if cloud == CloudProvider.GCP.value:
+        gcp_push_image(cloud_conf, name, env, tag)
+    elif cloud == CloudProvider.AWS.value:
+        aws_push_image(cloud_conf, name, env, tag)
+
+
+def aws_push_image(aws_conf, name, env, tag):
+
+    region = aws_conf.image_repo_zone
+
+    repo = f'{aws_conf.account_id}.dkr.ecr.{region}.amazonaws.com'
+
+    cred = f'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {repo}'
+
+    os.system(cred)
+
+    image_name = f'{repo}/{env}/{name}:{tag}'
+
+    os.system(
+        f'docker tag {name}:{tag} {image_name};'
+        f'docker push {image_name};'
+    )
+
+    logging.debug(f'aws ecr describe-images --repository-name  {env}/{name} --region {region};')
 
 
 def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
@@ -135,7 +164,7 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
         )
 
     if push:
-        push_image(gcp_conf)
+        gcp_push_image(gcp_conf)
 
 
 if __name__ == "__main__":
