@@ -119,7 +119,7 @@ def aws_push_image(aws_conf, name, env, tag):
     image_name = f'{repo}/{env}/{name}:{tag}'
 
     os.system(
-        f'docker tag {name}:{tag} {image_name};'
+        f'docker tag {name}:{env} {image_name};'
         f'docker push {image_name};'
     )
 
