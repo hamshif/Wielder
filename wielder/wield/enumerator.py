@@ -44,3 +44,25 @@ class LanguageFramework(Enum):
     BOOT = 'BOOT'
     PLAY = 'PLAY'
     LAGOM = 'LAGOM'
+
+
+class TerraformAction(Enum):
+    APPLY = 'apply'
+    PLAN = 'plan'
+    DELETE = 'delete'
+    INIT = 'init'
+    DESTROY = 'destroy'
+    SHOW = 'show'
+
+
+def wield_to_terraform(action):
+
+    converted = TerraformAction.PLAN
+    if action == WieldAction.APPLY:
+        converted = TerraformAction.APPLY
+    if action == WieldAction.DELETE:
+        converted = TerraformAction.DESTROY
+
+    return converted
+
+

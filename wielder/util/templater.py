@@ -294,7 +294,7 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
     try:
         os.remove(config_file)
     except OSError:
-        logging.error("Error while deleting file ", config_file)
+        pass
 
     with open(config_file, "a") as file_out:
 

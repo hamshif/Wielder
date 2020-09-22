@@ -151,7 +151,11 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
         module_override_path
     ]
 
-    return get_conf_ordered_files(ordered_project_files)
+    conf = get_conf_ordered_files(ordered_project_files)
+    conf.runtime_env = runtime_env
+    conf.deploy_env = deploy_env
+
+    return conf
 
 
 class WieldProject(WielderBase):
