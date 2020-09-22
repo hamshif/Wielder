@@ -9,7 +9,7 @@ from wielder.util.commander import subprocess_cmd as _cmd, subprocess_cmd
 from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
 from wielder.util.util import DirContext
-from wielder.wield.enumerator import TerraformAction
+from wielder.wield.enumerator import TerraformAction, wield_to_terraform
 
 
 class WrapTerraform:
@@ -84,6 +84,26 @@ class WrapTerraform:
             return state
 
 
+def provision_terraform(resource_type, provision_root, tree, runtime_env, action, just_state=False):
+
+    tf_repo = f'{provision_root}/{resource_type}/{runtime_env}'
+
+    t = WrapTerraform(tf_path=tf_repo)
+
+    if just_state:
+
+        t.configure_terraform(tree, new_state=False)
+
+        t.cmd(terraform_action=TerraformAction.INIT)
+        terraform_action = wield_to_terraform(action)
+
+        t.cmd(terraform_action=terraform_action)
+
+    state = t.state()
+
+    return state
+
+
 if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
@@ -96,8 +116,8 @@ if __name__ == "__main__":
 
     os.makedirs(_tf_dir, exist_ok=True)
 
-    t = WrapTerraform(tf_path=_tf_dir)
-    t.configure_terraform(_tree, True)
+    _t = WrapTerraform(tf_path=_tf_dir)
+    _t.configure_terraform(_tree, True)
 
     #
     #
