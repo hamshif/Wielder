@@ -9,7 +9,7 @@ from wielder.util.commander import subprocess_cmd as _cmd, subprocess_cmd
 from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
 from wielder.util.util import DirContext
-from wielder.wield.enumerator import TerraformAction, wield_to_terraform
+from wielder.wield.enumerator import TerraformAction, wield_to_terraform, WieldAction
 
 
 class WrapTerraform:
@@ -94,10 +94,14 @@ def provision_terraform(resource_type, provision_root, tree, runtime_env, action
 
         t.configure_terraform(tree, new_state=False)
 
-        t.cmd(terraform_action=TerraformAction.INIT)
+        if action == WieldAction.APPLY:
+            t.cmd(terraform_action=TerraformAction.INIT)
+
         terraform_action = wield_to_terraform(action)
 
         t.cmd(terraform_action=terraform_action)
+    else:
+        logging.debug("skipping terraform actions and just fetching state")
 
     state = t.state()
 
