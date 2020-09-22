@@ -245,7 +245,7 @@ def wielder_sanity(conf, mode, service_mode=None):
 
     context = get_kube_context()
 
-    if conf.kube_context != context:
+    if conf.kube_context not in context:
 
         logging.warning(
             f"There is a discrepancy between the configured and actual contexts:"
@@ -258,6 +258,7 @@ def wielder_sanity(conf, mode, service_mode=None):
         )
         exit(1)
     else:
+        conf.kube_context = context
         logging.info(f"kubernetes current context: {context}")
 
     message = f"There is a discrepancy between context and runtime environment:" \
