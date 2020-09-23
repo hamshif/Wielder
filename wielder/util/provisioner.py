@@ -28,20 +28,17 @@ class WrapTerraform:
 
     def cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True):
 
-        if terraform_action == TerraformAction.DELETE:
-            action = TerraformAction.DESTROY.value
-        else:
-            action = terraform_action.value
-
-        if action == TerraformAction.INIT and self.unique_name is not None:
-            action = f'{action} -backend-config "prefix=terraform/state/{self.unique_name}"'
-
-        if auto_approve and (terraform_action == TerraformAction.DELETE or terraform_action == TerraformAction.APPLY):
-            action = f'{action}  -auto-approve'
+        action = terraform_action.value
 
         with DirContext(self.tf_path):
 
             cmd1 = f'terraform {action}'
+
+            if terraform_action == TerraformAction.INIT and self.unique_name is not None:
+                cmd1 = f'{cmd1} -backend-config "prefix=terraform/state/{self.unique_name}"'
+            if auto_approve and (terraform_action == TerraformAction.DESTROY or terraform_action == TerraformAction.APPLY):
+                cmd1 = f'{cmd1} -auto-approve'
+
             logging.debug(f"Running:\n{cmd1}")
             os.system(cmd1)
 

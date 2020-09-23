@@ -49,7 +49,6 @@ class LanguageFramework(Enum):
 class TerraformAction(Enum):
     APPLY = 'apply'
     PLAN = 'plan'
-    DELETE = 'delete'
     INIT = 'init'
     DESTROY = 'destroy'
     SHOW = 'show'
