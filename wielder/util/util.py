@@ -160,39 +160,65 @@ def get_pod_actions(namespace, pod_name):
 
     reply = async_cmd(f'kubectl exec -it -n {namespace} {pod_name} cat {report_path}')
 
-    logging.debug(reply[1:])
+    logging.debug(f'Kubectl reply is:\n{reply}')
 
-    boo = {}
+    actions = {}
 
-    for ac in reply[1:]:
+    for ac in reply:
 
-        book = yaml.safe_load(ac)
-        boo.update(book)
+        try:
+            action = yaml.safe_load(ac)
+            actions.update(action)
+        except Exception as e:
+            logging.debug(str(e))
+            logging.warning(f"List value {ac} can't be parsed as yaml")
 
-    logging.debug(boo)
+    logging.debug(actions)
 
-    return boo
+    return actions
 
 
-def block_for_action(namespace, pod, var_name, expected_value, slumber=5):
+def block_for_action(namespace, pod, var_name, expected_value, slumber=5, _max=10):
+    """
+    This method is a primitive polling mechanism to make sure a pod has completed an assignment.
+    It assumes the pod has written a Yaml action to a file and attempts to read it.
+    :param namespace: Pod namespace
+    :type namespace: str
+    :param pod: The pod name
+    :type pod: str
+    :param var_name: action name
+    :type var_name: str
+    :param expected_value: the expected action value
+    :type expected_value: str
+    :param slumber: time to sleep between polling tries, defaults to 5
+    :type slumber: int
+    :param _max: Max polling attempts
+    :type _max: int
+    :return: if the ction value was as expected
+    :rtype: bool
+    """
 
-    while True:
+    for i in range(_max):
 
         try:
             actions = get_pod_actions(namespace, pod)
 
             var_value = actions[var_name]
 
-            logging.debug(f'{var_name} value is: {var_value}, expected value: {expected_value}')
+            logging.debug(f'var_name {var_name} value is: {var_value}, expected value: {expected_value}')
 
             if var_value is not None and var_value == expected_value:
-                break
+                return True
+            else:
+                logging.info(f'var_name is {var_name} var_value is {var_value}')
 
         except Exception as e:
-            logging.error(str(e))
+            logging.error("Error getting action from pod", e)
 
-        logging.debug(f'sleeping for {slumber}')
+        logging.debug(f'sleeping {i} of {_max} for {slumber}')
         sleep(slumber)
+
+    return False
 
 
 def get_random_string(length):
