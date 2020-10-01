@@ -8,20 +8,21 @@ echo "$0 is running from: $DIR"
 # make this file's location working dir
 cd "$(dirname "$0")"
 
-#apt-get update
-#apt-get install -y librdkafka-dev
 
-v='wielder'
+v='dud'
 existing_envs=$(pyenv virtualenvs)
 
 if [[ "$existing_envs" == *"$v"* ]]; then
     echo "$v virtualenv exists."
 else
-    echo "$v virtualenv doesn't exist."
-    pyenv virtualenv 3.7.5 wielder
 
-    echo activate wielder and restart
-    echo 'pyenv activate wielder'
+#    pyenv install 3.7.5
+
+    echo "$v virtualenv doesn't exist."
+    pyenv virtualenv 3.7.5 $v
+
+    echo activate dud and restart
+    echo 'pyenv activate $v'
     exit 0
 fi
 
