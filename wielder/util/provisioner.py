@@ -4,7 +4,6 @@ import logging
 import os
 import random
 
-from data_common.config.configurer import get_conf
 from wielder.util.commander import subprocess_cmd as _cmd, subprocess_cmd
 from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
@@ -109,16 +108,17 @@ if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
 
-    _conf = get_conf("mac")
-
-    _tree = _conf['dataproc_terraform']
-
-    _tf_dir = _conf['namespaces_dir']
-
-    os.makedirs(_tf_dir, exist_ok=True)
-
-    _t = WrapTerraform(tf_path=_tf_dir)
-    _t.configure_terraform(_tree, True)
+    # TODO default terraform conf to wielder
+    # _conf = get_conf("mac")
+    #
+    # _tree = _conf['dataproc_terraform']
+    #
+    # _tf_dir = _conf['namespaces_dir']
+    #
+    # os.makedirs(_tf_dir, exist_ok=True)
+    #
+    # _t = WrapTerraform(tf_path=_tf_dir)
+    # _t.configure_terraform(_tree, True)
 
     #
     #
