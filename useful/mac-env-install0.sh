@@ -69,6 +69,14 @@ fi
 brew install maven -vd
 brew install kubectl -vd
 brew install helm -vd
+
+helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+
+helm repo update
+
 brew install awscli -vd
 
 
