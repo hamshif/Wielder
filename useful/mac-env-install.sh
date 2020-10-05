@@ -15,70 +15,33 @@ if [[ $(command -v brew) == "" ]]; then
     echo "Installing Homebrew"
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 else
-    echo "Updating Homebrew"
-    rm -rf `brew --cache`
-    mkdir `brew --cache`
-    brew update
-    brew cleanup
-    brew prune
-    brew doctor
+    # echo "Updating Homebrew"
+    # rm -rf `brew --cache`
+    # mkdir `brew --cache`
+     brew update -vd
+    # brew cleanup -vd
+    # brew prune -vd
+    # brew doctor -vd
+    echo bloop
 fi
 
 
-#if [[ $(command -v which pip) == "which" ]]; then
-#    echo "Installing pip with easy_install"
-#    sudo easy_install pip
-#else
-#    echo "pip already installed"
-#    which pip
-#fi
+if [[ $(command -v which zsh) == "which" ]]; then
+   echo "Installing zsh"
+   brew install zsh
+   echo 'export PATH="/usr/local/opt/ncurses/bin:$PATH"' >> ~/.zshrc
+   echo 'export LDFLAGS="-L/usr/local/opt/ncurses/lib"' >> ~/.zshrc
+   echo 'export CPPFLAGS="-I/usr/local/opt/ncurses/include"' >> ~/.zshrc
 
-# if you run into trouble https://stackoverflow.com/questions/13088998/homebrew-python-installing
+   sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
-if [[ $(command -v which python2) == "which" ]]; then
-    echo "Installing python2 using brew"
-    brew install python2
+   chmod 755 /usr/local/share/zsh
+   chmod 755 /usr/local/share/zsh/site-functions
+
 else
-    echo "python2 already installed"
-    which python2
+   echo "zsh already installed"
+   which zsh
 fi
-
-
-if [[ $(command -v which python3) == "which" ]]; then
-    echo "Installing python3 using brew"
-    brew install python3
-else
-    echo "python3 already installed"
-    which python3
-fi
-
-
-if [[ $(command -v which pip3) == "which" ]]; then
-    pip3 install virtualenv
-    pip3 install virtualenvwrapper
-else
-    echo "no pip3 you need that for virtualenv and virtualenvwrapper"
-fi
-
-
-if [[ $(command -v docker) == "" ]]; then
-    echo "Installing Docker"
-    brew cask install docker
-    echo "Starting docker"
-    open /Applications/Docker.app
-else
-    echo "Docker already installed"
-    open /Applications/Docker.app
-fi
-
-
-if [[ $(command -v mvn) == "which" ]]; then
-    echo "Installing Maven"
-    brew install maven
-else
-    echo "Maven already installed"
-fi
-
 
 if [[ ! -d ~/.oh-my-zsh ]]; then
     echo "Installing oh my zsh. This will abort your script. Please re-run the script again"
@@ -87,68 +50,91 @@ else
     echo "oh-my-zsh already exists"
 fi
 
-if [[ $(command -v kubectl) == "which" ]]; then
-    echo "Installing Kubernetes Client"
-    brew install kubectl
+brew install wget -vd
+
+brew cask install iterm2
+
+if [[ $(command -v which pyenv) == "which" ]]; then
+  brew install pyenv -vd
+  echo 'export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"' >> ~/.zshrc
+  echo 'export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"' >> ~/.zshrc
+  echo 'export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"' >> ~/.zshrc
+  echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+  echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
+
 else
-    echo "Kubernetes Client already installed"
+   echo "pyenv already installed"
+   which pyenv
+fi
+
+if [[ $(command -v which jenv) == "which" ]]; then
+
+  brew install jenv
+  echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.zshrc
+  echo 'eval "$(jenv init -)"' >> ~/.zshrc
+
+  brew tap AdoptOpenJDK/openjdk
+
+  brew cask install adoptopenjdk11
+
+  jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
+
+  jenv versions
+
+  jenv enable-plugin maven
+  jenv enable plugin export
+
+  jenv global 11.0
+
+  java -version
+else
+   echo "jenv already installed"
+   which jenv
 fi
 
 
-if [[ $(command -v virtualbox) == "which" ]]; then
-    echo "Installing virtualbox"
-    brew cask install virtualbox
+if [[ $(command -v which maven) == "which" ]]; then
+  brew install maven
+
 else
-    echo "virtualbox already installed"
-    which virtualbox
+   echo "pyenv already installed"
+   which maven
+fi
+
+brew install kubectl -vd
+brew install helm -vd
+
+helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+
+helm repo update
+
+brew install awscli -vd
+
+
+if [[ $(command -v docker) == "" ]]; then
+    echo "Installing Docker"
+    brew cask install docker
+    # echo "Starting docker"
+    # open /Applications/Docker.app
+else
+    echo "Docker already installed"
+    # open /Applications/Docker.app
 fi
 
 
-if [[ $(command -v which node) == "which" ]]; then
-    echo "Installing node with brew"
-    brew install node
-else
-    echo "node already installed"
-    which node
-fi
+brew doctor
 
 
-if [[ $(command -v which npm) == "which" ]]; then
-    echo "Installing npm with brew"
-    brew install npm
-else
-    echo "npm already installed"
-    which npm
-fi
-
-
-if [[ $(command -v which yarn) == "which" ]]; then
-    echo "Installing yarn with brew"
-    brew install yarn
-else
-    echo "yarn already installed"
-    which yarn
-fi
-
-
-#if [[ $(command -v which helm) == "which" ]]; then
-#    echo "Installing helm with brew"
-#    brew install helm
+#
+#if [[ $(command -v which gcloud) == "which" ]]; then
+#    echo "Installing gcloud"
+#    curl https://sdk.cloud.google.com | bash
+#    ~/google-cloud-sdk/install.sh
+#    gcloud auth login
 #else
-#    echo "helm already installed"
-#    which helm
+#    echo "gcloud already installed"
+#    which gcloud
 #fi
-
-
-if [[ $(command -v which gcloud) == "which" ]]; then
-    echo "Installing gcloud"
-    curl https://sdk.cloud.google.com | bash
-    ~/google-cloud-sdk/install.sh
-    gcloud auth login
-else
-    echo "gcloud already installed"
-    which gcloud
-fi
-
-
-
