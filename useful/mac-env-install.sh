@@ -94,7 +94,7 @@ fi
 
 
 if [[ $(command -v which maven) == "which" ]]; then
-  brew install maven
+  brew install maven -vd
 
 else
    echo "pyenv already installed"
