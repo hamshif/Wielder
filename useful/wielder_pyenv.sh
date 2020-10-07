@@ -27,6 +27,8 @@ pyenv deactivate
 
 existing_envs=$(pyenv virtualenvs)
 
+echo $existing_envs
+
 if [[ "$existing_envs" == *"$v"* ]]; then
     echo "$v virtualenv exists."
 else
@@ -36,10 +38,11 @@ else
     echo "$v virtualenv doesn't exist.";
     pyenv virtualenv 3.7.5 $v
 
-    pyenv activate $v
-    echo 'pyenv activate $v'
-    exit 0
 fi
+#pyenv virtualenv 3.7.5 $v
+
+pyenv activate $v
+echo 'pyenv activate $v'
 
 pip install --upgrade pip
 

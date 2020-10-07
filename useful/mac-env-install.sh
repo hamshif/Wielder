@@ -20,7 +20,6 @@ else
     # mkdir `brew --cache`
      brew update -vd
     # brew cleanup -vd
-    # brew prune -vd
     # brew doctor -vd
     echo bloop
 fi
