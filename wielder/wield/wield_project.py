@@ -171,7 +171,8 @@ class WieldProject(WielderBase):
         self.conf_dir = conf_dir if conf_dir else f'{locale.project_root}conf'
         self.plan_dir = plan_dir if plan_dir else f'{locale.project_root}plan'
 
-        self.pretty()
+        if conf.show_project:
+            self.pretty()
 
         make_sure_project_local_conf_exists(
             project_root=locale.project_root,
@@ -190,7 +191,8 @@ class WieldProject(WielderBase):
             plan_format=plan_format
         )
 
-        self.plan.pretty()
+        if conf.show_project:
+            self.plan.pretty()
 
 
 

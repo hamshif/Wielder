@@ -68,7 +68,7 @@ class WrapTerraform:
 
         with DirContext(self.tf_path):
 
-            state_bytes = subprocess_cmd('terraform show -json terraform.tfstate')
+            state_bytes = subprocess_cmd('terraform show -json terraform.tfstate', verbose=verbose)
 
             state_json = state_bytes.decode('utf8')
             state = json.loads(state_json)
@@ -80,7 +80,7 @@ class WrapTerraform:
             return state
 
 
-def provision_terraform(resource_type, provision_root, tree, runtime_env, action, just_state=False):
+def provision_terraform(resource_type, provision_root, tree, runtime_env, action, just_state=False, verbose=True):
 
     tf_repo = f'{provision_root}/{resource_type}/{runtime_env}'
 
@@ -99,7 +99,7 @@ def provision_terraform(resource_type, provision_root, tree, runtime_env, action
     else:
         logging.debug("skipping terraform actions and just fetching state")
 
-    state = t.state()
+    state = t.state(verbose=verbose)
 
     return state
 

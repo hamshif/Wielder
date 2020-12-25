@@ -19,10 +19,12 @@ def async_cmd(args, verbose=False, executable='/bin/sh'):
     return lines
 
 
-def subprocess_cmd(command, executable='/bin/sh'):
+def subprocess_cmd(command, executable='/bin/sh', verbose=True):
     process = sp.Popen(command, stdout=sp.PIPE, shell=True, executable=executable)
     proc_stdout = process.communicate()[0].strip()
-    logging.info(proc_stdout)
+
+    if verbose:
+        logging.info(proc_stdout)
 
     return proc_stdout
 
