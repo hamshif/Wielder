@@ -7,6 +7,7 @@ import random
 from wielder.util.commander import subprocess_cmd as _cmd, subprocess_cmd
 from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
+from wielder.util.terraform_credential_helper import get_aws_mfa_cred_command, CredType
 from wielder.util.util import DirContext
 from wielder.wield.enumerator import TerraformAction, wield_to_terraform, WieldAction
 
@@ -25,11 +26,15 @@ class WrapTerraform:
         self.tf_path = tf_path
         self.unique_name = unique_name
 
-    def cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True):
+    def cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True, cred_type=None):
 
         action = terraform_action.value
 
         with DirContext(self.tf_path):
+
+            cmd_prefix = ''
+            if cred_type == CredType.AWS_MFA.value:
+                cmd_prefix = get_aws_mfa_cred_command()
 
             cmd1 = f'terraform {action}'
 
@@ -38,6 +43,7 @@ class WrapTerraform:
             if auto_approve and (terraform_action == TerraformAction.DESTROY or terraform_action == TerraformAction.APPLY):
                 cmd1 = f'{cmd1} -auto-approve'
 
+            cmd1 = f'{cmd_prefix}{cmd1}'
             logging.debug(f"Running:\n{cmd1}")
             os.system(cmd1)
 
@@ -71,16 +77,21 @@ class WrapTerraform:
             state_bytes = subprocess_cmd('terraform show -json terraform.tfstate', verbose=verbose)
 
             state_json = state_bytes.decode('utf8')
-            state = json.loads(state_json)
 
-            if verbose:
-                s = json.dumps(state, indent=4, sort_keys=True)
-                logging.debug(s)
+            try:
+                state = json.loads(state_json)
+
+                if verbose:
+                    s = json.dumps(state, indent=4, sort_keys=True)
+                    logging.debug(s)
+            except Exception as e:
+                print(e)
+                state = json.dumps({"state": "uninitialized"})
 
             return state
 
 
-def provision_terraform(resource_type, provision_root, tree, runtime_env, action, just_state=False, verbose=True):
+def provision_terraform(resource_type, provision_root, tree, runtime_env, action, just_state=False, verbose=True, cred_type=None):
 
     tf_repo = f'{provision_root}/{resource_type}/{runtime_env}'
 
@@ -91,11 +102,11 @@ def provision_terraform(resource_type, provision_root, tree, runtime_env, action
         t.configure_terraform(tree, new_state=False)
 
         if action == WieldAction.APPLY:
-            t.cmd(terraform_action=TerraformAction.INIT)
+            t.cmd(terraform_action=TerraformAction.INIT, cred_type=cred_type)
 
         terraform_action = wield_to_terraform(action)
 
-        t.cmd(terraform_action=terraform_action)
+        t.cmd(terraform_action=terraform_action, cred_type=cred_type)
     else:
         logging.debug("skipping terraform actions and just fetching state")
 

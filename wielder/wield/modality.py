@@ -6,7 +6,7 @@ class WieldMode:
     For example running on docker for development VS. running on GKE for quality engineering.
     """
 
-    def __init__(self, runtime_env='docker', deploy_env='dev'):
+    def __init__(self, runtime_env='docker', deploy_env='dev', bootstrap_env='local'):
         """
 
         :param runtime_env: kubernetes on docker, minikube, gc, aws, azure ....
@@ -14,9 +14,11 @@ class WieldMode:
         """
 
         runtime_env = runtime_env if runtime_env else 'docker'
+        bootstrap_env = bootstrap_env if bootstrap_env else 'local'
         deploy_env = deploy_env if deploy_env else 'dev'
 
         self.runtime_env = runtime_env
+        self.bootstrap_env = bootstrap_env
         self.deploy_env = deploy_env
 
 

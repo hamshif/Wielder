@@ -72,7 +72,8 @@ class WieldService(WielderBase):
             self.project_module_override_path = make_sure_project_local_conf_exists(
                 project_root=locale.project_root,
                 runtime_env=mode.runtime_env,
-                deploy_env=mode.deploy_env
+                deploy_env=mode.deploy_env,
+                bootstrap_env=mode.bootstrap_env
             )
 
             logging.info(f'\nTo Override module conf with project conf use\n{self.project_module_override_path}')

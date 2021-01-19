@@ -12,7 +12,7 @@ from wielder.util.arguer import wielder_sanity, get_kube_context
 from pyhocon import ConfigFactory as Cf
 
 
-def get_basic_module_properties(runtime_env, deploy_env, name):
+def get_basic_module_properties(runtime_env, deploy_env, bootstrap_env, name):
 
     current_kube_context = get_kube_context()
 
@@ -24,6 +24,7 @@ def get_basic_module_properties(runtime_env, deploy_env, name):
         'it is .gitignored"',
         f'runtime_env : {runtime_env}',
         f'deploy_env : {deploy_env}',
+        f'bootstrap_env : {bootstrap_env}',
         '#replace the context below with the context of the kubernetes deployment your working on',
         f'kube_context : {current_kube_context}',
         f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
@@ -33,7 +34,7 @@ def get_basic_module_properties(runtime_env, deploy_env, name):
     return local_properties
 
 
-def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
+def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, bootstrap_env):
 
     personal_dir = f'{project_root}conf/personal'
 
@@ -72,6 +73,9 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
         if not deploy_env:
             deploy_env = 'dev'
 
+        if not bootstrap_env:
+            bootstrap_env = 'local'
+
         project_file = f'{project_root}conf/deploy_env/{deploy_env}/project.conf'
 
         # TODO use in the future
@@ -80,6 +84,7 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
         local_properties = get_basic_module_properties(
             runtime_env=runtime_env,
             deploy_env=deploy_env,
+            bootstrap_env=bootstrap_env,
             name='slate'
         )
 
@@ -101,31 +106,35 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env):
     return personal_dir
 
 
-def get_wield_mode(project_root, runtime_env=None, deploy_env=None):
+def get_wield_mode(project_root, runtime_env=None, deploy_env=None, bootstrap_env=None):
 
     if not runtime_env or not deploy_env:
 
         make_sure_project_local_conf_exists(
             project_root=project_root,
             runtime_env=runtime_env,
-            deploy_env=deploy_env
+            deploy_env=deploy_env,
+            bootstrap_env=bootstrap_env
         )
 
         developer_conf_path = f'{project_root}conf/personal/developer.conf'
         dev_conf = Cf.parse_file(developer_conf_path)
 
-        if not runtime_env:
+        if bootstrap_env is None:
+            bootstrap_env = dev_conf.bootstrap_env
+
+        if runtime_env is None:
             runtime_env = dev_conf.runtime_env
 
-        if not deploy_env:
+        if deploy_env is None:
             deploy_env = dev_conf.deploy_env
 
-    wield_mode = WieldMode(runtime_env=runtime_env, deploy_env=deploy_env)
+    wield_mode = WieldMode(runtime_env=runtime_env, deploy_env=deploy_env, bootstrap_env=bootstrap_env)
 
     return wield_mode
 
 
-def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev', module_paths=[]):
+def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev', bootstrap_env='local', module_paths=[]):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
@@ -137,6 +146,7 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     :except: If both data_conf_env are not None
     """
 
+    # TODO add bootstrap_env configuration
     project_conf_path = f'{project_root}conf/project.conf'
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
@@ -154,6 +164,7 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     conf = get_conf_ordered_files(ordered_project_files)
     conf.runtime_env = runtime_env
     conf.deploy_env = deploy_env
+    conf.bootstrap_env = bootstrap_env
 
     return conf
 
@@ -177,7 +188,8 @@ class WieldProject(WielderBase):
         make_sure_project_local_conf_exists(
             project_root=locale.project_root,
             runtime_env=mode.runtime_env,
-            deploy_env=mode.deploy_env
+            deploy_env=mode.deploy_env,
+            bootstrap_env=mode.bootstrap_env
         )
 
         wielder_sanity(self.conf, self.mode)

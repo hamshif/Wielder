@@ -181,6 +181,14 @@ def get_kube_parser():
     )
 
     parser.add_argument(
+        '-be', '--bootstrap_env',
+        type=str,
+        choices=['local', 'docker', 'gcp', 'on-prem', 'aws', 'azure'],
+        help='Bootstrap environment refers to where the wielder deploy script is running',
+        default=None
+    )
+
+    parser.add_argument(
         '-de', '--deploy_env',
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
@@ -381,6 +389,7 @@ def process_args(cmd_args, perform_sanity=True):
     conf.plan = named_tuple.plan
     conf.conf_file = named_tuple.conf_file
     conf.deploy_env = named_tuple.deploy_env
+    conf.bootstrap_env = named_tuple.bootstrap_env
     conf.enable_debug = named_tuple.enable_debug
     conf.enable_dev = named_tuple.enable_dev
     conf.deploy_strategy = named_tuple.deploy_strategy
