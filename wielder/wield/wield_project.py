@@ -138,6 +138,7 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
+    :param bootstrap_env: Where deployment automation happens e.g. local devlopers machine, airflow dag.
     :param project_root: the project root for inferring config and plan paths
     :param module_paths: paths to module files their values get overridden by project
     :param deploy_env: Development stage [dev, int, qa, stage, prod]
