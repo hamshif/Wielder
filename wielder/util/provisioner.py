@@ -91,7 +91,7 @@ class WrapTerraform:
             return state
 
 
-def provision_terraform(resource_type, provision_root, tree, runtime_env, action, just_state=False, verbose=True, cred_type=None):
+def provision_terraform(resource_type, provision_root, tree, runtime_env, action, init=False, just_state=False, verbose=True, cred_type=None):
 
     tf_repo = f'{provision_root}/{resource_type}/{runtime_env}'
 
@@ -101,7 +101,7 @@ def provision_terraform(resource_type, provision_root, tree, runtime_env, action
 
         t.configure_terraform(tree, new_state=False)
 
-        if action == WieldAction.APPLY:
+        if action == WieldAction.APPLY and init:
             t.cmd(terraform_action=TerraformAction.INIT, cred_type=cred_type)
 
         terraform_action = wield_to_terraform(action)
