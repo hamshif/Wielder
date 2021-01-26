@@ -14,42 +14,72 @@ from wielder.wield.enumerator import TerraformAction, wield_to_terraform, WieldA
 
 class WrapTerraform:
 
-    def __init__(self, tf_path, unique_name=None):
+    def __init__(self, tf_path, backend_name=None, cred_type=None, verbose=True):
         """
-
+        Wraps terraform command in context (directory, credentials ....),
+        This is a work in progress, use with caution in complex situations
         :param tf_path: The path to the terraform root
         :type tf_path: str
-        :param unique_name: Name of state if state is stored in a backend e.g. S3 bucket defaults to None.
-        :type unique_name: str
+        :param backend_name: Name of state if state is stored in a backend e.g. S3 bucket defaults to None.
+        :type backend_name: str
         """
 
         self.tf_path = tf_path
-        self.unique_name = unique_name
+        self.backend_name = backend_name
+        self.cred_type = cred_type
+        self.verbose = verbose
 
-    def cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True, cred_type=None):
+    def terraform_cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True):
 
         action = terraform_action.value
 
         with DirContext(self.tf_path):
 
             cmd_prefix = ''
-            if cred_type == CredType.AWS_MFA.value:
+            if self.cred_type == CredType.AWS_MFA.value:
                 cmd_prefix = get_aws_mfa_cred_command()
 
-            cmd1 = f'terraform {action}'
+            if terraform_action == TerraformAction.SHOW:
 
-            if terraform_action == TerraformAction.INIT and self.unique_name is not None:
-                cmd1 = f'{cmd1} -backend-config "prefix=terraform/state/{self.unique_name}"'
-            if auto_approve and (terraform_action == TerraformAction.DESTROY or terraform_action == TerraformAction.APPLY):
-                cmd1 = f'{cmd1} -auto-approve'
+                t_cmd = f'{cmd_prefix}terraform show -json'
 
-            cmd1 = f'{cmd_prefix}{cmd1}'
-            logging.debug(f"Running:\n{cmd1}")
-            os.system(cmd1)
+                logging.debug(f"Running:\n{t_cmd}\nThis is happening in another process so piping will be laggy!\n\n")
 
-    def configure_terraform(self, tree, new_state=False):
+                state_bytes = subprocess_cmd(t_cmd, verbose=self.verbose)
+
+                state_json = state_bytes.decode('utf8')
+
+                try:
+                    state = json.loads(state_json)
+
+                    if self.verbose:
+                        s = json.dumps(state, indent=4, sort_keys=True)
+                        logging.debug(s)
+                except Exception as e:
+                    print(e)
+                    state = json.dumps({"state": "unattainable perhaps uninitialized"})
+
+                return state
+
+            else:
+
+                t_cmd = f'terraform {action}'
+
+                if terraform_action == TerraformAction.INIT and self.backend_name is not None:
+                    t_cmd = f'{t_cmd} -backend-config "backend/{self.backend_name}.tf" -force-copy'
+
+                if auto_approve and (
+                        terraform_action == TerraformAction.DESTROY or terraform_action == TerraformAction.APPLY):
+                    t_cmd = f'{t_cmd} -auto-approve'
+
+                t_cmd = f'{cmd_prefix}{t_cmd}'
+                logging.debug(f"Running:\n{t_cmd}\n\n")
+                os.system(t_cmd)
+
+    def configure_terraform(self, tree, new_state=False, backend_tree=None):
         """
         Converts a Hocon configuration to Terraform in the path
+        :param backend_tree: configuration for backend .tf file
         :param tree: Hocon configuration to be translated to terraform.tfvars file
         :type tree: Hocon Config Tree
         :param new_state:
@@ -70,53 +100,49 @@ class WrapTerraform:
             print_vars=True
         )
 
-    def state(self, verbose=True):
+        if backend_tree is not None and self.backend_name is not None:
+            backend_full_path = f'{self.tf_path}/backend/'
 
-        with DirContext(self.tf_path):
-
-            state_bytes = subprocess_cmd('terraform show -json terraform.tfstate', verbose=verbose)
-
-            state_json = state_bytes.decode('utf8')
-
-            try:
-                state = json.loads(state_json)
-
-                if verbose:
-                    s = json.dumps(state, indent=4, sort_keys=True)
-                    logging.debug(s)
-            except Exception as e:
-                print(e)
-                state = json.dumps({"state": "uninitialized"})
-
-            return state
+            config_to_terraform(
+                tree=backend_tree,
+                destination=backend_full_path,
+                name=f'{self.backend_name}.tf',
+                print_vars=True
+            )
 
 
-def provision_terraform(resource_type, provision_root, tree, runtime_env, action, init=False, just_state=False, verbose=True, cred_type=None):
+def wield_terraform(runtime_env, resource_type, provision_root, provision_tree, wield_action, verbose=True,
+                    cred_type=None, just_view_state=False):
+
+    init = provision_tree.init
+    tfvars_tree = provision_tree.tfvrs
+    backend_name = provision_tree.backend_name
+    backend_tree = provision_tree.backend
 
     tf_repo = f'{provision_root}/{resource_type}/{runtime_env}'
 
-    t = WrapTerraform(tf_path=tf_repo)
+    t = WrapTerraform(tf_path=tf_repo, cred_type=cred_type, backend_name=backend_name, verbose=verbose)
 
-    if just_state:
+    if not just_view_state:
 
-        t.configure_terraform(tree, new_state=False)
+        t.configure_terraform(tfvars_tree, new_state=False, backend_tree=backend_tree)
 
-        if action == WieldAction.APPLY and init:
-            t.cmd(terraform_action=TerraformAction.INIT, cred_type=cred_type)
+        if init:
+            t.terraform_cmd(terraform_action=TerraformAction.INIT)
 
-        terraform_action = wield_to_terraform(action)
+        terraform_action = wield_to_terraform(wield_action)
 
-        t.cmd(terraform_action=terraform_action, cred_type=cred_type)
+        t.terraform_cmd(terraform_action=terraform_action)
+
     else:
         logging.debug("skipping terraform actions and just fetching state")
 
-    state = t.state(verbose=verbose)
+    state = t.terraform_cmd(terraform_action=TerraformAction.SHOW)
 
     return state
 
 
 if __name__ == "__main__":
-
     setup_logging(log_level=logging.DEBUG)
 
     # TODO default terraform conf to wielder
