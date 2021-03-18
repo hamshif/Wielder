@@ -298,29 +298,38 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
 
     with open(config_file, "a") as file_out:
 
-        for k in tree:
-
-            v = tree[k]
-
-            if print_vars:
-                logging.info(f"k: {k}   v: {v}")
-
-            if isinstance(v, str):
-                v = f'"{v}"'
-            elif isinstance(v, bool):
-                v = f'{v}'.lower()
-            elif isinstance(v, list):
-                v = f"{v}".replace("'", '"')
-            elif isinstance(v, ConfigTree):
-                #  TODO use tail recursion with function for nesting
-                pass
-            elif isinstance(v, dict):
-                # TODO check dictionaries
-                v = f"{v}".replace("'", '"')
-
-            file_out.write(f'{k} = {v}\n\n')
+        foo(tree, file_out, print_vars)
 
         file_out.write(f'\n\n')
+
+
+def foo(tree, file_out, print_vars, indent=''):
+
+    for k in tree:
+
+        v = tree[k]
+
+        if print_vars:
+            logging.info(f"k: {k}   v: {v}")
+
+        if isinstance(v, ConfigTree):
+
+            file_out.write(f"{k} = " + '{\n')
+            foo(v, file_out, print_vars, f'  {indent}')
+            file_out.write('}\n\n')
+            continue
+
+        elif isinstance(v, str):
+            v = f'"{v}"'
+        elif isinstance(v, bool):
+            v = f'{v}'.lower()
+        elif isinstance(v, list):
+            v = f"{v}".replace("'", '"')
+        elif isinstance(v, dict):
+            # TODO check dictionaries
+            v = f"{v}".replace("'", '"')
+
+        file_out.write(f'{indent}{k} = {v}\n\n')
 
 
 if __name__ == "__main__":

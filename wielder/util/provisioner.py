@@ -111,7 +111,7 @@ class WrapTerraform:
             )
 
 
-def wield_terraform(runtime_env, resource_type, provision_root, provision_tree, wield_action, verbose=True,
+def wield_terraform(provision_root, provision_tree, wield_action, verbose=True,
                     cred_type=None, just_view_state=False):
 
     init = provision_tree.init
@@ -119,9 +119,7 @@ def wield_terraform(runtime_env, resource_type, provision_root, provision_tree, 
     backend_name = provision_tree.backend_name
     backend_tree = provision_tree.backend
 
-    tf_repo = f'{provision_root}/{resource_type}/{runtime_env}'
-
-    t = WrapTerraform(tf_path=tf_repo, cred_type=cred_type, backend_name=backend_name, verbose=verbose)
+    t = WrapTerraform(tf_path=provision_root, cred_type=cred_type, backend_name=backend_name, verbose=verbose)
 
     if not just_view_state:
 
