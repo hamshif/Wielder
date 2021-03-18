@@ -298,12 +298,12 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
 
     with open(config_file, "a") as file_out:
 
-        foo(tree, file_out, print_vars)
+        hocon_to_terraform_syntax(tree, file_out, print_vars)
 
         file_out.write(f'\n\n')
 
 
-def foo(tree, file_out, print_vars, indent=''):
+def hocon_to_terraform_syntax(tree, file_out, print_vars, indent=''):
 
     for k in tree:
 
@@ -315,7 +315,7 @@ def foo(tree, file_out, print_vars, indent=''):
         if isinstance(v, ConfigTree):
 
             file_out.write(f"{k} = " + '{\n')
-            foo(v, file_out, print_vars, f'  {indent}')
+            hocon_to_terraform_syntax(v, file_out, print_vars, f'  {indent}')
             file_out.write('}\n\n')
             continue
 
