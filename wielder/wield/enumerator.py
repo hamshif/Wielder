@@ -52,11 +52,20 @@ class TerraformAction(Enum):
     INIT = 'init'
     DESTROY = 'destroy'
     SHOW = 'show'
+    STATE = 'state'
+    REFRESH = 'refresh'
+
+
+class TerraformReplyType(Enum):
+    TEXT = 'text'
+    JSON = 'json'
 
 
 def wield_to_terraform(action):
 
-    converted = TerraformAction.PLAN
+    converted = None
+    if action == WieldAction.PLAN:
+        converted = TerraformAction.PLAN
     if action == WieldAction.APPLY:
         converted = TerraformAction.APPLY
     if action == WieldAction.DELETE:

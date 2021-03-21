@@ -146,11 +146,15 @@ class WieldPlan(WielderBase):
                 logging.warning(f'\nAborting deletion of {self.name} resources\n')
                 return
 
-        for res in self.ordered_kube_resources:
+        rev = self.ordered_kube_resources
+        rev.reverse()
+
+        for res in rev:
 
             plan_path = self.to_plan_path(res=res)
 
-            os.system(f"kubectl delete -f {plan_path} --wait=false;")
+            if 'namespace' not in res:
+                os.system(f"kubectl delete -f {plan_path} --wait=false;")
 
         os.system(f"kubectl delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
 
