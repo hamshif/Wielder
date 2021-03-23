@@ -61,6 +61,11 @@ class TerraformReplyType(Enum):
     JSON = 'json'
 
 
+class HelmCommand(Enum):
+    INSTALL = 'install'
+    UNINSTALL = 'uninstall'
+
+
 def wield_to_terraform(action):
 
     converted = None

@@ -65,7 +65,7 @@ class WrapTerraform:
                 return reply
 
             else:
-                logging.info("Not sending reply")
+                logging.info("Not sending reply, note that terraform can take some time to respond")
                 os.system(t_cmd)
                 return 'Command run and finished without collecting reply'
 
@@ -101,6 +101,12 @@ class WrapTerraform:
 
             if auto_approve:
                 t_cmd = f'{t_cmd} -auto-approve'
+
+        if terraform_action == TerraformAction.DESTROY:
+            t_cmd = f'{t_cmd} -refresh=true'
+
+        if terraform_action == TerraformAction.APPLY:
+            t_cmd = f'{t_cmd} -parallelism=20'
 
         reply = self.run_cmd_in_repo(
             t_cmd=t_cmd,
