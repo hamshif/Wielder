@@ -28,6 +28,7 @@ class WieldAction(Enum):
     APPLY = 'apply'
     PLAN = 'plan'
     DELETE = 'delete'
+    PROBE = 'probe'
 
 
 class CodeLanguage(Enum):
@@ -54,6 +55,7 @@ class TerraformAction(Enum):
     SHOW = 'show'
     STATE = 'state'
     REFRESH = 'refresh'
+    OUTPUT = 'output'
 
 
 class TerraformReplyType(Enum):
@@ -71,10 +73,12 @@ def wield_to_terraform(action):
     converted = None
     if action == WieldAction.PLAN:
         converted = TerraformAction.PLAN
-    if action == WieldAction.APPLY:
+    elif action == WieldAction.APPLY:
         converted = TerraformAction.APPLY
-    if action == WieldAction.DELETE:
+    elif action == WieldAction.DELETE:
         converted = TerraformAction.DESTROY
+    elif action == WieldAction.PROBE:
+        converted = TerraformAction.OUTPUT
 
     return converted
 

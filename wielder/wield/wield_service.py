@@ -34,7 +34,8 @@ class WieldService(WielderBase):
         * Specific fields in the configuration
     """
 
-    def __init__(self, name, locale, mode=None, service_mode=None, conf_dir=None, plan_dir=None, plan_format=PlanType.YAML):
+    def __init__(self, name, locale, mode=None, service_mode=None,
+                 conf_dir=None, plan_dir=None, plan_format=PlanType.YAML, injection={}):
 
         self.name = name
         self.locale = locale
@@ -82,12 +83,13 @@ class WieldService(WielderBase):
                 project_root=self.locale.project_root,
                 runtime_env=self.mode.runtime_env,
                 deploy_env=self.mode.deploy_env,
-                module_paths=module_paths
+                module_paths=module_paths,
+                injection=injection
             )
 
         else:
 
-            self.conf = get_conf_ordered_files(module_paths)
+            self.conf = get_conf_ordered_files(module_paths, injection=injection)
 
         wielder_sanity(self.conf, self.mode, self.service_mode)
 

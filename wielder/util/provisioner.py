@@ -151,6 +151,14 @@ class WrapTerraform:
                 print_vars=True
             )
 
+    def read_output(self):
+
+        t_cmd = 'terraform output -json'
+
+        output = self.run_cmd_in_repo(t_cmd, True, TerraformReplyType.JSON)
+
+        return output
+
 
 def run_terraform(provision_root, provision_tree, t_cmd, cred_type=None):
 
@@ -164,29 +172,35 @@ def run_terraform(provision_root, provision_tree, t_cmd, cred_type=None):
 
 def wield_terraform(provision_root, provision_tree, wield_action, cred_type=None):
 
+    terraform_action = wield_to_terraform(wield_action)
+
     verbose = provision_tree.verbose
     init = provision_tree.init
     tfvars_tree = provision_tree.tfvrs
     backend_name = provision_tree.backend_name
     backend_tree = provision_tree.backend
-    view_state = provision_tree.view_state
 
     t = WrapTerraform(tf_path=provision_root, cred_type=cred_type, backend_name=backend_name, verbose=verbose)
 
-    t.configure_terraform(tfvars_tree, new_state=False, backend_tree=backend_tree)
+    if terraform_action is not TerraformAction.OUTPUT:
 
-    if init:
-        t.terraform_cmd(terraform_action=TerraformAction.INIT)
+        t.configure_terraform(tfvars_tree, new_state=False, backend_tree=backend_tree)
 
-    terraform_action = wield_to_terraform(wield_action)
+        if init:
+            t.terraform_cmd(terraform_action=TerraformAction.INIT)
 
-    if terraform_action is not None:
-        t.terraform_cmd(terraform_action=terraform_action)
+        if terraform_action is not None:
+            t.terraform_cmd(terraform_action=terraform_action)
 
-    if view_state:
-        state = t.terraform_cmd(terraform_action=TerraformAction.SHOW)
+        # if provision_tree.view_state:
+        #     state = t.terraform_cmd(terraform_action=TerraformAction.SHOW)
+        #
+        #     return state
 
-        return state
+    out = t.read_output()
+    logging.info(out)
+
+    return out
 
 
 if __name__ == "__main__":
