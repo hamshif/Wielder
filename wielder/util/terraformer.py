@@ -113,9 +113,9 @@ class WrapTerraform:
 
         if terraform_action == TerraformAction.DESTROY:
 
-            if self.conf.partial:
+            if self.conf.destroy_protocol.partial:
 
-                for module in self.conf.partial_modules:
+                for module in self.conf.destroy_protocol.partial_modules:
 
                     t_cmd += f' --target=module.{module}'
 
