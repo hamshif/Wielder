@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 import json
 import os
-import sys
-from enum import Enum
 from os.path import expanduser
 
 from wielder.util.util import DirContext
-
-
-class CredType(Enum):
-
-    AWS_MFA = "aws_mfa"
 
 
 def as_export_cmd(prop_dict):

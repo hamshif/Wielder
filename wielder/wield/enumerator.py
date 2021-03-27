@@ -29,6 +29,7 @@ class WieldAction(Enum):
     PLAN = 'plan'
     DELETE = 'delete'
     PROBE = 'probe'
+    SHOW = 'show'
 
 
 class CodeLanguage(Enum):
@@ -53,7 +54,6 @@ class TerraformAction(Enum):
     INIT = 'init'
     DESTROY = 'destroy'
     SHOW = 'show'
-    STATE = 'state'
     REFRESH = 'refresh'
     OUTPUT = 'output'
 
@@ -68,6 +68,11 @@ class HelmCommand(Enum):
     UNINSTALL = 'uninstall'
 
 
+class CredType(Enum):
+
+    AWS_MFA = "aws_mfa"
+
+
 def wield_to_terraform(action):
 
     converted = None
@@ -79,6 +84,8 @@ def wield_to_terraform(action):
         converted = TerraformAction.DESTROY
     elif action == WieldAction.PROBE:
         converted = TerraformAction.OUTPUT
+    elif action == WieldAction.SHOW:
+        converted = TerraformAction.SHOW
 
     return converted
 
