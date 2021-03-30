@@ -13,7 +13,7 @@ from kubernetes import client, config
 from wielder.util.commander import async_cmd
 
 
-def get_svc_ip(svc):
+def get_svc_ingress_property(svc, name):
 
     print(f"\n\n")
     logging.info(str(svc))
@@ -23,9 +23,26 @@ def get_svc_ip(svc):
     if ingress is None:
         return None
 
-    outer_ip = ingress[0].ip
-    logging.info(f"outer ip: {outer_ip} is of type: {type(outer_ip)}")
+    prop = None
+    if name == 'ip':
+        prop = ingress[0].ip
+    elif name == 'hostname':
+        prop = ingress[0].hostname
+
+    logging.info(f"outer ip: {prop} is of type: {type(prop)}")
+    return prop
+
+
+def get_svc_ip(svc):
+
+    outer_ip = get_svc_ingress_property(svc, 'ip')
     return outer_ip
+
+
+def get_svc_hostname(svc):
+
+    hostname = get_svc_ingress_property(svc, 'hostname')
+    return hostname
 
 
 def get_service(name, namespace="default"):
@@ -45,15 +62,15 @@ def get_service(name, namespace="default"):
 # TODO merge this with init_observe_service or deprecate
 # TODO find a better way to make sure the service is up
 # make sure the service in the cloud is up by checking ip
-def observe_service(svc_name, svc_namespace):
+def observe_service(svc_name, svc_namespace, prop_name='ip'):
 
     interval = 5
 
     time_waiting = 0
     svc = None
-    ip = None
+    prop = None
 
-    while ip is None:
+    while prop is None:
 
         svc = get_service(svc_name, namespace=svc_namespace)
 
@@ -62,9 +79,9 @@ def observe_service(svc_name, svc_namespace):
             return "timeout either provisioning might be too long or some code problem", svc_name, svc
             break
 
-        ip = get_svc_ip(svc)
+        prop = get_svc_ingress_property(svc, prop_name)
 
-        if ip is None:
+        if prop is None:
             try:
                 logging.info(f"\n\nWaited {time_waiting} for {svc_name} going to sleep for {interval}")
                 time.sleep(interval)
@@ -73,10 +90,11 @@ def observe_service(svc_name, svc_namespace):
             except Exception as e:
                 return svc_name, svc, e
 
-    return svc_name, svc, ip
+    return svc_name, svc, prop
 
 
 def init_observe_service(svc_tuple):
+    # TODO add ip or hostname property for services of both kinds
 
     svc_name = svc_tuple[0]
     svc_file_path = svc_tuple[1]

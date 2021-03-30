@@ -83,9 +83,10 @@ class WrapTerraform:
                 return 'Command run and finished without collecting reply'
 
     # TODO this is quick and dirty, create access functions in the SDK to better wrap Terraform
-    def terraform_cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True):
+    def terraform_cmd(self, terraform_action=TerraformAction.PLAN, auto_approve=True, apply_targets=None):
         """
         This is in development and not thoroughly tested!!!
+        :param apply_targets: List of modules to target in apply
         :param terraform_action: Basic Terraform command
         :param auto_approve: For destroy and apply auto approval
         :return: terraform CLI output if applicable
@@ -106,12 +107,21 @@ class WrapTerraform:
             if self.backend_name is not None:
                 t_cmd = f'{t_cmd} -backend-config "backend/{self.backend_name}.tf" -force-copy'
 
-        elif terraform_action == TerraformAction.DESTROY or terraform_action == TerraformAction.APPLY:
+        elif terraform_action == TerraformAction.APPLY:
+
+            if apply_targets is not None:
+
+                for module in apply_targets:
+
+                    t_cmd += f' --target=module.{module}'
 
             if auto_approve:
                 t_cmd = f'{t_cmd} -auto-approve'
 
-        if terraform_action == TerraformAction.DESTROY:
+        elif terraform_action == TerraformAction.DESTROY:
+
+            if auto_approve:
+                t_cmd = f'{t_cmd} -auto-approve'
 
             if self.conf.destroy_protocol.partial:
 
