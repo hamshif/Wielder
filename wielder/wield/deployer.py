@@ -199,6 +199,18 @@ def observe_pod(pod):
     return pod.metadata.name, pod, pod.status.phase
 
 
+def pod_nodes(name, namespace):
+
+    nodes = {}
+    pods = get_pods(name=name, namespace=namespace)
+
+    for pod in pods:
+
+        nodes[f'{pod.metadata.name}'] = pod.status.host_ip
+
+    return nodes
+
+
 def observe_pods(name, callback=None):
 
     pods = get_pods(name)
@@ -306,4 +318,9 @@ def mount_to_minikube_in_background(mount_name, local_mount_path, minikube_desti
 if __name__ == "__main__":
 
     logging.info('TODO')
+
+    _pod_nodes = pod_nodes(name='kafka', namespace='kafka')
+
+    print(_pod_nodes)
+
     # delete_pv(namespace='kafka', pv_type='data')
