@@ -11,8 +11,11 @@ and in the darkness bind them.
 
 Reactive debuggable CI-CD
 -
-
-Kubernetes polymorphic plan apply (A reactive debuggable alternative to Helm declarative charts)
+Wielder is meant to unify the best technologies for the job.
+You decide, pick and choose (fastest, cheapest, legacy...).
+We do this by wrapping the technology in python and then treating it as a black-box with callbacks 
+For example:
+* Kubernetes polymorphic plan apply (A reactive debuggable alternative to Helm declarative charts & SDK dependant Go Operators)
 
 Reactive deployments, canaries, updates, scaling and rollbacks.
 
