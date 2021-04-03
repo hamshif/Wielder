@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 import json
+import logging
 import os
 from os.path import expanduser
+
+from wield_services.wield.deploy.configurer import get_project_deploy_mode
+from wield_services.wield.log_util import setup_logging
 
 from wielder.util.util import DirContext
 
@@ -74,11 +78,14 @@ def get_aws_mfa_cred_command(role_name):
 
 if __name__ == "__main__":
 
+    setup_logging(log_level=logging.DEBUG)
+    wield_mode, conf, action = get_project_deploy_mode()
+
     # import boto3
     # s3client = boto3.client('s3')
     # response = s3client.list_buckets()['Buckets']
 
-    cred_string = get_aws_mfa_cred_command("eks_dev")
+    cred_string = get_aws_mfa_cred_command(conf.terraformer.super_cluster.cred_role)
 
     # print(cred_string)
 
