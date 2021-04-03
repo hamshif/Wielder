@@ -16,11 +16,11 @@ def as_export_cmd(prop_dict):
     return a
 
 
-def get_aws_mfa_cred_command(role_name=None):
+def get_aws_mfa_cred_command(role_name):
     """
     Looks for aws MFA session credentials file,
     extracts env variables necessary for running terraform
-    :param role_name: role name to check against.
+    :param role_name: role name to check against CLI MFA cache.
     :return: returns env credential shell command or empty string.
     """
 
@@ -50,9 +50,9 @@ def get_aws_mfa_cred_command(role_name=None):
 
                 if "AssumedRoleUser" in data.keys():
 
-                    if role_name is not None and "Arn" in data["AssumedRoleUser"].keys():
+                    if "Arn" in data["AssumedRoleUser"].keys():
 
-                        if role_name not in data["AssumedRoleUser"]["Arn"]:
+                        if f'/{role_name}/' not in data["AssumedRoleUser"]["Arn"]:
                             continue
 
                     env_cred["ASSUMED_ROLE"] = data["AssumedRoleUser"]["AssumedRoleId"]

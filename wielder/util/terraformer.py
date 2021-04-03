@@ -24,6 +24,7 @@ class WrapTerraform:
         :param conf config tree
         :type conf: hocon config
         """
+
         self.repo_path = repo_path
         self.conf = conf
 
@@ -37,6 +38,7 @@ class WrapTerraform:
 
         try:
             cred_type = CredType(conf.cred_type)
+            self.cred_role = conf.cred_role
         except Exception as e:
             logging.warning(f"{e}\nno CLI credential type is being used")
 
@@ -47,7 +49,7 @@ class WrapTerraform:
         with DirContext(self.repo_path):
 
             if self.cred_type == CredType.AWS_MFA:
-                cmd_prefix = get_aws_mfa_cred_command()
+                cmd_prefix = get_aws_mfa_cred_command(self.cred_role)
                 t_cmd = f'{cmd_prefix} {t_cmd}'
 
             logging.info(f"Running:\n{t_cmd}\nin: {self.repo_path}\n")
