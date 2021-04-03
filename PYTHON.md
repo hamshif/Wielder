@@ -70,8 +70,12 @@ For IDE support
  =
  
 https://packaging.python.org/tutorials/packaging-projects/
+https://widdowquinn.github.io/coding/update-pypi-package/
 
-make sure you have pypirc by loging into pypi project and getting a token
+remove old uploads in dist folder if they exist
+
+Make sure you have pypirc by logging into pypi project and getting a token
+Or use name and password from PyPi login
 ```
 cd <path to>/Wielder
 
