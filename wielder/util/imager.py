@@ -112,8 +112,12 @@ def aws_push_image(aws_conf, name, env, tag):
 
     repo = f'{aws_conf.account_id}.dkr.ecr.{region}.amazonaws.com'
 
-    cred = f'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {repo}'
+    profile = aws_conf.cred_profile
 
+    cred = f'aws ecr --profile {profile} get-login-password --region {region} | docker login --username AWS ' \
+           f'--password-stdin {repo} '
+
+    logging.info(f'Running:\n{cred}')
     os.system(cred)
 
     image_name = f'{repo}/{env}/{name}:{tag}'
@@ -123,7 +127,7 @@ def aws_push_image(aws_conf, name, env, tag):
         f'docker push {image_name};'
     )
 
-    logging.debug(f'aws ecr describe-images --repository-name  {env}/{name} --region {region};')
+    logging.info(f'aws ecr describe-images --repository-name  {env}/{name} --region {region};')
 
 
 def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
