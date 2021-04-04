@@ -161,11 +161,13 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
 
         logging.info(f"attempting to create image {name}")
 
-        os.system(
-            f'docker build -t {image_name}:{tag} {dockerfile_dir};'
-            f'echo "These are the resulting images:";'
-            f'docker images | grep {tag} | grep {image_name};'
-        )
+        _cmd = f'docker build -t {image_name}:{tag} {dockerfile_dir};'
+        f'echo "These are the resulting images:";'
+        f'docker images | grep {tag} | grep {image_name};'
+
+        logging.info(_cmd)
+
+        os.system(_cmd)
 
     if push:
         gcp_push_image(gcp_conf)

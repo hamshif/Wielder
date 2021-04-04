@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-_version = '0.2.5'
+_version = '0.2.6'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -19,7 +19,7 @@ setup(
       license='Apache License Version 2.0',
       packages=find_packages(),
       zip_safe=False,
-      install_requires=['Cython', 'gitpython', 'pyyaml', 'kubernetes', 'rx', 'jprops', 'pyhocon', 'requests', 'twine'],
+      install_requires=['Cython', 'gitpython', 'pyyaml', 'kubernetes', 'rx', 'jprops', 'pyhocon', 'requests'],
       keywords=['CI-CD', 'Kubernetes', 'Reactive'],
       classifiers=[
             'Development Status :: 4 - Beta',
