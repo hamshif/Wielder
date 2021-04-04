@@ -127,7 +127,7 @@ def aws_push_image(aws_conf, name, env, tag):
         f'docker push {image_name};'
     )
 
-    logging.info(f'aws ecr describe-images --repository-name  {env}/{name} --region {region};')
+    logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {env}/{name} --region {region};')
 
 
 def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
