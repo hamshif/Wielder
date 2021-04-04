@@ -59,13 +59,13 @@ def get_aws_mfa_cred_command(role_name):
                         if f'/{role_name}/' not in data["AssumedRoleUser"]["Arn"]:
                             continue
 
-                    env_cred["ASSUMED_ROLE"] = data["AssumedRoleUser"]["AssumedRoleId"]
-                    env_cred["AWS_ACCESS_KEY_ID"] = cred["AccessKeyId"]
-                    env_cred["AWS_SECRET_ACCESS_KEY"] = cred["SecretAccessKey"]
-                    env_cred["AWS_SESSION_TOKEN"] = cred["SessionToken"]
-                    env_cred["AWS_SECURITY_TOKEN"] = cred["SessionToken"]
+                        env_cred["ASSUMED_ROLE"] = data["AssumedRoleUser"]["AssumedRoleId"]
+                        env_cred["AWS_ACCESS_KEY_ID"] = cred["AccessKeyId"]
+                        env_cred["AWS_SECRET_ACCESS_KEY"] = cred["SecretAccessKey"]
+                        env_cred["AWS_SESSION_TOKEN"] = cred["SessionToken"]
+                        env_cred["AWS_SECURITY_TOKEN"] = cred["SessionToken"]
 
-                    break
+                        break
 
     as_string_cmd = as_export_cmd(env_cred)
 
