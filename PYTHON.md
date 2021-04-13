@@ -81,6 +81,9 @@ cd <path to>/Wielder
 
 pyenv activate wielder
 python -m pip install --upgrade twine
+pip install --upgrade setuptools wheel twine
+
+python setup.py sdist bdist_wheel
 
 twine upload -r pypi dist/*
 ```
