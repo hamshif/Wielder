@@ -64,8 +64,11 @@ class TerraformReplyType(Enum):
 
 
 class HelmCommand(Enum):
+    INIT_REPO = 'rep add'
     INSTALL = 'install'
     UNINSTALL = 'uninstall'
+    UPGRADE = 'upgrade'
+    NOTES = 'get notes'
 
 
 class CredType(Enum):
