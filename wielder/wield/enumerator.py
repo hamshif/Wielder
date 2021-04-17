@@ -93,3 +93,20 @@ def wield_to_terraform(action):
     return converted
 
 
+def wield_to_helm(action):
+
+    converted = None
+    if action == WieldAction.PLAN:
+        converted = HelmCommand.NOTES
+    elif action == WieldAction.APPLY:
+        converted = HelmCommand.INSTALL
+    elif action == WieldAction.DELETE:
+        converted = HelmCommand.UNINSTALL
+    elif action == WieldAction.PROBE:
+        # TODO
+        pass
+    elif action == WieldAction.SHOW:
+        # TODO
+        pass
+
+    return converted
