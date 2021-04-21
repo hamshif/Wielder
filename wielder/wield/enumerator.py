@@ -30,6 +30,7 @@ class WieldAction(Enum):
     DELETE = 'delete'
     PROBE = 'probe'
     SHOW = 'show'
+    UPDATE = 'upgrade'
 
 
 class CodeLanguage(Enum):
@@ -102,6 +103,8 @@ def wield_to_helm(action):
         converted = HelmCommand.INSTALL
     elif action == WieldAction.DELETE:
         converted = HelmCommand.UNINSTALL
+    elif action == WieldAction.UPDATE:
+        converted = HelmCommand.UPGRADE
     elif action == WieldAction.PROBE:
         # TODO
         pass
