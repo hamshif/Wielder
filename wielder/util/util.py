@@ -158,7 +158,11 @@ def get_pod_actions(namespace, pod_name):
 
     report_path = '/tmp/actions/actions_report.yaml'
 
-    reply = async_cmd(f'kubectl exec -it -n {namespace} {pod_name} cat {report_path}')
+    _cmd = f'kubectl exec -it -n {namespace} {pod_name} -- cat {report_path}'
+
+    logging.debug(f'command is is:\n{_cmd}')
+
+    reply = async_cmd(_cmd)
 
     logging.debug(f'Kubectl reply is:\n{reply}')
 
