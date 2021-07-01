@@ -112,6 +112,7 @@ helm repo update
 
 brew install awscli -vd
 
+brew install hudochenkov/sshpass/sshpass
 
 if [[ $(command -v docker) == "" ]]; then
     echo "Installing Docker"

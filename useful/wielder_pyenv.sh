@@ -49,3 +49,4 @@ pip install --upgrade pip
 pip install --upgrade gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes kafka
 pip install --upgrade boto3
 pip install --upgrade apache-airflow
+pip install --upgrade ansible
