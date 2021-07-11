@@ -8,19 +8,21 @@ import logging
 
 from wielder.wield.enumerator import HelmCommand, KubeResType
 from wielder.wield.kube_probe import observe_set
+from pyhocon.tool import HOCONConverter as Hc
+from pyhocon import ConfigFactory
 
 
 class WrapHelm:
 
     def __init__(self, repo, repo_url, chart, release, namespace='default', values_path=None,
-                 res_type=KubeResType.STATEFUL_SET, res_name=None):
+                 res_type=KubeResType.STATEFUL_SET, res_name=None, context_conf=None):
 
         self.repo = repo
         self.repo_url = repo_url
         self.chart = f'{repo}/{chart}'
         self.release = release
         self.namespace = namespace
-        self.values_path = values_path
+        self.values_path = f'{values_path}/{release}-values.yaml'
         self.res_type = res_type.value
 
         if res_name is None:
@@ -28,7 +30,20 @@ class WrapHelm:
 
         self.res_name = res_name
 
-        os.system(f'kubectl create namespace {namespace}')
+        self.conf = ConfigFactory.parse_file(self.values_path.replace('yaml', 'conf'))
+
+        if context_conf is not None:
+
+            self.conf = context_conf.with_fallback(self.conf)
+
+    def plan(self):
+
+        plan = Hc.convert(self.conf, 'yaml', 2)
+
+        logging.info(f'\n{plan}')
+
+        with open(self.values_path, 'wt') as file_out:
+            file_out.write(plan)
 
     def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False):
 
@@ -45,9 +60,16 @@ class WrapHelm:
             os.system(_cmd)
             return
 
+        self.plan()
+
         _cmd = f'helm {helm_cmd.value} {self.release} -n {self.namespace}'
 
         if helm_cmd == HelmCommand.INSTALL or helm_cmd == HelmCommand.UPGRADE:
+
+            try:
+                os.system(f'kubectl create namespace {self.namespace}')
+            except:
+                pass
 
             _cmd = f'{_cmd} {self.chart}'
 
