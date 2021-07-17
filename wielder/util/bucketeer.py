@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+import os
 
 import boto3
 from botocore.exceptions import ClientError
@@ -24,11 +25,6 @@ class Bucketeer:
         else:
             self.s3 = boto3.client('s3')
 
-    def upload_file(self, source, bucket_name, dest):
-
-        with open(source, "rb") as f:
-            self.s3.upload_fileobj(f, bucket_name, dest)
-
     def create_bucket(self, bucket_name, region=None):
         """Create an S3 bucket in a specified region
 
@@ -52,23 +48,54 @@ class Bucketeer:
             return False
         return True
 
-    def empty_bucket(self, bucket_name):
-        """Empty an S3 bucket
+    def upload_file(self, source, bucket_name, dest):
 
+        with open(source, "rb") as f:
+            self.s3.upload_fileobj(f, bucket_name, dest)
+
+    def upload_directory(self, source, bucket_name, prefix):
+
+        for root, dirs, files in os.walk(source):
+            for file in files:
+                self.s3.upload_file(os.path.join(root, file), bucket_name, f'{prefix}{file}')
+
+    def delete_file(self, bucket_name, file_name):
+        """Empty an S3 bucket
+        :param file_name:
         :param bucket_name: Bucket to deleted
         :return: True if bucket deleted, else False
         """
         try:
 
-            s3objects = self.s3.list_objects(Bucket=bucket_name)['Contents']
+            self.s3.delete_object(
+                Bucket=bucket_name,
+                Key=file_name
+            )
 
-            for obj in s3objects:
-                object_name = obj["Key"]
-                print(f"trying to delete {object_name}")
-                self.s3.delete_object(
-                    Bucket=bucket_name,
-                    Key=object_name
-                )
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
+
+    def delete_objects(self, bucket_name, prefix=''):
+        """Empty an S3 bucket
+
+        :param prefix:
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+        try:
+
+            names = self.get_object_names(bucket_name, prefix)
+
+            obs = [{'Key': n} for n in names]
+
+            self.s3.delete_objects(
+                Bucket=bucket_name,
+                Delete={
+                    'Objects': obs
+                }
+            )
 
         except ClientError as e:
             logging.error(e)
@@ -83,7 +110,7 @@ class Bucketeer:
         """
         try:
 
-            self.empty_bucket(bucket_name)
+            self.delete_objects(bucket_name)
             self.s3.delete_bucket(Bucket=bucket_name)
 
         except ClientError as e:
@@ -91,20 +118,43 @@ class Bucketeer:
             return False
         return True
 
-    def ls(self):
+    def get_bucket_names(self):
         """
         Retrieve a list of existing buckets.
         :return: list of bucket names
         """
+
+        bucket_names = []
 
         response = self.s3.list_buckets()
 
         # Output the bucket names
         print('Existing buckets:')
         for bucket in response['Buckets']:
+            bucket_names.append(bucket["Name"])
             print(f'  {bucket["Name"]}')
 
-        return response['Buckets']
+        return bucket_names
+
+    def get_object_names(self, bucket_name, prefix=''):
+
+        try:
+            response = self.s3.list_objects(Bucket=bucket_name, Prefix=prefix)
+
+            object_names = []
+
+            if 'Contents' in response:
+                s3objects = response['Contents']
+                for obj in s3objects:
+                    object_name = obj["Key"]
+                    logging.debug(f'Object name: {object_name}')
+                    object_names.append(object_name)
+
+            return object_names
+
+        except KeyError as e:
+            logging.error(e)
+            logging.info(f"No objects in key {prefix}")
 
 
 if __name__ == "__main__":
@@ -116,11 +166,11 @@ if __name__ == "__main__":
     _region = "us-east-2"
     b = Bucketeer(True)
 
-    b.ls()
+    b.get_bucket_names()
 
     b.create_bucket(bucket_name=_bucket_name, region=_region)
     #
-    buckets = b.ls()
+    buckets = b.get_bucket_names()
 
     for i in range(3):
         b.upload_file(f'/tmp/rabbit.txt', _bucket_name, f'tson{i}.txt')
