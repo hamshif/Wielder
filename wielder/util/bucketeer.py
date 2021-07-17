@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
 
-    _bucket_name = 'gichi'
+    _bucket_name = 'pep-dev-test'
 
     _region = "us-east-2"
     b = Bucketeer(True)
@@ -177,15 +177,8 @@ if __name__ == "__main__":
         # print("sleeping")
         # time.sleep(5)
 
-    # value = input(f"are you sure you want to delete buckets!\n only YES! will work")
-    #
-    # if value == 'YES!':
-    #     for bucket in buckets:
-    #         _name = bucket["Name"]
-    #
-    #         value = input(f"are you sure you want to delete: {_name}\nonly YES! will work")
-    #
-    #         if value == 'YES!':
-    #             b.delete_bucket(bucket["Name"])
-    #
-    #     b.ls()
+    value = input(f"are you sure you want to delete buckets!\n only YES! will work")
+
+    if value == 'YES!':
+
+        b.delete_bucket(_bucket_name)
