@@ -1,43 +1,48 @@
 This module can be placed in the same Intellij project with other modules
 such as 
-https://github.com/hamshif/data-common.git
+https://github.com/hamshif/data-common.git \
 https://github.com/hamshif/dags.git
 
-To open it with IntelliJ
---
-Plugins:
+## To open it with IntelliJ
+###Plugins:
+
     1. Markdown-navigator
-    1. Python
-    1. Jenv
-    1. Scala
-    1. .ignore
-    1. Bash
-    1. Terraform
+    2. Python
+    3. Jenv
+    4. Scala
+    5. .ignore
+    6. Bash
+    7. Terraform
 
-1. open project in data directory
-1. Add multiple SDKs 
-   The SDK paths in JEnv look like this: /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
-   Python at project level add SDK pointing to python interpreter
-    1. Java 1.8
-    1. Java 11
-    1. Python Wielder virtualenv.
+###Init workspace
+1. Open project in data directory
+2. Add multiple SDKs :
+    - Java 1.8
+    - Java 11
+    - Python Wielder virtualenv.
    
+The SDK paths in JEnv look like this - **/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home**\
+Add SDK pointing to python interpreter -
+`For downloading SDK from IntelliJ IDEA go to File -> Project Structure... -> SDKs -> '+' -> Download JDK chose version and download`
+
+###Open workspace
 1. open project structure
-1.1. remove data module if it was created automatically
+2. remove data module if it was created automatically (File -> Project Structure... -> Modules -> '-')
 
-Python Modules:
+###Python modules:
+1. Add Wielder module (File -> New -> Module from existing sourse -> select folder Wielder (~/duds/Wielder))
+    - If module wasn't add to the project try **File -> New -> Module... -> Select SDK -> Next -> Select folder -> (if it ask override click Yes) -> Finish** 
+2. Add pep-services module in the same way as Wielder module(step 1)
+3. To get intellisense add module src dirs to SDK classpath thus:
+   - **File >> project structure >> SDKs >> class path tab >> + >> ..../pep-services/src  or mark src dir as source for intellisense with right click on project (right click -> Mark directory as -> Sources Root)**
+4. Add dependencies for pep-services to **Wielder File -> Project Structure... -> Modules -> choise pep-services -> tab dependencies -> '+' ->  Module dependency -> select Wielder**
 
-    1. Project >> New module from existing sources >> point to directory e.g. Wielder) >> choose Python virtualenv
-    2. To get intellisense add module src dirs to SDK classpath  thus:
-       File >> project structure >> SDKs >> class path tab >> + >> ..../Wielder/src 
-       or mark src dir as source for intellisense with right click on project.
-    3. For more intellisense in module structure add dependencies of dependent modules e.g. (in wielder-services add dependency to Wielder)
-
+###Maven modules:
 Maven modules e.g. pipelines add a module using maven (there is some fine tuning because the project structure is nested modules)
-1.1 file -> new -> module from existing source -> maven -> next
+1. File -> new -> module from existing source -> maven -> next
 you might have to add Scala directories as source
-1.1. add non framework directories e.g. docker scripts from existing sources
-1.1. add Python frameworks using preprepared virtualenvwrapper
+1. Add non framework directories e.g. docker scripts from existing sources
+1. Add Python frameworks using preprepared virtualenvwrapper
 
 
 If you want to change the resulting default dir structure change from project view to Project Files
