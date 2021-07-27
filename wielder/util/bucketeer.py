@@ -32,7 +32,7 @@ class Bucketeer:
         region (us-east-1).
 
         :param bucket_name: Bucket to create
-        :param region: String region to create bucket in, e.g., 'us-east-2'
+        :param region: String region to create bucket in, e.g.p, 'us-east-2'
         :return: True if bucket created, else False
         """
         try:

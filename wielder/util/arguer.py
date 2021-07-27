@@ -160,6 +160,22 @@ def get_kube_parser():
     )
 
     parser.add_argument(
+        '-m', '--module',
+        type=str,
+        help='Module deploy action\n'
+             'kafka\n'
+             'airflow: deploys the plan\n',
+        default='airflow'
+    )
+
+    parser.add_argument(
+        '-am', '--all_modules',
+        type=bool,
+        help='Deploy all existing modules',
+        default=False
+    )
+
+    parser.add_argument(
         '-cf', '--conf_file',
         type=str,
         help='Full path to config file with all arguments.\nCommandline args override those in the file.'
