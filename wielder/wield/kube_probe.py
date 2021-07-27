@@ -14,7 +14,7 @@ def get_kube_namespace_resources_by_type(namespace, kube_res, verbose=False):
     A Wrapper of kubectl which parses resources from json
     :param namespace:
     :type namespace: str
-    :param kube_res: statefullset, deployment ...
+    :param kube_res: statefulset, deployment ...
     :type kube_res: str
     :param verbose: log or not
     :type verbose: bool
@@ -40,7 +40,7 @@ def get_kube_res_by_name(namespace, kube_res, res_name):
     :type res_name: str
     :param namespace:
     :type namespace: str
-    :param kube_res: statefullset, deployment ...
+    :param kube_res: statefulset, deployment ...
     :type kube_res: str
     :return: kubernetes resource as python
     :rtype:
