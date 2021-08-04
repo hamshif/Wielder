@@ -278,7 +278,7 @@ def wielder_sanity(conf, mode, service_mode=None):
         f"\n!!! Exiting ..."
 
     if context == CONTEXT_DOCKER and mode.runtime_env != 'docker':
-        logging.ERROR(message)
+        logging.error(message)
         exit(1)
     elif 'gke' in context and mode.runtime_env != 'gcp':
         logging.error(message)
