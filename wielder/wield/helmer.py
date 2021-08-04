@@ -48,6 +48,8 @@ class WrapHelm:
 
     def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False):
 
+        self.plan()
+
         if helm_cmd == HelmCommand.NOTES:
 
             _cmd = f'helm get notes {self.release} -n {self.namespace}'
@@ -60,8 +62,6 @@ class WrapHelm:
             logging.info(f'Running command:\n{_cmd}')
             os.system(_cmd)
             return
-
-        self.plan()
 
         data = get_kube_res_by_name(self.namespace, 'statefulset', self.release)
 

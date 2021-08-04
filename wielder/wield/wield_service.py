@@ -3,7 +3,7 @@ import os
 from pyhocon import ConfigFactory as Cf
 
 from wielder.wield.base import WielderBase
-from wielder.wield.enumerator import PlanType
+from wielder.wield.enumerator import PlanType, WieldAction
 
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
@@ -91,8 +91,6 @@ class WieldService(WielderBase):
 
             self.conf = get_conf_ordered_files(module_paths, injection=injection)
 
-        wielder_sanity(self.conf, self.mode, self.service_mode)
-
         logging.debug('break')
 
         self.plan = WieldPlan(
@@ -102,7 +100,11 @@ class WieldService(WielderBase):
             plan_format=plan_format
         )
 
+        self.plan.wield(action=WieldAction.PLAN)
+
         self.plan.pretty()
+
+        wielder_sanity(self.conf, self.mode, self.service_mode)
 
     def make_sure_module_local_conf_exists(self):
 
