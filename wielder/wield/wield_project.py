@@ -195,8 +195,6 @@ class WieldProject(WielderBase):
             bootstrap_env=mode.bootstrap_env
         )
 
-        wielder_sanity(self.conf, self.mode)
-
         logging.debug('break')
 
         self.plan = WieldPlan(
@@ -208,6 +206,8 @@ class WieldProject(WielderBase):
 
         if conf.show_project:
             self.plan.pretty()
+
+        wielder_sanity(self.conf, self.mode)
 
 
 
