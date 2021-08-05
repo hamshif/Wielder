@@ -117,17 +117,22 @@ def get_wield_mode(project_root, runtime_env=None, deploy_env=None, bootstrap_en
             bootstrap_env=bootstrap_env
         )
 
-        developer_conf_path = f'{project_root}conf/personal/developer.conf'
-        dev_conf = Cf.parse_file(developer_conf_path)
+        env_conf_path = f'{project_root}conf/personal/env.conf'
 
-        if bootstrap_env is None:
-            bootstrap_env = dev_conf.bootstrap_env
+        if os.path.exists(env_conf_path):
 
-        if runtime_env is None:
-            runtime_env = dev_conf.runtime_env
+            logging.info(f"Using configuration to fill in values not supplied by cli from:\n {env_conf_path}")
 
-        if deploy_env is None:
-            deploy_env = dev_conf.deploy_env
+            env_conf = Cf.parse_file(env_conf_path)
+
+            if bootstrap_env is None:
+                bootstrap_env = env_conf.bootstrap_env
+
+            if runtime_env is None:
+                runtime_env = env_conf.runtime_env
+
+            if deploy_env is None:
+                deploy_env = env_conf.deploy_env
 
     wield_mode = WieldMode(runtime_env=runtime_env, deploy_env=deploy_env, bootstrap_env=bootstrap_env)
 
