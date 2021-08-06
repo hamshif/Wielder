@@ -7,7 +7,7 @@ class Locale:
     """
 
     def __init__(self, project_root, super_project_root, module_root, code_path, datastores_root,
-                 provision_root='unknown'):
+                 provision_root='unknown', packing_root='unknown'):
         """
 
         :param project_root: The wielder project wrapping CICD of code
@@ -24,6 +24,7 @@ class Locale:
         self.code_path = code_path
         self.datastores_root = datastores_root
         self.provision_root = provision_root
+        self.packing_root = packing_root
 
 
 
