@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 
 from wielder.util.boto3_session_cache import boto3_client
 from wielder.util.log_util import setup_logging
+from wielder.util.terraform_credential_helper import get_aws_mfa_cred
 
 DEFAULT_REGION = "us-east-2"
 
@@ -18,12 +19,22 @@ class Bucketeer:
     It currently supports AWS S3, Later on we can add more Cloud providers
     """
 
-    def __init__(self, use_existing_cred=False):
+    def __init__(self, conf=None):
 
-        if use_existing_cred:
+        if conf is None:
             self.s3 = boto3_client(service_name='s3')
         else:
-            self.s3 = boto3.client('s3')
+
+            cred = get_aws_mfa_cred(conf.terraformer.super_cluster.cred_role)
+
+            session = boto3.Session(
+                aws_access_key_id=cred["AWS_ACCESS_KEY_ID"],
+                aws_secret_access_key=cred["AWS_SECRET_ACCESS_KEY"],
+                aws_session_token=cred["AWS_SESSION_TOKEN"],
+                profile_name=conf.aws_profile
+            )
+
+            self.s3 = session.resource('s3').meta.client
 
     def create_bucket(self, bucket_name, region=None):
         """Create an S3 bucket in a specified region
@@ -164,21 +175,21 @@ if __name__ == "__main__":
     _bucket_name = 'pep-dev-test'
 
     _region = "us-east-2"
-    b = Bucketeer(True)
+    b = Bucketeer(None)
 
     b.get_bucket_names()
 
-    b.create_bucket(bucket_name=_bucket_name, region=_region)
+    # b.create_bucket(bucket_name=_bucket_name, region=_region)
+    # #
+    # buckets = b.get_bucket_names()
     #
-    buckets = b.get_bucket_names()
-
-    for i in range(3):
-        b.upload_file(f'/tmp/rabbit.txt', _bucket_name, f'tson{i}.txt')
-        # print("sleeping")
-        # time.sleep(5)
-
-    value = input(f"are you sure you want to delete buckets!\n only YES! will work")
-
-    if value == 'YES!':
-
-        b.delete_bucket(_bucket_name)
+    # for i in range(3):
+    #     b.upload_file(f'/tmp/rabbit.txt', _bucket_name, f'tson{i}.txt')
+    #     # print("sleeping")
+    #     # time.sleep(5)
+    #
+    # value = input(f"are you sure you want to delete buckets!\n only YES! will work")
+    #
+    # if value == 'YES!':
+    #
+    #     b.delete_bucket(_bucket_name)
