@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 from wielder.util.boto3_session_cache import boto3_client
 from wielder.util.log_util import setup_logging
-from wielder.util.terraform_credential_helper import get_aws_mfa_cred
+from wielder.util.credential_helper import get_aws_mfa_cred
 
 DEFAULT_REGION = "us-east-2"
 

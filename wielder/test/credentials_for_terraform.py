@@ -5,7 +5,7 @@ from os.path import expanduser
 from wield_services.wield.deploy.configurer import get_project_deploy_mode
 from wield_services.wield.log_util import setup_logging
 
-from wielder.util.terraform_credential_helper import get_aws_mfa_cred_command
+from wielder.util.credential_helper import get_aws_mfa_cred_command
 from wielder.util.util import DirContext
 
 # TODO use logging and recheck what we are testing

@@ -5,7 +5,7 @@ import os
 from os.path import expanduser
 
 
-def as_export_cmd(prop_dict):
+def cred_as_export_cmd(prop_dict):
 
     a = ''
 
@@ -73,13 +73,13 @@ def get_aws_mfa_cred_command(role_name):
 
     env_cred = get_aws_mfa_cred(role_name)
 
-    as_string_cmd = as_export_cmd(env_cred)
+    bash_export_cmd = cred_as_export_cmd(env_cred)
 
-    if not as_string_cmd:
+    if not bash_export_cmd:
 
         logging.warning("couldn't find credentials returning empty string")
 
-    return as_string_cmd
+    return bash_export_cmd
 
 
 
