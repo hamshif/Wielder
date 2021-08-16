@@ -2,12 +2,11 @@
 import logging
 import os
 
-import boto3
 from botocore.exceptions import ClientError
 
 from wielder.util.boto3_session_cache import boto3_client
 from wielder.util.log_util import setup_logging
-from wielder.util.credential_helper import get_aws_mfa_cred
+from wielder.util.util import get_aws_session
 
 DEFAULT_REGION = "us-east-2"
 
@@ -25,14 +24,7 @@ class Bucketeer:
             self.s3 = boto3_client(service_name='s3')
         else:
 
-            cred = get_aws_mfa_cred(conf.terraformer.super_cluster.cred_role)
-
-            session = boto3.Session(
-                aws_access_key_id=cred["AWS_ACCESS_KEY_ID"],
-                aws_secret_access_key=cred["AWS_SECRET_ACCESS_KEY"],
-                aws_session_token=cred["AWS_SESSION_TOKEN"],
-                profile_name=conf.aws_profile
-            )
+            session = get_aws_session(conf)
 
             self.s3 = session.resource('s3').meta.client
 
@@ -167,29 +159,3 @@ class Bucketeer:
             logging.error(e)
             logging.info(f"No objects in key {prefix}")
 
-
-if __name__ == "__main__":
-
-    setup_logging(log_level=logging.DEBUG)
-
-    _bucket_name = 'pep-dev-test'
-
-    _region = "us-east-2"
-    b = Bucketeer(None)
-
-    b.get_bucket_names()
-
-    # b.create_bucket(bucket_name=_bucket_name, region=_region)
-    # #
-    # buckets = b.get_bucket_names()
-    #
-    # for i in range(3):
-    #     b.upload_file(f'/tmp/rabbit.txt', _bucket_name, f'tson{i}.txt')
-    #     # print("sleeping")
-    #     # time.sleep(5)
-    #
-    # value = input(f"are you sure you want to delete buckets!\n only YES! will work")
-    #
-    # if value == 'YES!':
-    #
-    #     b.delete_bucket(_bucket_name)
