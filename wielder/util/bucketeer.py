@@ -2,11 +2,11 @@
 import logging
 import os
 
-import boto3
 from botocore.exceptions import ClientError
 
 from wielder.util.boto3_session_cache import boto3_client
 from wielder.util.log_util import setup_logging
+from wielder.util.util import get_aws_session
 
 DEFAULT_REGION = "us-east-2"
 
@@ -18,12 +18,15 @@ class Bucketeer:
     It currently supports AWS S3, Later on we can add more Cloud providers
     """
 
-    def __init__(self, use_existing_cred=False):
+    def __init__(self, conf=None):
 
-        if use_existing_cred:
+        if conf is None:
             self.s3 = boto3_client(service_name='s3')
         else:
-            self.s3 = boto3.client('s3')
+
+            session = get_aws_session(conf)
+
+            self.s3 = session.resource('s3').meta.client
 
     def create_bucket(self, bucket_name, region=None):
         """Create an S3 bucket in a specified region
@@ -156,29 +159,3 @@ class Bucketeer:
             logging.error(e)
             logging.info(f"No objects in key {prefix}")
 
-
-if __name__ == "__main__":
-
-    setup_logging(log_level=logging.DEBUG)
-
-    _bucket_name = 'pep-dev-test'
-
-    _region = "us-east-2"
-    b = Bucketeer(True)
-
-    b.get_bucket_names()
-
-    b.create_bucket(bucket_name=_bucket_name, region=_region)
-    #
-    buckets = b.get_bucket_names()
-
-    for i in range(3):
-        b.upload_file(f'/tmp/rabbit.txt', _bucket_name, f'tson{i}.txt')
-        # print("sleeping")
-        # time.sleep(5)
-
-    value = input(f"are you sure you want to delete buckets!\n only YES! will work")
-
-    if value == 'YES!':
-
-        b.delete_bucket(_bucket_name)

@@ -5,6 +5,8 @@ import re
 from time import sleep
 import random
 import string
+
+import boto3
 import yaml
 from requests import get
 
@@ -12,6 +14,7 @@ from wielder.util.commander import async_cmd
 
 # This example requires the requests library be installed.  You can learn more
 # about the Requests library here: http://docs.python-requests.org/en/latest/
+from wielder.util.credential_helper import get_aws_mfa_cred
 from wielder.util.log_util import setup_logging
 
 
@@ -231,6 +234,20 @@ def get_random_string(length):
     print("Random string of length", length, "is:", result_str)
 
     return result_str
+
+
+def get_aws_session(conf):
+
+    cred = get_aws_mfa_cred(conf.terraformer.super_cluster.cred_role)
+
+    session = boto3.Session(
+        aws_access_key_id=cred["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=cred["AWS_SECRET_ACCESS_KEY"],
+        aws_session_token=cred["AWS_SESSION_TOKEN"],
+        profile_name=conf.aws_profile
+    )
+
+    return session
 
 
 if __name__ == "__main__":

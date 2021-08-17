@@ -7,7 +7,7 @@ import random
 from wielder.util.commander import subprocess_cmd as _cmd, subprocess_cmd
 from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
-from wielder.util.terraform_credential_helper import get_aws_mfa_cred_command
+from wielder.util.credential_helper import get_aws_mfa_cred_command
 from wielder.util.util import DirContext
 from wielder.wield.enumerator import TerraformAction, TerraformReplyType, CredType
 

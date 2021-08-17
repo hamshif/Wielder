@@ -4,13 +4,8 @@ import logging
 import os
 from os.path import expanduser
 
-from wield_services.wield.deploy.configurer import get_project_deploy_mode
-from wield_services.wield.log_util import setup_logging
 
-from wielder.util.util import DirContext
-
-
-def as_export_cmd(prop_dict):
+def cred_as_export_cmd(prop_dict):
 
     a = ''
 
@@ -20,7 +15,7 @@ def as_export_cmd(prop_dict):
     return a
 
 
-def get_aws_mfa_cred_command(role_name):
+def get_aws_mfa_cred(role_name):
     """
     Looks for aws MFA session credentials file,
     extracts env variables necessary for running terraform
@@ -65,39 +60,27 @@ def get_aws_mfa_cred_command(role_name):
                         env_cred["AWS_SESSION_TOKEN"] = cred["SessionToken"]
                         env_cred["AWS_SECURITY_TOKEN"] = cred["SessionToken"]
 
-                        break
-
-    as_string_cmd = as_export_cmd(env_cred)
-
-    if not as_string_cmd:
-
-        print("couldn't find credentials returning empty string")
-
-    return as_string_cmd
+                        return env_cred
 
 
-if __name__ == "__main__":
+def get_aws_mfa_cred_command(role_name):
+    """
+    Looks for aws MFA session credentials file,
+    extracts env variables necessary for running terraform
+    :param role_name: role name to check against CLI MFA cache.
+    :return: returns env credential shell command or empty string.
+    """
 
-    setup_logging(log_level=logging.DEBUG)
-    wield_mode, conf, action = get_project_deploy_mode()
+    env_cred = get_aws_mfa_cred(role_name)
 
-    # import boto3
-    # s3client = boto3.client('s3')
-    # response = s3client.list_buckets()['Buckets']
+    bash_export_cmd = cred_as_export_cmd(env_cred)
 
-    cred_string = get_aws_mfa_cred_command(conf.terraformer.super_cluster.cred_role)
+    if not bash_export_cmd:
 
-    # print(cred_string)
+        logging.warning("couldn't find credentials returning empty string")
 
-    _home = expanduser("~")
-    print(_home)
-    dir_path = f"{_home}/stam/pep_eks"
+    return bash_export_cmd
 
-    with DirContext(_home):
-
-        cmd = f'{cred_string}\nterraform plan'
-
-        print(cmd)
 
 
 
