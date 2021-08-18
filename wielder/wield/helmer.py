@@ -63,7 +63,10 @@ class WrapHelm:
             os.system(_cmd)
             return
 
-        data = get_kube_res_by_name(self.namespace, 'statefulset', self.release)
+        try:
+            data = get_kube_res_by_name(self.namespace, 'statefulset', self.release)
+        except:
+            return
 
         if data:
             if helm_cmd == HelmCommand.INSTALL:
@@ -95,5 +98,6 @@ class WrapHelm:
             os.system(f"kubectl delete -n {self.namespace} po -l app={self.res_name} --force --grace-period=0;")
 
         if observe:
+
             observe_set(self.namespace, self.res_type, self.res_name)
 
