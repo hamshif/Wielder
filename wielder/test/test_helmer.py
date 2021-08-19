@@ -27,9 +27,11 @@ if __name__ == "__main__":
     namespace = 'cassandra'
     release = 'cassandra'
     values_path = f'{test_root}/helm_cassandra.yaml'
+    repo_version = '8.0.2'
 
     wh = WrapHelm(
         repo=repo,
+        repo_version=repo_version,
         repo_url=repo_url,
         chart=chart,
         release=release,
