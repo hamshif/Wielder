@@ -30,6 +30,7 @@ if __name__ == "__main__":
     repo_version = '8.0.2'
 
     wh = WrapHelm(
+        runtime_env='docker',
         repo=repo,
         repo_version=repo_version,
         repo_url=repo_url,
