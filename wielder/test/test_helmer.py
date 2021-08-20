@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     os.system(f'ls -la {test_root}')
 
+    runtime_env = 'docker'
     repo = 'bitnami'
     repo_url = 'https://charts.bitnami.com/bitnami'
     chart = 'cassandra'
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     repo_version = '8.0.2'
 
     wh = WrapHelm(
-        runtime_env='docker',
+        runtime_env=runtime_env,
         repo=repo,
         repo_version=repo_version,
         repo_url=repo_url,

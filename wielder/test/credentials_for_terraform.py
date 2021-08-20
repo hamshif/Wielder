@@ -17,14 +17,14 @@ if __name__ == "__main__":
 
     cred_string = get_aws_mfa_cred_command(conf.terraformer.super_cluster.cred_role)
 
-    print(cred_string)
+    logging.debug(cred_string)
 
     _home = expanduser("~")
-    print(_home)
+    logging.debug(_home)
     dir_path = f"{_home}/stam/pep_eks"
 
     with DirContext(_home):
 
         cmd = f'{cred_string}\nterraform plan'
 
-        print(cmd)
+        logging.debug(cmd)
