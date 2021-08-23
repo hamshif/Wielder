@@ -130,7 +130,7 @@ def aws_push_image(aws_conf, name, env, tag):
     logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {env}/{name} --region {region};')
 
 
-def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
+def pack_image(conf, name, image_root, push=False, force=False, tag='dev', provider=CloudProvider.GCP):
     """
 
     :param tag:
@@ -145,8 +145,6 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
     dockerfile_dir = f'{image_root}/{name}'
 
     image_name = f'{name}'
-
-    gcp_conf = conf.providers.gcp
 
     _cmd = f'docker images | grep {tag} | grep {image_name};'
 
@@ -170,7 +168,12 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev'):
         os.system(_cmd)
 
     if push:
-        gcp_push_image(gcp_conf)
+        # TODO separate pushing from building
+
+        if provider == CloudProvider.GCP:
+
+            gcp_conf = conf.providers.gcp
+            gcp_push_image(gcp_conf)
 
 
 if __name__ == "__main__":
