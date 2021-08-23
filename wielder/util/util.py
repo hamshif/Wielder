@@ -254,9 +254,9 @@ def copy_file_to_pod(pod, file_full_path, pod_path, namespace):
     os.system(f'kubectl cp -n {namespace} {file_full_path} {pod.metadata.name}:{pod_path}')
 
 
-def copy_file_to_pods(pods, file_full_path, pod_path, namespace):
+def copy_file_to_pods(pods, src, pod_dest, namespace):
     for p in pods:
-        os.system(f'kubectl cp -n {namespace} {file_full_path} {p.metadata.name}:{pod_path}')
+        os.system(f'kubectl cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
     
 
 if __name__ == "__main__":
