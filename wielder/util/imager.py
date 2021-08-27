@@ -130,7 +130,7 @@ def aws_push_image(aws_conf, name, env, tag):
     logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {env}/{name} --region {region};')
 
 
-def pack_image(name, image_name, image_root, force=False, tag='dev'):
+def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
     """
 
     :param image_name:

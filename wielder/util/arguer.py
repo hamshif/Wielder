@@ -95,7 +95,7 @@ def destroy_sanity(conf):
     #         exit(1)
 
 
-def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
+def replace_none_vars_from_args(action, wield_mode, local_mount, enable_debug, service_mode, project_override):
 
     logging.info('Configured logging')
 
@@ -105,11 +105,12 @@ def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service
 
     log_level = convert_log_level(kube_args.log_level)
 
-    if not mode:
+    if not wield_mode:
 
-        mode = WieldMode(
+        wield_mode = WieldMode(
             runtime_env=kube_args.runtime_env,
-            deploy_env=kube_args.deploy_env
+            deploy_env=kube_args.deploy_env,
+            bootstrap_env=kube_args.bootstrap_env
         )
 
     if not action:
@@ -129,7 +130,7 @@ def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service
             project_override=project_override
         )
 
-    return action, mode, enable_debug, local_mount, service_mode
+    return action, wield_mode, enable_debug, local_mount, service_mode
 
 
 def get_kube_parser():
