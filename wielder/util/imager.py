@@ -130,21 +130,22 @@ def aws_push_image(aws_conf, name, env, tag):
     logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {env}/{name} --region {region};')
 
 
-def pack_image(conf, name, image_root, push=False, force=False, tag='dev', provider=CloudProvider.GCP):
+def pack_image(name, image_name, image_root, force=False, tag='dev'):
     """
 
+    :param image_name:
     :param tag:
-    :param conf:
-    :param name:
-    :param push:
+    :param name: The name of the directory in which all the necessary resources for packing the image reside
+    usually the name of the service.
     :param force: force creation of image if it doesn't exist in repo
     :param image_root:
     :return:
     """
 
-    dockerfile_dir = f'{image_root}/{name}'
+    if image_name is None:
+        image_name = name
 
-    image_name = f'{name}'
+    dockerfile_dir = f'{image_root}/{name}'
 
     _cmd = f'docker images | grep {tag} | grep {image_name};'
 
@@ -166,14 +167,6 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev', provi
         logging.info(_cmd)
 
         os.system(_cmd)
-
-    if push:
-        # TODO separate pushing from building
-
-        if provider == CloudProvider.GCP:
-
-            gcp_conf = conf.providers.gcp
-            gcp_push_image(gcp_conf)
 
 
 if __name__ == "__main__":

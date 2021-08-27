@@ -169,10 +169,11 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
         module_override_path
     ]
 
+    injection['runtime_env'] = runtime_env
+    injection['deploy_env'] = deploy_env
+    injection['bootstrap_env'] = bootstrap_env
+
     conf = get_conf_ordered_files(ordered_project_files, injection)
-    conf.runtime_env = runtime_env
-    conf.deploy_env = deploy_env
-    conf.bootstrap_env = bootstrap_env
 
     return conf
 
