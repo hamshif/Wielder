@@ -4,7 +4,7 @@ from pyhocon import ConfigFactory as Cf
 
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
-
+from wielder.util.arguer import replace_none_vars_from_args
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
@@ -134,3 +134,30 @@ class WieldService(WielderBase):
 
         return local_path
 
+
+def get_wield_svc(locale, service_name):
+    """
+    A convenience wrapper based on cli and directory conventions
+    for getting WieldService.
+    :param locale: used to get directory roots
+    :param service_name: used as key to configuration
+    :return:
+    """
+
+    _, wield_mode, _, _, service_mode = replace_none_vars_from_args(
+        action=None,
+        wield_mode=None,
+        enable_debug=None,
+        local_mount=None,
+        service_mode=None,
+        project_override=True
+    )
+
+    service = WieldService(
+        name=service_name,
+        locale=locale,
+        mode=wield_mode,
+        service_mode=service_mode,
+    )
+
+    return service
