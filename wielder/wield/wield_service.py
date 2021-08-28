@@ -104,6 +104,8 @@ class WieldService(WielderBase):
 
         self.plan.pretty()
 
+        self.packaging = self.plan.module_conf.packaging
+
         wielder_sanity(self.conf, self.mode, self.service_mode)
 
     def make_sure_module_local_conf_exists(self):
