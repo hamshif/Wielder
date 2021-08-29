@@ -139,11 +139,13 @@ def get_wield_mode(project_root, runtime_env=None, deploy_env=None, bootstrap_en
     return wield_mode
 
 
-def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev'
-                             , bootstrap_env='local', module_paths=[], injection={}):
+def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev',
+                             bootstrap_env='local', super_project_root='nowhere', super_project_name='data', module_paths=[], injection={}):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
+    :param super_project_root: Path to git submodules super repo
+    :param super_project_name: the short name of git submodules super repo and project parent directory
     :param injection: a dictionary of variables to override hocon file variables on the fly.
     :param bootstrap_env: Where deployment automation happens e.g. local devlopers machine, airflow dag.
     :param project_root: the project root for inferring config and plan paths
@@ -172,6 +174,8 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     injection['runtime_env'] = runtime_env
     injection['deploy_env'] = deploy_env
     injection['bootstrap_env'] = bootstrap_env
+    injection['super_project_root'] = super_project_root
+    injection['super_project_name'] = super_project_name
 
     conf = get_conf_ordered_files(ordered_project_files, injection)
 

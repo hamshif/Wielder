@@ -83,6 +83,8 @@ class WieldService(WielderBase):
                 project_root=self.locale.project_root,
                 runtime_env=self.mode.runtime_env,
                 deploy_env=self.mode.deploy_env,
+                super_project_root=locale.super_project_root,
+                super_project_name=locale.super_project_name,
                 module_paths=module_paths,
                 injection=injection
             )
