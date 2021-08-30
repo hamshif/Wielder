@@ -148,7 +148,7 @@ def get_wield_svc(locale, service_name):
     :return:
     """
 
-    _, wield_mode, _, _, service_mode = replace_none_vars_from_args(
+    action, wield_mode, _, _, service_mode = replace_none_vars_from_args(
         action=None,
         wield_mode=None,
         enable_debug=None,
@@ -164,4 +164,4 @@ def get_wield_svc(locale, service_name):
         service_mode=service_mode,
     )
 
-    return service
+    return action, service
