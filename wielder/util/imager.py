@@ -103,10 +103,10 @@ def push_image(cloud_conf, name, env, tag, cloud=CloudProvider.GCP.value):
     if cloud == CloudProvider.GCP.value:
         gcp_push_image(cloud_conf, name, env, tag)
     elif cloud == CloudProvider.AWS.value:
-        aws_push_image(cloud_conf, name, env, tag)
+        aws_push_image(cloud_conf, name, tag)
 
 
-def aws_push_image(aws_conf, name, env, tag):
+def aws_push_image(aws_conf, name, tag):
 
     region = aws_conf.image_repo_zone
 
@@ -120,14 +120,19 @@ def aws_push_image(aws_conf, name, env, tag):
     logging.info(f'Running:\n{cred}')
     os.system(cred)
 
-    image_name = f'{repo}/{env}/{name}:{tag}'
+    image_name = f'{repo}/{name}:{tag}'
 
-    os.system(
-        f'docker tag {name}:{env} {image_name};'
-        f'docker push {image_name};'
-    )
+    _cmd = f'docker tag {name}:{tag} {image_name};'
 
-    logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {env}/{name} --region {region};')
+    logging.info(f'Running cmd:\n')
+    os.system(_cmd)
+
+    _cmd = f'docker push {image_name};'
+
+    logging.info(f'Running cmd:\n')
+    os.system(_cmd)
+
+    logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {name} --region {region};')
 
 
 def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
