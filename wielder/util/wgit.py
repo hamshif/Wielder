@@ -1,8 +1,63 @@
 import logging
 
 import git
-from wielder.util.commander import subprocess_cmd
+from wielder.util.commander import subprocess_cmd, async_cmd
+from wielder.util.hocon_util import inject_vars
 from wielder.util.log_util import setup_logging
+from wielder.util.util import DirContext
+from pyhocon import ConfigFactory as Cf
+
+
+class WGit:
+
+    def __init__(self, repo_path):
+
+        with DirContext(repo_path):
+
+            latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
+
+            logging.info(latest_commit)
+            self.commit = latest_commit
+
+            branches = async_cmd('git branch')
+
+            branch = 'HEAD'
+
+            for b in branches:
+
+                if b[0] == '*':
+
+                    branch = b[1:-1]
+
+            logging.info(branch)
+            self.branch = branch
+
+        logging.debug('akavish')
+
+    def as_hocon_str(self):
+
+        d = vars(self)
+
+        b = inject_vars('', d)
+
+        return 'git: {\n' + b + '\n}'
+
+    def as_hocon(self):
+
+        hs = self.as_hocon_injection()
+        return Cf.parse_string(hs)
+
+    def as_hocon_injection(self):
+
+        d = vars(self)
+
+        a = ''
+
+        for k, v in d.items():
+
+            a = f'{a}\ngit.{k}:{v}'
+
+        return a
 
 
 def is_repo(path):

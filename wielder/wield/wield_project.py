@@ -2,6 +2,7 @@ import logging
 import os
 
 from wielder.util.util import get_external_ip
+from wielder.util.wgit import WGit
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType
 
@@ -171,13 +172,26 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
         module_override_path
     ]
 
+    try:
+        wg = WGit(super_project_root)
+
+        injection_str = wg.as_hocon_injection()
+    except Exception as e:
+
+        logging.error(e)
+        injection_str = ''
+
     injection['runtime_env'] = runtime_env
     injection['deploy_env'] = deploy_env
     injection['bootstrap_env'] = bootstrap_env
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
 
-    conf = get_conf_ordered_files(ordered_project_files, injection)
+    conf = get_conf_ordered_files(
+        ordered_conf_files=ordered_project_files,
+        injection=injection,
+        injection_str=injection_str
+    )
 
     return conf
 
