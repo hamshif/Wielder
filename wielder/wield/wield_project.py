@@ -124,8 +124,8 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     :except: If both data_conf_env are not None
     """
 
-    # TODO add bootstrap_env configuration
     project_conf_path = f'{project_root}conf/project.conf'
+    bootstrap_conf_path = f'{project_root}conf/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
     developer_conf_path = f'{project_root}conf/personal/developer.conf'
@@ -133,6 +133,7 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
 
     ordered_project_files = module_paths + [
         project_conf_path,
+        bootstrap_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
         developer_conf_path,
