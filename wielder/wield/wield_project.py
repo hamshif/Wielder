@@ -107,39 +107,6 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, b
     return personal_dir
 
 
-def get_wield_mode(project_root, runtime_env=None, deploy_env=None, bootstrap_env=None):
-
-    if not runtime_env or not deploy_env:
-
-        make_sure_project_local_conf_exists(
-            project_root=project_root,
-            runtime_env=runtime_env,
-            deploy_env=deploy_env,
-            bootstrap_env=bootstrap_env
-        )
-
-        env_conf_path = f'{project_root}conf/personal/env.conf'
-
-        if os.path.exists(env_conf_path):
-
-            logging.info(f"Using configuration to fill in values not supplied by cli from:\n {env_conf_path}")
-
-            env_conf = Cf.parse_file(env_conf_path)
-
-            if bootstrap_env is None:
-                bootstrap_env = env_conf.bootstrap_env
-
-            if runtime_env is None:
-                runtime_env = env_conf.runtime_env
-
-            if deploy_env is None:
-                deploy_env = env_conf.deploy_env
-
-    wield_mode = WieldMode(runtime_env=runtime_env, deploy_env=deploy_env, bootstrap_env=bootstrap_env)
-
-    return wield_mode
-
-
 def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev',
                              bootstrap_env='local', super_project_root='nowhere', super_project_name='data', module_paths=[], injection={}):
     """

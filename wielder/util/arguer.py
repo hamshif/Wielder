@@ -170,7 +170,8 @@ def get_kube_parser():
         '-kc', '--kube_context',
         type=str,
         help=f'Kubernetes context i.e. run locally on docker or in cloud e.g.'
-             '\n{CONTEXT_DOCKER}'
+             '\n{CONTEXT_DOCKER}',
+        default=CONTEXT_DOCKER
     )
 
     parser.add_argument(
@@ -178,7 +179,7 @@ def get_kube_parser():
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind'],
         help='Runtime environment refers to where the Kubernetes cluster is running',
-        default=None
+        default='docker'
     )
 
     parser.add_argument(
@@ -186,7 +187,7 @@ def get_kube_parser():
         type=str,
         choices=['local', 'docker', 'gcp', 'on-prem', 'aws', 'azure'],
         help='Bootstrap environment refers to where the wielder deploy script is running',
-        default=None
+        default='local'
     )
 
     parser.add_argument(
@@ -194,7 +195,7 @@ def get_kube_parser():
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
         help='Deployment environment refers to stages of production',
-        default=None
+        default='dev'
     )
 
     parser.add_argument(
