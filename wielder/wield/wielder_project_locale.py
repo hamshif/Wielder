@@ -6,8 +6,11 @@ class Locale:
     peculiar to the machine wielder is running on.
     """
 
-    def __init__(self, project_root, super_project_root, super_project_name, module_root, code_path, datastores_root,
-                 provision_root='unknown', packing_root='unknown', image_root='unknown', wield_root='unknown'):
+    def __init__(
+            self, project_root, super_project_root, super_project_name, module_root, code_path, datastores_root,
+            provision_root='unknown', packing_root='unknown', image_root='unknown', wield_root='unknown',
+            code_root='unknown'
+    ):
         """
 
         :param project_root: The wielder project wrapping CICD of code
@@ -28,6 +31,7 @@ class Locale:
         self.packing_root = packing_root
         self.image_root = image_root
         self.wield_root = wield_root
+        self.code_root = code_root
 
 
 
