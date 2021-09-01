@@ -23,6 +23,18 @@ python -V
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
+export PATH="/usr/local/opt/ncurses/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/ncurses/lib"
+export CPPFLAGS="-I/usr/local/opt/ncurses/include"
+export PATH="/usr/local/opt/ncurses/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/ncurses/lib"
+export CPPFLAGS="-I/usr/local/opt/ncurses/include"
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH:/home/yaroslav/.local/bin:/home/yaroslav/go/bin"
+if command -v pyenv 1>/dev/null 2>&1; then
+ eval "$(pyenv init --path)"
+fi
+
 pyenv deactivate
 
 existing_envs=$(pyenv virtualenvs)
