@@ -95,7 +95,7 @@ def destroy_sanity(conf):
     #         exit(1)
 
 
-def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service_mode, project_override):
+def replace_none_vars_from_args(action, wield_mode, local_mount, enable_debug, service_mode, project_override):
 
     logging.info('Configured logging')
 
@@ -105,11 +105,12 @@ def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service
 
     log_level = convert_log_level(kube_args.log_level)
 
-    if not mode:
+    if not wield_mode:
 
-        mode = WieldMode(
+        wield_mode = WieldMode(
             runtime_env=kube_args.runtime_env,
-            deploy_env=kube_args.deploy_env
+            deploy_env=kube_args.deploy_env,
+            bootstrap_env=kube_args.bootstrap_env
         )
 
     if not action:
@@ -129,7 +130,7 @@ def replace_none_vars_from_args(action, mode, local_mount, enable_debug, service
             project_override=project_override
         )
 
-    return action, mode, enable_debug, local_mount, service_mode
+    return action, wield_mode, enable_debug, local_mount, service_mode
 
 
 def get_kube_parser():
@@ -169,7 +170,8 @@ def get_kube_parser():
         '-kc', '--kube_context',
         type=str,
         help=f'Kubernetes context i.e. run locally on docker or in cloud e.g.'
-             '\n{CONTEXT_DOCKER}'
+             '\n{CONTEXT_DOCKER}',
+        default=CONTEXT_DOCKER
     )
 
     parser.add_argument(
@@ -177,7 +179,7 @@ def get_kube_parser():
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind'],
         help='Runtime environment refers to where the Kubernetes cluster is running',
-        default=None
+        default='docker'
     )
 
     parser.add_argument(
@@ -185,7 +187,7 @@ def get_kube_parser():
         type=str,
         choices=['local', 'docker', 'gcp', 'on-prem', 'aws', 'azure'],
         help='Bootstrap environment refers to where the wielder deploy script is running',
-        default=None
+        default='local'
     )
 
     parser.add_argument(
@@ -193,7 +195,7 @@ def get_kube_parser():
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
         help='Deployment environment refers to stages of production',
-        default=None
+        default='dev'
     )
 
     parser.add_argument(
@@ -253,52 +255,58 @@ def wielder_sanity(conf, mode, service_mode=None):
 
     context = get_kube_context()
 
-    if conf.kube_context not in context:
+    if not conf.insane:
 
-        logging.warning(
-            f"There is a discrepancy between the configured and actual contexts:"
-            f"\nkube context          : {conf.kube_context}"
-            f"\ncurrent context       : {context} "
-            f"\neither add context in command-line args or in config file or"
-            f"\nto change context run :"
-            f"\nkubectl config use-context <the context you meant>"
+        if conf.kube_context not in context:
+
+            logging.warning(
+                f"There is a discrepancy between the configured and actual contexts:"
+                f"\nkube context          : {conf.kube_context}"
+                f"\ncurrent context       : {context} "
+                f"\neither add context in command-line args or in config file or"
+                f"\nto change context run :"
+                f"\nkubectl config use-context <the context you meant>"
+                f"\n!!! Exiting ..."
+            )
+            exit(1)
+        else:
+            conf.kube_context = context
+            logging.info(f"kubernetes current context: {context}")
+
+        message = f"There is a discrepancy between context and runtime environment:" \
+            f"\nkube context   : {conf.kube_context}" \
+            f"\nmode.runtime_env is: {mode.runtime_env}" \
+            f"\neither change context or configure congruent runtime_env" \
+            f"\nto change context run:" \
+            f"\nkubectl config use-context <the context you meant>" \
             f"\n!!! Exiting ..."
-        )
-        exit(1)
+
+        if context == CONTEXT_DOCKER and mode.runtime_env != 'docker':
+            logging.error(message)
+            exit(1)
+        elif 'gke' in context and mode.runtime_env != 'gcp':
+            logging.error(message)
+            exit(1)
+
+        if not service_mode:
+            return
+
+        if context != CONTEXT_DOCKER and service_mode.local_mount:
+
+            logging.error(
+                f"Local mount of code into container is only allowed on local development env:"
+                f"\nkube context   : {conf.kube_context}"
+                f"\nmode.local_mount is: {service_mode.local_mount} "
+                f"\neither change context or flag local_mount as false"
+                f"\nto change context run:"
+                f"\nkubectl config use-context <the context you meant>"
+                f"\n!!! Exiting ..."
+            )
+            exit(1)
+
     else:
-        conf.kube_context = context
-        logging.info(f"kubernetes current context: {context}")
 
-    message = f"There is a discrepancy between context and runtime environment:" \
-        f"\nkube context   : {conf.kube_context}" \
-        f"\nmode.runtime_env is: {mode.runtime_env}" \
-        f"\neither change context or configure congruent runtime_env" \
-        f"\nto change context run:" \
-        f"\nkubectl config use-context <the context you meant>" \
-        f"\n!!! Exiting ..."
-
-    if context == CONTEXT_DOCKER and mode.runtime_env != 'docker':
-        logging.error(message)
-        exit(1)
-    elif 'gke' in context and mode.runtime_env != 'gcp':
-        logging.error(message)
-        exit(1)
-
-    if not service_mode:
-        return
-
-    if context != CONTEXT_DOCKER and service_mode.local_mount:
-
-        logging.error(
-            f"Local mount of code into container is only allowed on local development env:"
-            f"\nkube context   : {conf.kube_context}"
-            f"\nmode.local_mount is: {service_mode.local_mount} "
-            f"\neither change context or flag local_mount as false"
-            f"\nto change context run:"
-            f"\nkubectl config use-context <the context you meant>"
-            f"\n!!! Exiting ..."
-        )
-        exit(1)
+        logging.warning(f'Skipping context check!!\nCurrent context is: {context}')
 
 
 def sanity(conf):

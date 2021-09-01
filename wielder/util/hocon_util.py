@@ -31,15 +31,16 @@ def inject_vars(base, injection):
     return base
 
 
-def get_conf_ordered_files(ordered_conf_files, injection={}):
+def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     """
     give a list of ordered configuration files creates a config-tree
+    :param injection_str: a hocon valid string
     :param injection: a dictionary of variables to override hocon file variables on the fly.
     :param ordered_conf_files:
     :return:
     """
 
-    conf_include_string = wrap_included(ordered_conf_files)
+    conf_include_string = wrap_included(ordered_conf_files) + f'\n{injection_str}\n'
 
     conf_include_string = inject_vars(conf_include_string, injection)
 

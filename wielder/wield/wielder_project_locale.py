@@ -6,7 +6,7 @@ class Locale:
     peculiar to the machine wielder is running on.
     """
 
-    def __init__(self, project_root, super_project_root, module_root, code_path, datastores_root,
+    def __init__(self, project_root, super_project_root, super_project_name, module_root, code_path, datastores_root,
                  provision_root='unknown', packing_root='unknown', image_root='unknown', wield_root='unknown'):
         """
 
@@ -20,6 +20,7 @@ class Locale:
 
         self.project_root = project_root
         self.super_project_root = super_project_root
+        self.super_project_name = super_project_name
         self.module_root = module_root
         self.code_path = code_path
         self.datastores_root = datastores_root

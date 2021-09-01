@@ -103,10 +103,10 @@ def push_image(cloud_conf, name, env, tag, cloud=CloudProvider.GCP.value):
     if cloud == CloudProvider.GCP.value:
         gcp_push_image(cloud_conf, name, env, tag)
     elif cloud == CloudProvider.AWS.value:
-        aws_push_image(cloud_conf, name, env, tag)
+        aws_push_image(cloud_conf, name, tag)
 
 
-def aws_push_image(aws_conf, name, env, tag):
+def aws_push_image(aws_conf, name, tag):
 
     region = aws_conf.image_repo_zone
 
@@ -120,31 +120,37 @@ def aws_push_image(aws_conf, name, env, tag):
     logging.info(f'Running:\n{cred}')
     os.system(cred)
 
-    image_name = f'{repo}/{env}/{name}:{tag}'
+    image_name = f'{repo}/{name}:{tag}'
 
-    os.system(
-        f'docker tag {name}:{env} {image_name};'
-        f'docker push {image_name};'
-    )
+    _cmd = f'docker tag {name}:{tag} {image_name};'
 
-    logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {env}/{name} --region {region};')
+    logging.info(f'Running cmd:\n')
+    os.system(_cmd)
+
+    _cmd = f'docker push {image_name};'
+
+    logging.info(f'Running cmd:\n')
+    os.system(_cmd)
+
+    logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {name} --region {region};')
 
 
-def pack_image(conf, name, image_root, push=False, force=False, tag='dev', provider=CloudProvider.GCP):
+def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
     """
 
+    :param image_name:
     :param tag:
-    :param conf:
-    :param name:
-    :param push:
+    :param name: The name of the directory in which all the necessary resources for packing the image reside
+    usually the name of the service.
     :param force: force creation of image if it doesn't exist in repo
     :param image_root:
     :return:
     """
 
-    dockerfile_dir = f'{image_root}/{name}'
+    if image_name is None:
+        image_name = name
 
-    image_name = f'{name}'
+    dockerfile_dir = f'{image_root}/{name}'
 
     _cmd = f'docker images | grep {tag} | grep {image_name};'
 
@@ -166,14 +172,6 @@ def pack_image(conf, name, image_root, push=False, force=False, tag='dev', provi
         logging.info(_cmd)
 
         os.system(_cmd)
-
-    if push:
-        # TODO separate pushing from building
-
-        if provider == CloudProvider.GCP:
-
-            gcp_conf = conf.providers.gcp
-            gcp_push_image(gcp_conf)
 
 
 if __name__ == "__main__":

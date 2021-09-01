@@ -2,6 +2,7 @@ import logging
 import os
 
 from wielder.util.util import get_external_ip
+from wielder.util.wgit import WGit
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType
 
@@ -106,44 +107,13 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, b
     return personal_dir
 
 
-def get_wield_mode(project_root, runtime_env=None, deploy_env=None, bootstrap_env=None):
-
-    if not runtime_env or not deploy_env:
-
-        make_sure_project_local_conf_exists(
-            project_root=project_root,
-            runtime_env=runtime_env,
-            deploy_env=deploy_env,
-            bootstrap_env=bootstrap_env
-        )
-
-        env_conf_path = f'{project_root}conf/personal/env.conf'
-
-        if os.path.exists(env_conf_path):
-
-            logging.info(f"Using configuration to fill in values not supplied by cli from:\n {env_conf_path}")
-
-            env_conf = Cf.parse_file(env_conf_path)
-
-            if bootstrap_env is None:
-                bootstrap_env = env_conf.bootstrap_env
-
-            if runtime_env is None:
-                runtime_env = env_conf.runtime_env
-
-            if deploy_env is None:
-                deploy_env = env_conf.deploy_env
-
-    wield_mode = WieldMode(runtime_env=runtime_env, deploy_env=deploy_env, bootstrap_env=bootstrap_env)
-
-    return wield_mode
-
-
-def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev'
-                             , bootstrap_env='local', module_paths=[], injection={}):
+def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev',
+                             bootstrap_env='local', super_project_root='nowhere', super_project_name='data', module_paths=[], injection={}):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
+    :param super_project_root: Path to git submodules super repo
+    :param super_project_name: the short name of git submodules super repo and project parent directory
     :param injection: a dictionary of variables to override hocon file variables on the fly.
     :param bootstrap_env: Where deployment automation happens e.g. local devlopers machine, airflow dag.
     :param project_root: the project root for inferring config and plan paths
@@ -154,8 +124,8 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     :except: If both data_conf_env are not None
     """
 
-    # TODO add bootstrap_env configuration
     project_conf_path = f'{project_root}conf/project.conf'
+    bootstrap_conf_path = f'{project_root}conf/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
     developer_conf_path = f'{project_root}conf/personal/developer.conf'
@@ -163,16 +133,33 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
 
     ordered_project_files = module_paths + [
         project_conf_path,
+        bootstrap_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
         developer_conf_path,
         module_override_path
     ]
 
-    conf = get_conf_ordered_files(ordered_project_files, injection)
-    conf.runtime_env = runtime_env
-    conf.deploy_env = deploy_env
-    conf.bootstrap_env = bootstrap_env
+    try:
+        wg = WGit(super_project_root)
+
+        injection_str = wg.as_hocon_injection()
+    except Exception as e:
+
+        logging.error(e)
+        injection_str = ''
+
+    injection['runtime_env'] = runtime_env
+    injection['deploy_env'] = deploy_env
+    injection['bootstrap_env'] = bootstrap_env
+    injection['super_project_root'] = super_project_root
+    injection['super_project_name'] = super_project_name
+
+    conf = get_conf_ordered_files(
+        ordered_conf_files=ordered_project_files,
+        injection=injection,
+        injection_str=injection_str
+    )
 
     return conf
 
