@@ -257,11 +257,45 @@ def copy_file_to_pod(pod, file_full_path, pod_path, namespace):
 def copy_file_to_pods(pods, src, pod_dest, namespace):
     for p in pods:
         os.system(f'kubectl cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
-    
+
+
+def create_pyenv(name, py_version):
+
+    wield_path = get_wield_root()
+
+    _cmd = f'{wield_path}/scripts/create_pyenv.bash {name}'
+
+    response = async_cmd(_cmd)
+
+    for st in response:
+        print(st)
+
+    done = response[-1][:-1]
+
+    if done == 'floobatzky':
+        created = True
+    else:
+        created = False
+
+    return created
+
+
+def get_wield_root():
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    i = dir_path.rindex('/')
+
+    dir_path = dir_path[:i]
+
+    return dir_path
+
 
 if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
+
+    create_pyenv('shnee', '3.7.5')
 
     _ip = get_external_ip()
 
