@@ -291,6 +291,17 @@ def get_wield_root():
     return dir_path
 
 
+def block_for_file(why, full_path, interval, max_attempts=50):
+
+    for i in range(max_attempts):
+
+        print(f'Attempt {i} Sleeping {interval} to check if file {full_path} was created.\n{why}')
+        sleep(interval)
+
+        if os.path.isfile(full_path):
+            return
+
+
 if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
