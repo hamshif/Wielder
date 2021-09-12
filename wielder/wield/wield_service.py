@@ -4,13 +4,12 @@ from pyhocon import ConfigFactory as Cf
 
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
-from wielder.util.arguer import replace_none_vars_from_args
+from wielder.util.arguer import get_kube_parser
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
 from wielder.util.arguer import wielder_sanity
-from wielder.wield.wield_project import make_sure_project_local_conf_exists, get_basic_module_properties, \
-    get_conf_context_project
+from wielder.wield.wield_project import get_basic_module_properties, get_conf_context_project
 
 
 def get_module_root(file_context=__file__):
@@ -34,17 +33,17 @@ class WieldService(WielderBase):
         * Specific fields in the configuration
     """
 
-    def __init__(self, name, locale, mode=None, service_mode=None,
+    def __init__(self, name, locale, wield_mode=None, service_mode=None,
                  conf_dir=None, plan_dir=None, plan_format=PlanType.YAML, injection={}):
 
         self.name = name
         self.locale = locale
-        self.mode = mode if mode else WieldMode()
+        self.wield_mode = wield_mode if wield_mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
         self.conf_dir = conf_dir if conf_dir else f'{locale.module_root}conf'
         self.plan_dir = plan_dir if plan_dir else f'{locale.module_root}plan'
 
-        self.wield_path = f'{self.conf_dir}/{self.mode.runtime_env}/{name}-wield.conf'
+        self.wield_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{name}-wield.conf'
 
         self.pretty()
 
@@ -62,7 +61,7 @@ class WieldService(WielderBase):
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
             module_paths.append(self.local_mount)
 
-        self.local_path = f'{self.conf_dir}/{mode.runtime_env}/{self.name}-local.conf'
+        self.local_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-local.conf'
         module_paths.append(self.local_path)
 
         self.local_path = self.make_sure_module_local_conf_exists()
@@ -70,21 +69,11 @@ class WieldService(WielderBase):
 
         if self.service_mode.project_override:
 
-            self.project_module_override_path = make_sure_project_local_conf_exists(
-                project_root=locale.project_root,
-                runtime_env=mode.runtime_env,
-                deploy_env=mode.deploy_env,
-                bootstrap_env=mode.bootstrap_env
-            )
-
-            logging.info(f'\nTo Override module conf with project conf use\n{self.project_module_override_path}')
+            logging.info(f'\nTo Override module conf with project conf use\n{locale.unique_conf_root}')
 
             self.conf = get_conf_context_project(
-                project_root=self.locale.project_root,
-                runtime_env=self.mode.runtime_env,
-                deploy_env=self.mode.deploy_env,
-                super_project_root=locale.super_project_root,
-                super_project_name=locale.super_project_name,
+                wield_mode=self.wield_mode,
+                locale=locale,
                 module_paths=module_paths,
                 injection=injection
             )
@@ -108,17 +97,17 @@ class WieldService(WielderBase):
 
         self.packaging = self.plan.module_conf.packaging
 
-        wielder_sanity(self.conf, self.mode, self.service_mode)
+        wielder_sanity(self.conf, self.wield_mode, self.service_mode)
 
     def make_sure_module_local_conf_exists(self):
 
-        local_path = f'{self.conf_dir}/{self.mode.runtime_env}/{self.name}-local.conf'
+        local_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-local.conf'
 
         if not os.path.exists(local_path):
 
             logging.info(f'\ncould not find file: {local_path}\ncreating it on the fly!\n')
 
-            vars_file = f'{self.conf_dir}/{self.mode.runtime_env}/{self.name}-vars.conf'
+            vars_file = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-vars.conf'
 
             tmp_conf = Cf.parse_file(vars_file)
 
@@ -126,7 +115,7 @@ class WieldService(WielderBase):
 
             local_code_path = f'{self.locale.super_project_root}/{relative_code_path}'
 
-            local_properties = get_basic_module_properties(self.mode.runtime_env, self.mode.deploy_env, self.name)
+            local_properties = get_basic_module_properties(self.wield_mode.runtime_env, self.wield_mode.deploy_env, self.name)
 
             local_properties.append(f'{self.name}.codePath : {local_code_path}')
 
@@ -148,20 +137,14 @@ def get_wield_svc(locale, service_name):
     :return:
     """
 
-    action, wield_mode, _, _, service_mode = replace_none_vars_from_args(
-        action=None,
-        wield_mode=None,
-        enable_debug=None,
-        local_mount=None,
-        service_mode=None,
-        project_override=True
-    )
+    kube_parser = get_kube_parser()
+    kube_args = kube_parser.parse_args()
+
+    action = kube_args.wield
 
     service = WieldService(
         name=service_name,
         locale=locale,
-        mode=wield_mode,
-        service_mode=service_mode,
     )
 
     return action, service

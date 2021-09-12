@@ -14,7 +14,6 @@ from wielder.util.commander import async_cmd
 
 from wielder.util.util import get_kube_context
 from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework
-from wielder.wield.modality import WieldMode, WieldServiceMode
 
 
 CONTEXT_MINI = 'minikube'
@@ -93,44 +92,6 @@ def destroy_sanity(conf):
     #         logging.error('Exiting')
     #
     #         exit(1)
-
-
-def replace_none_vars_from_args(action, wield_mode, local_mount, enable_debug, service_mode, project_override):
-
-    logging.info('Configured logging')
-
-    kube_parser = get_kube_parser()
-
-    kube_args = kube_parser.parse_args()
-
-    log_level = convert_log_level(kube_args.log_level)
-
-    if not wield_mode:
-
-        wield_mode = WieldMode(
-            runtime_env=kube_args.runtime_env,
-            deploy_env=kube_args.deploy_env,
-            bootstrap_env=kube_args.bootstrap_env
-        )
-
-    if not action:
-        action = kube_args.wield
-
-    if not enable_debug:
-        enable_debug = kube_args.enable_debug
-
-    if not local_mount:
-        local_mount = kube_args.local_mount
-
-    if not service_mode:
-
-        service_mode = WieldServiceMode(
-            debug_mode=enable_debug,
-            local_mount=local_mount,
-            project_override=project_override
-        )
-
-    return action, wield_mode, enable_debug, local_mount, service_mode
 
 
 def get_kube_parser():
@@ -246,6 +207,16 @@ def get_kube_parser():
         choices=list(LogLevel),
         help='LogLevel: as in Python logging',
         default=LogLevel.INFO
+    )
+
+    parser.add_argument(
+        '-uc', '--unique_conf',
+        type=str,
+        help='The name of the overriding config dir, default: default_conf'
+             'By convention use a string describing an underscore separated list of keys.'
+             'Used to define a unique configuration namespace e.g terraform backend, kube context.'
+             'Facilitates concurrent deployments.',
+        default='default_conf'
     )
 
     return parser
@@ -498,6 +469,7 @@ if __name__ == "__main__":
     _kube_parser = get_kube_parser()
     _kube_args = _kube_parser.parse_args()
 
+    # TODO update the process args to best practices
     _conf = process_args(_kube_args)
 
     destroy_sanity(_conf)

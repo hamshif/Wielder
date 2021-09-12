@@ -9,7 +9,7 @@ class Locale:
     def __init__(
             self, project_root, super_project_root, super_project_name, module_root, code_repo_name, datastores_root,
             provision_root='unknown', packing_root='unknown', image_root='unknown', wield_root='unknown',
-            code_root='unknown'
+            code_root='unknown', unique_conf_root='unknown'
     ):
         """
         An opinionated convention based directory layout scheme for complex super repositories of
@@ -38,7 +38,7 @@ class Locale:
         self.image_root = image_root
         self.wield_root = wield_root
         self.code_root = code_root
-
+        self.unique_conf_root = unique_conf_root
 
 
 
