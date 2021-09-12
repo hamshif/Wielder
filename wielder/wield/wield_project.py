@@ -141,11 +141,14 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     developer_conf_path = f'{conf_dir}/developer.conf'
     module_override_path = f'{conf_dir}/modules_override.conf'
 
+    build_instructions_path = f'{locale.code_root}/ex_config/build_instructions.conf'
+
     ordered_project_files = module_paths + [
         project_conf_path,
         bootstrap_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
+        build_instructions_path,
         developer_conf_path,
         module_override_path
     ]
