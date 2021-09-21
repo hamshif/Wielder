@@ -45,6 +45,11 @@ class WieldService(WielderBase):
 
         self.wield_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{name}-wield.conf'
 
+        if name not in injection:
+            injection[name] = {}
+
+        injection[name]['code_path'] = f'{locale.code_root}'
+
         self.pretty()
 
         module_paths = [self.wield_path]
