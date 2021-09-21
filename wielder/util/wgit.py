@@ -12,6 +12,8 @@ class WGit:
 
     def __init__(self, repo_path):
 
+        self.repo_path = repo_path
+
         with DirContext(repo_path):
 
             latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
@@ -33,6 +35,19 @@ class WGit:
             self.branch = branch
 
         logging.debug('akavish')
+
+    def submodule_commit(self, sub):
+
+        with DirContext(self.repo_path):
+
+            _cmd = f'git ls-tree HEAD {sub}'
+
+            comm = async_cmd(_cmd)
+
+            comm = comm[0].split(' ')[2].split('\t')[0]
+            print(comm)
+
+            return comm
 
     def as_hocon_str(self):
 
