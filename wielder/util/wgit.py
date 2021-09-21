@@ -36,7 +36,7 @@ class WGit:
 
         logging.debug('akavish')
 
-    def submodule_commit(self, sub):
+    def get_submodule_commit(self, sub):
 
         with DirContext(self.repo_path):
 
