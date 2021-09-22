@@ -153,10 +153,14 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
         module_override_path
     ]
 
+    code_repo_commit = 'wile_coyote'
+
     try:
         wg = WGit(super_project_root)
 
         injection_str = wg.as_hocon_injection()
+
+        code_repo_commit = wg.get_submodule_commit(locale.code_repo_name)
     except Exception as e:
 
         logging.error(e)
@@ -168,6 +172,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = locale.super_project_name
     injection['conf_dir'] = unique_conf
+    injection['code_repo_commit'] = code_repo_commit
 
     conf = get_conf_ordered_files(
         ordered_conf_files=ordered_project_files,

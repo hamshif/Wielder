@@ -42,12 +42,12 @@ class WGit:
 
             _cmd = f'git ls-tree HEAD {sub}'
 
-            comm = async_cmd(_cmd)
+            submodule_pointer = async_cmd(_cmd)
 
-            comm = comm[0].split(' ')[2].split('\t')[0]
-            print(comm)
+            submodule_pointer = submodule_pointer[0].split(' ')[2].split('\t')[0]
+            logging.info(submodule_pointer)
 
-            return comm
+            return submodule_pointer
 
     def as_hocon_str(self):
 
