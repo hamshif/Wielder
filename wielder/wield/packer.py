@@ -9,6 +9,7 @@ class WieldPacker:
     def __init__(self, locale, conf):
 
         self.origin_path = locale.code_root
+        self.origin_commit = conf.code_repo_commit
         self.plan = conf.cicd.pack
         self.build_conf = conf.pack.build
 
