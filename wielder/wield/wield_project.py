@@ -1,7 +1,6 @@
 import logging
 import os
 
-from wielder.util.util import get_external_ip
 from wielder.util.wgit import WGit
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType
@@ -13,12 +12,10 @@ from wielder.util.arguer import wielder_sanity, get_kube_context
 from pyhocon import ConfigFactory as Cf
 
 
+# TODO remove this hardcoded stuff
 def get_basic_module_properties(runtime_env, deploy_env, bootstrap_env, name):
 
     current_kube_context = get_kube_context()
-
-    # TODO find out why getting ip fails when accessed through rx multi process
-    ip = '87.70.171.87'  # get_external_ip()
 
     local_properties = [
         'explain = "This file is where developers override project level configuration properties '
@@ -28,20 +25,19 @@ def get_basic_module_properties(runtime_env, deploy_env, bootstrap_env, name):
         f'bootstrap_env : {bootstrap_env}',
         '#replace the context below with the context of the kubernetes deployment your working on',
         f'kube_context : {current_kube_context}',
-        f'client_ips : [\n#add or change local or office ips\n  {ip}/32\n]',
         f'deployments : [\n{name}\n]',
     ]
 
     return local_properties
 
 
-def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, bootstrap_env):
+def make_sure_project_local_conf_exists(locale, bootstrap_env, runtime_env, deploy_env):
 
-    personal_dir = f'{project_root}conf/personal'
+    conf_dir = locale.unique_conf_root
 
-    os.makedirs(personal_dir, exist_ok=True)
+    os.makedirs(conf_dir, exist_ok=True)
 
-    local_path = f'{personal_dir}/modules_override.conf'
+    local_path = f'{conf_dir}/modules_override.conf'
 
     if not os.path.exists(local_path):
 
@@ -62,7 +58,7 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, b
             for p in local_properties:
                 file_out.write(f'{p}\n\n')
 
-    local_path = f'{personal_dir}/developer.conf'
+    local_path = f'{conf_dir}/developer.conf'
 
     if not os.path.exists(local_path):
 
@@ -77,7 +73,7 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, b
         if not bootstrap_env:
             bootstrap_env = 'local'
 
-        project_file = f'{project_root}conf/deploy_env/{deploy_env}/project.conf'
+        project_file = f'{locale.project_root}conf/deploy_env/{deploy_env}/project.conf'
 
         # TODO use in the future
         tmp_conf = Cf.parse_file(project_file)
@@ -104,46 +100,67 @@ def make_sure_project_local_conf_exists(project_root, runtime_env, deploy_env, b
 
                 file_out.write(f'{p}\n\n')
 
-    return personal_dir
+    return conf_dir
 
 
-def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev',
-                             bootstrap_env='local', super_project_root='nowhere', super_project_name='data', module_paths=[], injection={}):
+def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
-    :param super_project_root: Path to git submodules super repo
-    :param super_project_name: the short name of git submodules super repo and project parent directory
+    by convention use the unique name.
+    :param locale: Locale object with real paths to directories
+    :param wield_mode: A project modality derived from cli arguments
     :param injection: a dictionary of variables to override hocon file variables on the fly.
-    :param bootstrap_env: Where deployment automation happens e.g. local devlopers machine, airflow dag.
-    :param project_root: the project root for inferring config and plan paths
     :param module_paths: paths to module files their values get overridden by project
-    :param deploy_env: Development stage [dev, int, qa, stage, prod]
-    :param runtime_env: Where the kubernetes cluster is running
     :return: pyhocon configuration tree object
     :except: If both data_conf_env are not None
     """
+
+    bootstrap_env = wield_mode.bootstrap_env
+    runtime_env = wield_mode.runtime_env
+    deploy_env = wield_mode.deploy_env
+    unique_conf = wield_mode.unique_conf
+
+    project_root = locale.project_root
+    super_project_root = locale.super_project_root
+
+    conf_dir = f'{project_root}conf/unique_conf/{unique_conf}'
+    locale.unique_conf_root = conf_dir
+
+    make_sure_project_local_conf_exists(
+        locale=locale,
+        bootstrap_env=bootstrap_env,
+        runtime_env=runtime_env,
+        deploy_env=deploy_env
+    )
 
     project_conf_path = f'{project_root}conf/project.conf'
     bootstrap_conf_path = f'{project_root}conf/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
-    developer_conf_path = f'{project_root}conf/personal/developer.conf'
-    module_override_path = f'{project_root}conf/personal/modules_override.conf'
+    developer_conf_path = f'{conf_dir}/developer.conf'
+    module_override_path = f'{conf_dir}/modules_override.conf'
+
+    build_instructions_path = f'{locale.code_root}/ex_config/build_instructions.conf'
 
     ordered_project_files = module_paths + [
         project_conf_path,
         bootstrap_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
+        build_instructions_path,
         developer_conf_path,
         module_override_path
     ]
+
+    code_repo_commit = 'wile_coyote'
 
     try:
         wg = WGit(super_project_root)
 
         injection_str = wg.as_hocon_injection()
+
+        code_repo_commit = wg.get_submodule_commit(locale.code_repo_name)
     except Exception as e:
 
         logging.error(e)
@@ -153,7 +170,9 @@ def get_conf_context_project(project_root, runtime_env='docker', deploy_env='dev
     injection['deploy_env'] = deploy_env
     injection['bootstrap_env'] = bootstrap_env
     injection['super_project_root'] = super_project_root
-    injection['super_project_name'] = super_project_name
+    injection['super_project_name'] = locale.super_project_name
+    injection['conf_dir'] = unique_conf
+    injection['code_repo_commit'] = code_repo_commit
 
     conf = get_conf_ordered_files(
         ordered_conf_files=ordered_project_files,
@@ -179,13 +198,6 @@ class WieldProject(WielderBase):
 
         if conf.show_project:
             self.pretty()
-
-        make_sure_project_local_conf_exists(
-            project_root=locale.project_root,
-            runtime_env=mode.runtime_env,
-            deploy_env=mode.deploy_env,
-            bootstrap_env=mode.bootstrap_env
-        )
 
         logging.debug('break')
 

@@ -26,7 +26,16 @@ def inject_vars(base, injection):
     """
 
     for k, v in injection.items():
-        base += f'\n{k}: {v}'
+
+        if isinstance(v, dict):
+            b = '{'
+            e = '}'
+
+            base += f'\n{k}: {b}\n   '
+            base = inject_vars(base, v)
+            base += f'\n   {e}'
+        else:
+            base += f'\n{k}: {v}'
 
     return base
 

@@ -295,7 +295,7 @@ def block_for_file(why, full_path, interval, max_attempts=50):
 
     for i in range(max_attempts):
 
-        print(f'Attempt {i} Sleeping {interval} to check if file {full_path} was created.\n{why}')
+        print(f'Attempt {i} of {max_attempts}, Sleeping {interval} to check if file {full_path} was created.\n{why}')
         sleep(interval)
 
         if os.path.isfile(full_path):
@@ -306,7 +306,7 @@ if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
 
-    create_pyenv('shnee', '3.7.5')
+    create_pyenv('shnee', '3.8.7')
 
     _ip = get_external_ip()
 
@@ -315,14 +315,14 @@ if __name__ == "__main__":
     _dir_path = os.path.dirname(os.path.realpath(__file__))
     logging.debug(f"current working dir: {_dir_path}")
 
-    full_path = f'{_dir_path}/punishment.conf'
+    _full_path = f'{_dir_path}/punishment.conf'
 
     for a in range(100):
-        line_prepender(full_path, _line, once=False)
+        line_prepender(_full_path, _line, once=False)
 
     logging.debug('break point')
 
-    remove_line(full_path, _line)
+    remove_line(_full_path, _line)
 
 
 

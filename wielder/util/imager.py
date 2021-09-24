@@ -150,8 +150,6 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
     if image_name is None:
         image_name = name
 
-    dockerfile_dir = f'{image_root}/{name}'
-
     _cmd = f'docker images | grep {tag} | grep {image_name};'
 
     image_trace = async_cmd(
@@ -165,11 +163,15 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
 
         logging.info(f"attempting to create image {name}")
 
-        _cmd = f'docker build -t {image_name}:{tag} {dockerfile_dir};'
-        f'echo "These are the resulting images:";'
-        f'docker images | grep {tag} | grep {image_name};'
+        _cmd = f'docker build -t {image_name}:{tag} {image_root};'
 
-        logging.info(_cmd)
+        logging.info(f'running:\n{_cmd}')
+
+        os.system(_cmd)
+
+        _cmd = f'docker images | grep {tag} | grep {image_name};'
+
+        logging.info(f'running:\n{_cmd}')
 
         os.system(_cmd)
 

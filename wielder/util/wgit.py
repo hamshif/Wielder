@@ -12,6 +12,8 @@ class WGit:
 
     def __init__(self, repo_path):
 
+        self.repo_path = repo_path
+
         with DirContext(repo_path):
 
             latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
@@ -33,6 +35,19 @@ class WGit:
             self.branch = branch
 
         logging.debug('akavish')
+
+    def get_submodule_commit(self, sub):
+
+        with DirContext(self.repo_path):
+
+            _cmd = f'git ls-tree HEAD {sub}'
+
+            submodule_pointer = async_cmd(_cmd)
+
+            submodule_pointer = submodule_pointer[0].split(' ')[2].split('\t')[0]
+            logging.info(submodule_pointer)
+
+            return submodule_pointer
 
     def as_hocon_str(self):
 
@@ -71,7 +86,7 @@ def is_repo(path):
         return False
 
 
-def clone_or_update(source, destination, name=None, branch='master', local=False):
+def clone_or_update(source, destination, name=None, branch='master', commit_sha=None, local=False):
 
     logging.info("\nclone_or_update_local_repository\n")
 
@@ -80,7 +95,7 @@ def clone_or_update(source, destination, name=None, branch='master', local=False
     logging.info(f"should_clone: {should_clone}")
 
     if should_clone:
-        logging.info(f"Cloning {source} to subscription to: {destination}")
+        logging.info(f"Cloning {source} to: {destination}")
 
         if local:
             if name is not None:
@@ -89,13 +104,19 @@ def clone_or_update(source, destination, name=None, branch='master', local=False
         else:
             subprocess_cmd(f"git clone {source} {destination}")
     else:
-        logging.info("Subscription already has terraform submodule")
+        logging.info("Destination already has git repo")
+
+    revert = branch
+    if commit_sha is not None:
+        revert = commit_sha
 
     subprocess_cmd(f"git -C {destination} stash")
     subprocess_cmd(f"git -C {destination} fetch")
-    subprocess_cmd(f"git -C {destination} checkout {branch}")
+    subprocess_cmd(f"git -C {destination} checkout {revert}")
     subprocess_cmd(f"git -C {destination} config pull.rebase false")
-    subprocess_cmd(f"git -C {destination} pull")
+
+    if commit_sha is None:
+        subprocess_cmd(f"git -C {destination} pull")
 
 
 if __name__ == "__main__":
