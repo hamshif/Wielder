@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import logging
+from datetime import datetime
+from enum import Enum
 
 import boto3
 from botocore.exceptions import ClientError
@@ -7,15 +9,26 @@ from botocore.exceptions import ClientError
 from wielder.util.util import get_aws_session
 
 
-def wrap_steps(conf):
+class EMRClusterStatus(Enum):
+
+    STARTING = 'STARTING'
+    BOOTSTRAPPING = 'BOOTSTRAPPING'
+    RUNNING = 'RUNNING'
+    WAITING = 'WAITING'
+    TERMINATING = 'TERMINATING'
+    TERMINATED = 'TERMINATED'
+    TERMINATED_WITH_ERRORS = 'TERMINATED_WITH_ERRORS'
+
+
+def wrap_steps(conf, step_group):
 
     steps = []
 
-    for step_name in conf.jobs.keys():
-        step_conf = conf.jobs[step_name]
+    for step_name in conf[step_group].keys():
+        step_conf = conf[step_group][step_name]
 
         step = {
-            'Name': step_conf.name,
+            'Name': step_name,
             'ActionOnFailure': 'CONTINUE',
             'HadoopJarStep': {
                 'Properties': [
@@ -61,20 +74,21 @@ class Sparker:
 
         self.emr = session.client('emr')
 
-    def create_steps(self, conf, f_wrap_steps=wrap_steps):
+    def create_steps(self, pipeline_conf, f_wrap_steps=wrap_steps, step_group='jobs'):
         """Create EMR Steps in a specified region
 
         If a region is not specified, the bucket is created in the S3 default
         region (us-east-1).
+        :param step_group: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         :param f_wrap_steps: A function for extracting AWS from config e.g. wrap_steps above
-        :param conf: config for pipeline
+        :param pipeline_conf: config for pipeline
         """
         try:
 
-            steps = f_wrap_steps(conf)
+            steps = f_wrap_steps(pipeline_conf, step_group)
 
             response = self.emr.add_job_flow_steps(
-                JobFlowId=conf.cluster_id,
+                JobFlowId=pipeline_conf.cluster_id,
                 Steps=steps
             )
 
@@ -86,8 +100,39 @@ class Sparker:
             logging.error(e)
             return False
 
+    def get_cluster_id(self, cluster_regx, cluster_states=None, create_after=None):
 
+        if create_after is None:
+            create_after = datetime(2021, 6, 1)
 
+        if cluster_states is None:
+            cluster_states = [
+                'STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING', 'TERMINATING', 'TERMINATED','TERMINATED_WITH_ERRORS'
+            ]
+
+        clusters = self.emr.list_clusters(
+            CreatedAfter=create_after,
+            # CreatedBefore=datetime(2021, 6, 1),
+            ClusterStates=cluster_states,
+            # Marker='something about the cluster'
+        )['Clusters']
+
+        cluster_ids = []
+
+        for cluster in clusters:
+
+            name = cluster['Name']
+
+            logging.debug(f'cluster name: {name}')
+
+            if cluster_regx in name:
+
+                cluster_id = cluster['Id']
+                logging.debug(f'cluster id: {cluster_id}')
+                cluster_ids.append(cluster_id)
+
+        print('ashmagog')
+        return cluster_ids
 
 
 
