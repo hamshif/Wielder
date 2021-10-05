@@ -122,7 +122,7 @@ def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
     namespace = context_conf.namespace
     release = context_conf.release
 
-    deploy_path = f'{locale.module_root}{release}'
+    deploy_path = f'{locale.module_root}'
     os.system(f'ls -la {deploy_path}')
 
     wh = WrapHelm(
