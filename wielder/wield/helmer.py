@@ -15,7 +15,7 @@ from pyhocon import ConfigFactory
 class WrapHelm:
 
     def __init__(self, runtime_env, repo, repo_version, repo_url, chart, release, namespace='default', values_path=None,
-                 res_type=KubeResType.STATEFUL_SET, res_name=None, context_conf=None):
+                 res_type=KubeResType.STATEFUL_SET, res_name=None, context_conf=None, uninstall_volumes=False):
 
         self.repo = repo
         self.repo_url = repo_url
@@ -26,6 +26,7 @@ class WrapHelm:
         self.conf_path = f'{values_path}/conf/{runtime_env}/{release}-wield.conf'
         self.values_path = f'{values_path}/{release}-values.yaml'
         self.res_type = res_type.value
+        self.uninstall_volumes = uninstall_volumes
 
         if res_name is None:
             res_name = release
@@ -98,7 +99,12 @@ class WrapHelm:
 
         if helm_cmd == HelmCommand.UNINSTALL:
             observe = False
-            os.system(f"kubectl delete -n {self.namespace} po -l app={self.res_name} --force --grace-period=0;")
+            os.system(f"kubectl -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
+
+            if self.uninstall_volumes:
+
+                os.system(f"kubectl -n {self.namespace} delete pvc -l app.kubernetes.io/instance={self.release};")
+        #         TODO if aws remove volumes
 
         if observe:
 
@@ -121,6 +127,7 @@ def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
     chart = context_conf.chart
     namespace = context_conf.namespace
     release = context_conf.release
+    uninstall_volumes = context_conf.uninstall_volumes
 
     deploy_path = f'{locale.module_root}{release}'
     os.system(f'ls -la {deploy_path}')
@@ -135,7 +142,8 @@ def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
         namespace=namespace,
         values_path=deploy_path,
         context_conf=context_conf,
-        res_type=res_type
+        res_type=res_type,
+        uninstall_volumes=uninstall_volumes
     )
 
     return wh
