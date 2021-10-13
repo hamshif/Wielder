@@ -6,24 +6,27 @@ import os
 
 import logging
 
-from wielder.wield.enumerator import HelmCommand, KubeResType
+from wield_services.wield.deploy.configurer import get_project_deploy_mode
+
+from wielder.wield.enumerator import HelmCommand, KubeResType, WieldAction
 from wielder.wield.kube_probe import observe_set, get_kube_res_by_name
 from pyhocon.tool import HOCONConverter as Hc
-from pyhocon import ConfigFactory
+
+from wielder.wield.wield_service import get_wield_svc
 
 
 class WrapHelm:
 
-    def __init__(self, runtime_env, repo, repo_version, repo_url, chart, release, namespace='default', values_path=None,
-                 res_type=KubeResType.STATEFUL_SET, res_name=None, context_conf=None):
+    def __init__(self, conf, repo, repo_version, repo_url, chart, release, namespace='default', values_path=None,
+                 res_type=KubeResType.STATEFUL_SET, res_name=None):
 
+        self.conf = conf
         self.repo = repo
         self.repo_url = repo_url
         self.repo_version = repo_version
         self.chart = f'{repo}/{chart}'
         self.release = release
         self.namespace = namespace
-        self.conf_path = f'{values_path}/conf/{runtime_env}/{release}-wield.conf'
         self.values_path = f'{values_path}/{release}-values.yaml'
         self.res_type = res_type.value
 
@@ -31,12 +34,6 @@ class WrapHelm:
             res_name = release
 
         self.res_name = res_name
-
-        self.conf = ConfigFactory.parse_file(self.conf_path)
-
-        if context_conf is not None:
-
-            self.conf = context_conf.with_fallback(self.conf)
 
     def plan(self):
 
@@ -105,7 +102,7 @@ class WrapHelm:
             observe_set(self.namespace, self.res_type, self.res_name)
 
 
-def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
+def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=None, has_service=False, auto_approve=False, service_only=False):
     """
     Helper method for extracting helm wrapper variables from configuration
     :param res_type: kubernetes resource type to track
@@ -114,6 +111,26 @@ def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
     :param locale: helps locate where the values file exists
     :return:
     """
+
+    if has_service:
+
+        _action, service = get_wield_svc(locale, 'airflow')
+
+        conf = service.conf
+
+        if action is None:
+            action = _action
+
+        service.plan.wield(
+            action=action,
+            auto_approve=auto_approve,
+            service_only=service_only
+        )
+
+    else:
+
+        wield_mode, conf, _action = get_project_deploy_mode()
+        _observe = True if _action == WieldAction.APPLY else False
 
     context_conf = conf.third_party.helm[conf_key]
     repo = context_conf.repo
@@ -126,7 +143,7 @@ def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
     os.system(f'ls -la {deploy_path}')
 
     wh = WrapHelm(
-        runtime_env=conf.runtime_env,
+        conf=conf,
         repo=repo,
         repo_version=context_conf.repo_version,
         repo_url=repo_url,
@@ -134,7 +151,6 @@ def get_helm_wrap(conf, conf_key, locale, res_type=KubeResType.STATEFUL_SET):
         release=release,
         namespace=namespace,
         values_path=deploy_path,
-        context_conf=context_conf,
         res_type=res_type
     )
 
