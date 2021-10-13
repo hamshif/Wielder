@@ -21,6 +21,7 @@ class WrapHelm:
                  res_type=KubeResType.STATEFUL_SET, res_name=None):
 
         self.conf = conf
+        self.values = self.conf.helm_values
         self.repo = repo
         self.repo_url = repo_url
         self.repo_version = repo_version
@@ -37,7 +38,7 @@ class WrapHelm:
 
     def plan(self):
 
-        plan = Hc.convert(self.conf, 'yaml', 2)
+        plan = Hc.convert(self.values, 'yaml', 2)
 
         logging.info(f'\n{plan}')
 
@@ -102,7 +103,7 @@ class WrapHelm:
             observe_set(self.namespace, self.res_type, self.res_name)
 
 
-def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=None, has_service=False, auto_approve=False, service_only=False):
+def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=None, has_service=False, auto_approve=False, service_only=False, injection={}):
     """
     Helper method for extracting helm wrapper variables from configuration
     :param res_type: kubernetes resource type to track
@@ -112,11 +113,12 @@ def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=No
     :return:
     """
 
+    injection.update({f'{conf_key}.wield_root': locale.wield_root})
+
+    _action, service = get_wield_svc(locale, conf_key, injection)
+    conf = service.conf
+
     if has_service:
-
-        _action, service = get_wield_svc(locale, 'airflow')
-
-        conf = service.conf
 
         if action is None:
             action = _action
@@ -129,7 +131,6 @@ def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=No
 
     else:
 
-        wield_mode, conf, _action = get_project_deploy_mode()
         _observe = True if _action == WieldAction.APPLY else False
 
     context_conf = conf.third_party.helm[conf_key]
@@ -143,7 +144,7 @@ def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=No
     os.system(f'ls -la {deploy_path}')
 
     wh = WrapHelm(
-        conf=conf,
+        conf=context_conf,
         repo=repo,
         repo_version=context_conf.repo_version,
         repo_url=repo_url,
@@ -154,4 +155,4 @@ def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=No
         res_type=res_type
     )
 
-    return wh
+    return wh, conf, action

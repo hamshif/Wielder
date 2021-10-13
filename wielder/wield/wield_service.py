@@ -133,7 +133,7 @@ class WieldService(WielderBase):
         return local_path
 
 
-def get_wield_svc(locale, service_name):
+def get_wield_svc(locale, service_name, injection={}):
     """
     A convenience wrapper based on cli and directory conventions
     for getting WieldService.
@@ -150,6 +150,7 @@ def get_wield_svc(locale, service_name):
     service = WieldService(
         name=service_name,
         locale=locale,
+        injection=injection
     )
 
     return action, service
