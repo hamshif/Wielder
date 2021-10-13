@@ -6,9 +6,7 @@ import os
 
 import logging
 
-from wield_services.wield.deploy.configurer import get_project_deploy_mode
-
-from wielder.wield.enumerator import HelmCommand, KubeResType, WieldAction
+from wielder.wield.enumerator import HelmCommand, KubeResType
 from wielder.wield.kube_probe import observe_set, get_kube_res_by_name
 from pyhocon.tool import HOCONConverter as Hc
 
@@ -17,22 +15,22 @@ from wielder.wield.wield_service import get_wield_svc
 
 class WrapHelm:
 
-    def __init__(self, conf, repo, repo_version, repo_url, chart, release, namespace='default', values_path=None,
+    def __init__(self, conf, values_path=None,
                  res_type=KubeResType.STATEFUL_SET, res_name=None):
 
+        self.repo = conf.repo
+        self.repo_url = conf.repo_url
+        self.namespace = conf.namespace
+        self.release = conf.release
         self.conf = conf
         self.values = self.conf.helm_values
-        self.repo = repo
-        self.repo_url = repo_url
-        self.repo_version = repo_version
-        self.chart = f'{repo}/{chart}'
-        self.release = release
-        self.namespace = namespace
-        self.values_path = f'{values_path}/{release}-values.yaml'
+        self.repo_version = conf.repo_version
+        self.chart = f'{self.repo}/{conf.chart}'
+        self.values_path = f'{values_path}/{self.release}-values.yaml'
         self.res_type = res_type.value
 
         if res_name is None:
-            res_name = release
+            res_name = self.release
 
         self.res_name = res_name
 
@@ -118,10 +116,10 @@ def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=No
     _action, service = get_wield_svc(locale, conf_key, injection)
     conf = service.conf
 
-    if has_service:
+    if action is None:
+        action = _action
 
-        if action is None:
-            action = _action
+    if has_service:
 
         service.plan.wield(
             action=action,
@@ -129,28 +127,14 @@ def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=No
             service_only=service_only
         )
 
-    else:
-
-        _observe = True if _action == WieldAction.APPLY else False
-
     context_conf = conf.third_party.helm[conf_key]
-    repo = context_conf.repo
-    repo_url = context_conf.repo_url
-    chart = context_conf.chart
-    namespace = context_conf.namespace
-    release = context_conf.release
 
     deploy_path = f'{locale.module_root}'
+
     os.system(f'ls -la {deploy_path}')
 
     wh = WrapHelm(
         conf=context_conf,
-        repo=repo,
-        repo_version=context_conf.repo_version,
-        repo_url=repo_url,
-        chart=chart,
-        release=release,
-        namespace=namespace,
         values_path=deploy_path,
         res_type=res_type
     )
