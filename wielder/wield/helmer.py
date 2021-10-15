@@ -94,7 +94,8 @@ class WrapHelm:
 
         if helm_cmd == HelmCommand.UNINSTALL:
             observe = False
-            os.system(f"kubectl delete -n {self.namespace} po -l app={self.res_name} --force --grace-period=0;")
+            os.system(f"kubectl -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
+            os.system(f"kubectl -n {self.namespace} delete pvc --all;")
 
         if observe:
 

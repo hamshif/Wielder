@@ -156,7 +156,6 @@ class WieldPlan(WielderBase):
             if 'namespace' not in res:
                 os.system(f"kubectl delete -f {plan_path} --wait=false;")
 
-        # TODO kill all pvc and then all pv
         # TODO check for exit commands in all wield-services
         os.system(f"kubectl delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
 
