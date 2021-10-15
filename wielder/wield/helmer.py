@@ -6,7 +6,9 @@ import os
 
 import logging
 
-from wielder.wield.enumerator import HelmCommand, KubeResType
+from wield_services.wield.deploy.imager import prepare_third_party_svc_image
+
+from wielder.wield.enumerator import HelmCommand, KubeResType, WieldAction
 from wielder.wield.kube_probe import observe_set, get_kube_res_by_name
 from pyhocon.tool import HOCONConverter as Hc
 
@@ -102,33 +104,40 @@ class WrapHelm:
             observe_set(self.namespace, self.res_type, self.res_name)
 
 
-def get_helm_wrap(conf_key, locale, res_type=KubeResType.STATEFUL_SET, action=None, has_service=False, auto_approve=False, service_only=False, injection={}):
+def get_helm_wrap(service_name, locale, res_type=KubeResType.STATEFUL_SET, action=None, auto_approve=False, service_only=False, injection={}):
     """
     Helper method for extracting helm wrapper variables from configuration
+    :param injection:
+    :param service_only:
+    :param auto_approve:
+    :param action:
     :param res_type: kubernetes resource type to track
-    :param conf: Hocon config object
-    :param conf_key: Key for specific helm configuration
+    :param service_name: Key for specific helm configuration
     :param locale: helps locate where the values file exists
     :return:
     """
 
-    injection.update({f'{conf_key}.wield_root': locale.wield_root})
+    injection.update({f'{service_name}.wield_root': locale.wield_root})
 
-    _action, service = get_wield_svc(locale, conf_key, injection)
+    _action, service = get_wield_svc(locale, service_name, injection)
     conf = service.conf
 
     if action is None:
         action = _action
 
-    if has_service:
+    context_conf = conf.third_party.helm[service_name]
+
+    if context_conf.has_wielder_service:
+
+        if action == WieldAction.APPLY and context_conf.update_image:
+
+            prepare_third_party_svc_image(locale, service_name)
 
         service.plan.wield(
             action=action,
             auto_approve=auto_approve,
             service_only=service_only
         )
-
-    context_conf = conf.third_party.helm[conf_key]
 
     deploy_path = f'{locale.module_root}'
 
