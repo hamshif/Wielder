@@ -45,7 +45,7 @@ class WrapHelm:
         with open(self.values_path, 'wt') as file_out:
             file_out.write(plan)
 
-    def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False):
+    def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False, observe_timeout=400):
 
         self.plan()
 
@@ -101,5 +101,5 @@ class WrapHelm:
 
         if observe:
 
-            observe_set(self.namespace, self.res_type, self.res_name)
+            observe_set(self.namespace, self.res_type, self.res_name, observe_timeout)
 
