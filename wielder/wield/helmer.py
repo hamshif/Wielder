@@ -42,7 +42,7 @@ class WrapHelm:
         with open(self.values_path, 'wt') as file_out:
             file_out.write(plan)
 
-    def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False, observe_timeout=400):
+    def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False, observe_timeout=400, delete_pvc=True):
 
         self.plan()
 
@@ -94,7 +94,9 @@ class WrapHelm:
         if helm_cmd == HelmCommand.UNINSTALL:
             observe = False
             os.system(f"kubectl -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
-            os.system(f"kubectl -n {self.namespace} delete pvc --all;")
+
+            if delete_pvc:
+                os.system(f"kubectl -n {self.namespace} delete pvc --all;")
 
         if observe:
 
