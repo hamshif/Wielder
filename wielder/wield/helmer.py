@@ -6,13 +6,10 @@ import os
 
 import logging
 
-from wield_services.wield.deploy.imager import prepare_third_party_svc_image
 
-from wielder.wield.enumerator import HelmCommand, KubeResType, WieldAction
+from wielder.wield.enumerator import HelmCommand, KubeResType
 from wielder.wield.kube_probe import observe_set, get_kube_res_by_name
 from pyhocon.tool import HOCONConverter as Hc
-
-from wielder.wield.wield_service import get_wield_svc
 
 
 class WrapHelm:

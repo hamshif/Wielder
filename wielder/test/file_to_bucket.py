@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import logging
 
-from wield_services.wield.log_util import setup_logging
 
 from wielder.util.bucketeer import Bucketeer
+from wielder.util.log_util import setup_logging
 
 if __name__ == "__main__":
 
