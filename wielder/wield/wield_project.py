@@ -161,6 +161,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     injection['super_project_name'] = locale.super_project_name
     injection['conf_dir'] = unique_conf
     injection['code_repo_commit'] = code_repo_commit
+    injection['bootstrap_conf_root'] = conf_dir
 
     conf = get_conf_ordered_files(
         ordered_conf_files=ordered_project_files,
