@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -8,27 +9,20 @@ from wielder.wield.enumerator import PlanType
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
 from wielder.util.hocon_util import get_conf_ordered_files
-from wielder.util.arguer import wielder_sanity, get_kube_context
+from wielder.util.arguer import wielder_sanity
 from pyhocon import ConfigFactory as Cf
 
 
-# TODO remove this hardcoded stuff
-def get_basic_module_properties(runtime_env, deploy_env, bootstrap_env, name):
+def get_basic_module_properties(injection=[]):
 
-    current_kube_context = get_kube_context()
-
-    local_properties = [
-        'explain = "This file is where developers override project level configuration properties '
+    props = [
+        'explain: "This file is where developers override project level configuration properties '
         'it is .gitignored"',
-        f'runtime_env : {runtime_env}',
-        f'deploy_env : {deploy_env}',
-        f'bootstrap_env : {bootstrap_env}',
-        '#replace the context below with the context of the kubernetes deployment your working on',
-        f'kube_context : {current_kube_context}',
-        f'deployments : [\n{name}\n]',
     ]
 
-    return local_properties
+    props = props + injection
+
+    return props
 
 
 def make_sure_project_local_conf_exists(locale, bootstrap_env, runtime_env, deploy_env):
@@ -78,17 +72,11 @@ def make_sure_project_local_conf_exists(locale, bootstrap_env, runtime_env, depl
         # TODO use in the future
         tmp_conf = Cf.parse_file(project_file)
 
-        local_properties = get_basic_module_properties(
-            runtime_env=runtime_env,
-            deploy_env=deploy_env,
-            bootstrap_env=bootstrap_env,
-            name='slate'
-        )
-
+        local_properties = get_basic_module_properties()
         # TODO
-        namespace = 'default'
-
-        local_properties.append(f'namespace : {namespace}')
+        # namespace = 'default'
+        #
+        # local_properties.append(f'namespace : {namespace}')
         #
         # relative_code_path = tmp_conf[self.name]['relativeCodePath']
         #

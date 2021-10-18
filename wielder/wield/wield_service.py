@@ -112,17 +112,7 @@ class WieldService(WielderBase):
 
             logging.info(f'\ncould not find file: {local_path}\ncreating it on the fly!\n')
 
-            vars_file = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-vars.conf'
-
-            tmp_conf = Cf.parse_file(vars_file)
-
-            relative_code_path = tmp_conf[self.name]['relativeCodePath']
-
-            local_code_path = f'{self.locale.super_project_root}/{relative_code_path}'
-
-            local_properties = get_basic_module_properties(self.wield_mode.runtime_env, self.wield_mode.deploy_env, self.name)
-
-            local_properties.append(f'{self.name}.codePath : {local_code_path}')
+            local_properties = get_basic_module_properties()
 
             with open(local_path, 'wt') as file_out:
 
@@ -133,7 +123,7 @@ class WieldService(WielderBase):
         return local_path
 
 
-def get_wield_svc(locale, service_name):
+def get_wield_svc(locale, service_name, injection={}):
     """
     A convenience wrapper based on cli and directory conventions
     for getting WieldService.
@@ -150,6 +140,7 @@ def get_wield_svc(locale, service_name):
     service = WieldService(
         name=service_name,
         locale=locale,
+        injection=injection
     )
 
     return action, service
