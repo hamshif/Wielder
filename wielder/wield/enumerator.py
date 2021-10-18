@@ -7,6 +7,12 @@ class CloudProvider(Enum):
     AZURE = 'azure'
 
 
+class LocalKube(Enum):
+    DOCKER = 'docker'
+    MINIKUBE = 'minikube'
+    KIND = 'kind'
+
+
 class KubeResType(Enum):
 
     GENERAL = 'general'
