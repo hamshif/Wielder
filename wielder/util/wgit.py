@@ -49,6 +49,18 @@ class WGit:
 
             return submodule_pointer
 
+    def get_diff(self, sub):
+
+        sub_path = f'{self.repo_path}/{sub}'
+
+        with DirContext(sub_path):
+
+            _cmd = f'git status'
+
+            status = async_cmd(_cmd)
+
+            print(status)
+
     def as_hocon_str(self):
 
         d = vars(self)
