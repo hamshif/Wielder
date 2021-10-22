@@ -254,9 +254,12 @@ def copy_file_to_pod(pod, file_full_path, pod_path, namespace):
     os.system(f'kubectl cp -n {namespace} {file_full_path} {pod.metadata.name}:{pod_path}')
 
 
-def copy_file_to_pods(pods, src, pod_dest, namespace):
+def copy_file_to_pods(pods, src, pod_dest, namespace, context=None):
     for p in pods:
-        os.system(f'kubectl cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
+        if context is None:
+            os.system(f'kubectl cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
+        else:
+            os.system(f'kubectl cp --context {context} -n {namespace} {src} {p.metadata.name}:{pod_dest}')
 
 
 def create_pyenv(name, py_version):
@@ -300,6 +303,10 @@ def block_for_file(why, full_path, interval, max_attempts=50):
 
         if os.path.isfile(full_path):
             return
+
+
+def send_command_to_pod(namespace, pod_name, command):
+    os.system(f'kubectl exec -n {namespace} {pod_name} -- {command}')
 
 
 if __name__ == "__main__":

@@ -163,7 +163,7 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
 
         logging.info(f"attempting to create image {name}")
 
-        _cmd = f'docker build -t {image_name}:{tag} {image_root};'
+        _cmd = f'docker build -t {image_name}:{tag} {image_root}/{name};'
 
         logging.info(f'running:\n{_cmd}')
 
