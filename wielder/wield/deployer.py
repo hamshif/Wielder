@@ -47,6 +47,7 @@ def apply_multiple(res_tuples, module_root, context, observe_svc=False):
         if _type == KubeResType.SERVICE and observe_svc:
 
             observe_service(
+                context=context,
                 svc_name=name,
                 svc_namespace=namespace
             )

@@ -96,6 +96,7 @@ class WieldPlan(WielderBase):
                 if 'service' in res and observe_svc:
 
                     observe_service(
+                        context=self.context,
                         svc_name=self.name,
                         svc_namespace=self.namespace
                     )
@@ -105,11 +106,12 @@ class WieldPlan(WielderBase):
                     # Observe the pods created
                     pods = get_pods(
                         self.name,
+                        context=self.context,
                         namespace=self.namespace
                     )
 
                     for pod in pods:
-                        observe_pod(pod)
+                        observe_pod(pod, self.context)
 
                     if '-' in res:
 
@@ -120,6 +122,7 @@ class WieldPlan(WielderBase):
         if self.module_conf.observe_svc:
 
             observe_service(
+                context=self.context,
                 svc_name=self.name,
                 svc_namespace=self.namespace
             )

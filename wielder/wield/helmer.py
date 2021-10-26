@@ -72,7 +72,7 @@ class WrapHelm:
             if helm_cmd == HelmCommand.UPGRADE:
                 helm_cmd = HelmCommand.INSTALL
 
-        _cmd = f'helm {helm_cmd.value} {self.release} -n {self.namespace}'
+        _cmd = f'helm --kube-context {self.context} {helm_cmd.value} {self.release} -n {self.namespace}'
 
         if helm_cmd == HelmCommand.INSTALL or helm_cmd == HelmCommand.UPGRADE:
 
