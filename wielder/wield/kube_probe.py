@@ -9,9 +9,10 @@ from wielder.util.log_util import setup_logging
 from wielder.wield.enumerator import KubeResType
 
 
-def get_kube_namespace_resources_by_type(namespace, kube_res, verbose=False):
+def get_kube_namespace_resources_by_type(context, namespace, kube_res, verbose=False):
     """
     A Wrapper of kubectl which parses resources from json
+    :param context: Kubernetes context
     :param namespace:
     :type namespace: str
     :param kube_res: statefulset, deployment ...
@@ -22,7 +23,7 @@ def get_kube_namespace_resources_by_type(namespace, kube_res, verbose=False):
     :rtype:
     """
 
-    res_bytes = subprocess_cmd(f'kubectl get {kube_res} -n {namespace} -o json')
+    res_bytes = subprocess_cmd(f'kubectl --context {context} get {kube_res} -n {namespace} -o json')
     res_json = res_bytes.decode('utf8').replace("'", '"')
     data = json.loads(res_json)
 
@@ -33,9 +34,10 @@ def get_kube_namespace_resources_by_type(namespace, kube_res, verbose=False):
     return data
 
 
-def get_kube_res_by_name(namespace, kube_res, res_name):
+def get_kube_res_by_name(context, namespace, kube_res, res_name):
     """
     A Wrapper of kubectl which parses resources from json
+    :param context: Kubernetes context
     :param res_name: The name of the resource
     :type res_name: str
     :param namespace:
@@ -46,7 +48,7 @@ def get_kube_res_by_name(namespace, kube_res, res_name):
     :rtype:
     """
 
-    resources = get_kube_namespace_resources_by_type(namespace, kube_res)
+    resources = get_kube_namespace_resources_by_type(context, namespace, kube_res)
 
     for res in resources['items']:
 
@@ -58,9 +60,10 @@ def get_kube_res_by_name(namespace, kube_res, res_name):
             return res
 
 
-def is_kube_set_ready(namespace, kube_res, res_name):
+def is_kube_set_ready(context, namespace, kube_res, res_name):
     """
     Checks if the kubernetes resource e.g. statefulset is ready
+    :param context: Kubernetes context
     :param res_name: The name of the resource
     :type res_name: str
     :param namespace:
@@ -73,7 +76,7 @@ def is_kube_set_ready(namespace, kube_res, res_name):
 
     try:
 
-        status = get_kube_res_by_name(namespace, kube_res, res_name)['status']
+        status = get_kube_res_by_name(context, namespace, kube_res, res_name)['status']
 
         if status['replicas'] == status['currentReplicas']:
 
@@ -87,16 +90,17 @@ def is_kube_set_ready(namespace, kube_res, res_name):
     return False
 
 
-def observe_set(namespace, kube_res, res_name, timeout=400):
+def observe_set(context, namespace, kube_res, res_name, timeout=400):
     """
     Block until the kubernetes resource e.g. statefulset is ready
+    :param context: Kubernetes context
     :param timeout:
     :type timeout:
     :param res_name: The name of the resource
     :type res_name: str
     :param namespace:
     :type namespace: str
-    :param kube_res: statefullset, deployment ...
+    :param kube_res: statefulset, deployment ...
     :type kube_res: str
     """
 
@@ -105,7 +109,7 @@ def observe_set(namespace, kube_res, res_name, timeout=400):
 
     while True:
 
-        if is_kube_set_ready(namespace, kube_res, res_name):
+        if is_kube_set_ready(context, namespace, kube_res, res_name):
             logging.info(f"Kubernetes {kube_res} {res_name} is ready!!!")
             break
 

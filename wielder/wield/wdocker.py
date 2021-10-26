@@ -10,6 +10,8 @@ def is_docker_running():
 
     r = async_cmd('docker stats --no-stream')
 
+    logging.info(f'result is:\n{r}')
+
     if 'Cannot' in r[0] or 'Error' in r[0]:
 
         logging.warning('docker is not running')

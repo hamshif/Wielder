@@ -17,6 +17,7 @@ class WrapHelm:
     def __init__(self, conf, values_path=None,
                  res_type=KubeResType.STATEFUL_SET, res_name=None):
 
+        self.context = conf.kube_context
         self.repo = conf.repo
         self.repo_url = conf.repo_url
         self.namespace = conf.namespace
@@ -48,19 +49,19 @@ class WrapHelm:
 
         if helm_cmd == HelmCommand.NOTES:
 
-            _cmd = f'helm get notes {self.release} -n {self.namespace}'
+            _cmd = f'helm --kube-context {self.context} get notes {self.release} -n {self.namespace}'
             logging.info(f'Running command:\n{_cmd}')
             os.system(_cmd)
             return
         elif helm_cmd == HelmCommand.INIT_REPO:
-            _cmd = f'helm repo add {self.repo} {self.repo_url}'
+            _cmd = f'helm --kube-context {self.context} repo add {self.repo} {self.repo_url}'
             os.system(_cmd)
             logging.info(f'Running command:\n{_cmd}')
             os.system(_cmd)
             return
 
         try:
-            data = get_kube_res_by_name(self.namespace, self.res_type, self.release)
+            data = get_kube_res_by_name(self.context, self.namespace, self.res_type, self.release)
         except:
             data = None
 
@@ -76,7 +77,7 @@ class WrapHelm:
         if helm_cmd == HelmCommand.INSTALL or helm_cmd == HelmCommand.UPGRADE:
 
             try:
-                os.system(f'kubectl create namespace {self.namespace}')
+                os.system(f'kubectl --context {self.context} create namespace {self.namespace}')
             except:
                 pass
 
@@ -93,12 +94,12 @@ class WrapHelm:
 
         if helm_cmd == HelmCommand.UNINSTALL:
             observe = False
-            os.system(f"kubectl -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
+            os.system(f"kubectl --context {self.context} -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
 
             if delete_pvc:
-                os.system(f"kubectl -n {self.namespace} delete pvc --all;")
+                os.system(f"kubectl --context {self.context} -n {self.namespace} delete pvc --all;")
 
         if observe:
 
-            observe_set(self.namespace, self.res_type, self.res_name, observe_timeout)
+            observe_set(self.context, self.namespace, self.res_type, self.res_name, observe_timeout)
 

@@ -14,34 +14,35 @@ from wielder.wield.enumerator import KubeResType
 from wielder.wield.servicer import observe_service
 
 
-def delete_multiple(res_tuples, module_root):
+def delete_multiple(res_tuples, module_root, context):
 
     for res_tup in res_tuples:
         name, namespace, res_path, _type = res_tup
 
         if _type == KubeResType.PV:
 
-            delete_pv(namespace=namespace, pv_type=name)
+            delete_pv(context=context, namespace=namespace, pv_type=name)
         else:
-            os.system(f'kubectl delete -f {module_root}/{res_path} --wait=false;')
+            os.system(f'kubectl --context {context} delete -f {module_root}/{res_path} --wait=false;')
 
             if _type == KubeResType.DEPLOY or _type == KubeResType.STATEFUL_SET:
 
                 pods = get_pods(
                     name,
+                    context=context,
                     namespace=namespace
                 )
 
                 for pod in pods:
-                    os.system(f"kubectl delete -n {namespace} {pod} --force --grace-period=0;")
+                    os.system(f"kubectl --context {context} delete -n {namespace} {pod} --force --grace-period=0;")
 
 
-def apply_multiple(res_tuples, module_root, observe_svc=False):
+def apply_multiple(res_tuples, module_root, context, observe_svc=False):
 
     for res_tup in res_tuples:
         name, namespace, res_path, _type = res_tup
 
-        os.system(f'kubectl apply -f {module_root}/{res_path}')
+        os.system(f'kubectl --context {context} apply -f {module_root}/{res_path}')
 
         if _type == KubeResType.SERVICE and observe_svc:
 
@@ -54,60 +55,64 @@ def apply_multiple(res_tuples, module_root, observe_svc=False):
 
             pods = get_pods(
                 name,
+                context=context,
                 namespace=namespace
             )
 
             for pod in pods:
-                observe_pod(pod)
+                observe_pod(context, pod)
 
 
-def delete_pvc_pv(pvc_type, pv_type=None, namespace='default'):
+def delete_pvc_pv(pvc_type, context, pv_type=None, namespace='default'):
     """
     Deletes persistent volumes and their claims even if they are protected provided their claims are deleted.
+    :param context: Kubernetes context
     :param pvc_type: claim name or prefix for storage claim automatic creations or stateful sets
     :param pv_type: defaults to pvc_type, claim name or prefix for storage claim automatic creations or stateful sets
     :param namespace:
     """
     pv_type = pvc_type if pv_type is None else pv_type
 
-    delete_pvc(pvc_type, namespace=namespace)
-    delete_pv(pv_type, namespace=namespace)
+    delete_pvc(pvc_type, context=context, namespace=namespace)
+    delete_pv(pv_type, context=context, namespace=namespace)
 
 
-def delete_pv(pv_type, namespace='default'):
+def delete_pv(pv_type, context, namespace='default'):
     """
     Deletes persistent volumes even if they are protected provided their claims are deleted.
+    :param context: Kubernetes context
     :param pv_type: volume name or prefix for pv automatic creations or stateful sets
     :param namespace:
     """
 
     escaped = """'{"metadata":{"finalizers": []}}'"""
-    pvc_strings = async_cmd('kubectl get pv')
+    pvc_strings = async_cmd(f'kubectl --context {context} get pv')
 
     for pv_str in pvc_strings:
         pv = pv_str.split('   ')[0]
         logging.info(f'{pv}')
 
         if f'{namespace}/{pv_type}' in pv_str:
-            cmd = f"""kubectl patch persistentvolume/{pv} -p {escaped} --type=merge"""
+            cmd = f"""kubectl --context {context} patch persistentvolume/{pv} -p {escaped} --type=merge"""
             logging.info(f'cmd: {cmd}')
             response = async_cmd(cmd)
             logging.info(f'response: {response}')
 
-            cmd = f"kubectl delete persistentvolume/{pv}  --wait=false"
+            cmd = f"kubectl --context {context} delete persistentvolume/{pv}  --wait=false"
             logging.info(f'cmd: {cmd}')
             response = async_cmd(cmd)
             logging.info(f'response: {response}')
 
 
-def delete_pvc(pvc_type, namespace='default'):
+def delete_pvc(pvc_type, context, namespace='default'):
     """
     Deletes persistent volume claims.
+    :param context: Kubernetes context
     :param pvc_type: claim name or prefix for storage claim automatic creations or stateful sets
     :param namespace:
     """
 
-    pvc_strings = async_cmd(f'kubectl get pvc -n {namespace}')
+    pvc_strings = async_cmd(f'kubectl --context {context} get pvc -n {namespace}')
 
     for pvc_str in pvc_strings:
         pvc = pvc_str.split('   ')[0]
@@ -115,18 +120,19 @@ def delete_pvc(pvc_type, namespace='default'):
 
         if f'{pvc_type}' in pvc_str:
 
-            cmd = f"kubectl delete pvc {pvc} -n {namespace}  --wait=false"
+            cmd = f"kubectl --context {context} delete pvc {pvc} -n {namespace}  --wait=false"
             logging.info(f'cmd: {cmd}')
             response = async_cmd(cmd)
             logging.info(f'response: {response}')
 
 
-def get_pods(name, exact=False, namespace='default'):
+def get_pods(name, context, exact=False, namespace='default'):
 
     # TODO check if this could be created once in an object.
-    config.load_kube_config(os.path.join(os.environ["HOME"], '.kube/config'))
+    # config.load_kube_config(os.path.join(os.environ["HOME"], '.kube/config'))
 
-    v1 = client.CoreV1Api()
+    api_client = config.new_client_from_config(context=context)
+    v1 = client.CoreV1Api(api_client=api_client)
 
     pod_list = v1.list_namespaced_pod(namespace)
 
@@ -163,7 +169,7 @@ def all_pod_containers_ready(pod):
     return True
 
 
-def observe_pod(pod):
+def observe_pod(pod, context):
 
     namespace = pod.metadata.namespace
     name = pod.metadata.name
@@ -189,7 +195,7 @@ def observe_pod(pod):
         except Exception as e:
             return pod.metadata.name, pod, e
 
-        pods = get_pods(name, namespace=namespace)
+        pods = get_pods(name, context=context, namespace=namespace)
 
         if len(pods) > 0:
 
@@ -234,7 +240,7 @@ def observe_pods(name, callback=None):
             composed.subscribe(output if callback is None else callback)
 
 
-def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init=True, namespace='default'):
+def init_observe_pods(deploy_tuple, context, use_minikube_repo=False, callback=None, init=True, namespace='default'):
 
     logging.info(f"callback: {str(callback)}")
 
@@ -248,7 +254,7 @@ def init_observe_pods(deploy_tuple, use_minikube_repo=False, callback=None, init
             os.system(f"eval $(minikube docker-env)")
 
         # a deployment might have n pods!
-        result = os.system(f"kubectl apply -f {file_path}")
+        result = os.system(f"kubectl --context {context} apply -f {file_path}")
 
         logging.info(f"result: {result}")
 
@@ -280,15 +286,16 @@ def output(result):
 
 
 # TODO delete all pods try using python kube library if possible
-def delete_first_deploy_pod(selector, selector_value):
+def delete_first_deploy_pod(context, selector, selector_value):
     """
+    :param context: Kube context
     :param selector: a value indicated in deployment configuration usually yaml
     :param selector_value: a value which will uniquely select pods of the deployment
     :return: nothing the action is to delete the first pod in the deployment
     """
     # TODO replace ugly hack find a way to replace the deployment conf before running it to avoid killing pods
     os.system(
-        f"kubectl delete po $(kubectl get po -l {selector}={selector_value} | awk 'NR == 2 {{print $1}}') --force --grace-period=0;"
+        f"kubectl --context {context} delete po $(kubectl --context {context} get po -l {selector}={selector_value} | awk 'NR == 2 {{print $1}}') --force --grace-period=0;"
     )
 
 
@@ -296,14 +303,14 @@ def delete_first_deploy_pod(selector, selector_value):
 # TODO make generic to patches
 # TODO warn if unsuccessful
 # TODO create a planned patch which doesn't involve actual deployment
-def patch_deploy(deploy_name, full_file_path, selector, selector_value):
+def patch_deploy(context, deploy_name, full_file_path, selector, selector_value):
 
     # TODO replace ugly hack find a way to replace the deployment conf before running it to avoid killing pods
     os.system(
-        f'kubectl patch deploy {deploy_name} --patch "$(cat {full_file_path})";'
+        f'kubectl --context {context} patch deploy {deploy_name} --patch "$(cat {full_file_path})";'
     )
 
-    delete_first_deploy_pod(selector, selector_value)
+    delete_first_deploy_pod(context, selector, selector_value)
 
 
 #   TODO make sure of uniqueness
