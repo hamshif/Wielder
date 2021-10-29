@@ -337,7 +337,7 @@ def hocon_to_tfvrs(acc, k, v, indent=''):
             acc = hocon_to_tfvrs(acc, kk, vv, indent_1)
 
         if k != '':
-            acc = acc + indent + '}\n\n'
+            acc = acc + indent + '}\n'
 
         print(f'{acc}')
         return acc
