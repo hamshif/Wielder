@@ -314,14 +314,14 @@ def hocon_to_tfvrs(acc, k, v, indent=''):
         if k != '':
             acc = acc + f'{indent}{k} = "{v}"\n'
         else:
-            acc = acc + f'{indent}"{v}",\n'
+            acc = acc + f'{indent}"{v}"'
 
     elif isinstance(v, bool):
 
         if k != '':
             acc = acc + f'{indent}{k} = ' + f'{v}'.lower() + "\n"
         else:
-            acc = acc + f'{indent}"{v}",\n'
+            acc = acc + f'{indent}"{v}"'
 
     elif isinstance(v, ConfigTree):
 
@@ -344,13 +344,15 @@ def hocon_to_tfvrs(acc, k, v, indent=''):
 
     elif isinstance(v, list):
 
-        acc = acc + f'{indent}{k} = [\n'
+        if k == '':
+            acc = acc + f'{indent}[\n'
+        else:
+            acc = acc + f'{indent}{k} = [\n'
 
         for i in v:
 
             add_indent = ''
 
-            # TODO add case nested list
             if isinstance(i, dict):
 
                 acc = acc + f"{indent}   " + '{\n'
@@ -360,7 +362,12 @@ def hocon_to_tfvrs(acc, k, v, indent=''):
 
             if isinstance(i, dict):
 
-                acc = acc + f"{indent}   " + '}\n'
+                acc = acc + f"{indent}   " + '}'
+
+            acc = acc + f',\n'
+
+        if len(v) > 0:
+            acc = acc[:-2] + '\n'
 
         acc = acc + indent + ']\n'
 
