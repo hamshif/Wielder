@@ -73,7 +73,7 @@ class Conf:
 
 def destroy_sanity(conf):
 
-    if conf.deploy_env is 'prod':
+    if conf.deploy_env == 'prod':
 
         logging.error(
             'You are trying to destroy a production environment!!!'

@@ -146,7 +146,7 @@ class WieldPlan(WielderBase):
             else:
                 answer = 'N'
 
-            if answer is not 'Y':
+            if answer != 'Y':
                 logging.warning(f'\nAborting deletion of {self.name} resources\n')
                 return
 
