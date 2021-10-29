@@ -14,18 +14,20 @@ from wielder.wield.enumerator import TerraformAction, TerraformReplyType, CredTy
 
 class WrapTerraform:
 
-    def __init__(self, repo_path, conf):
+    def __init__(self, root_path, run_dir, conf):
         """
         Wraps terraform commands in context (directory, credentials ....),
         Its tightly coupled with hocon configuration tree
         This is a work in progress, use with caution in complex situations
-        :param repo_path: The path to the terraform root
-        :type repo_path: str
+        :param root_path: The path to the terraform root
+        :type root_path: str
         :param conf config tree
         :type conf: hocon config
         """
 
-        self.repo_path = repo_path
+        self.root_path = root_path
+        self.run_dir = run_dir
+        self.run_path = f'{root_path}/{run_dir}'
         self.conf = conf
 
         self.backend_name = conf.backend_name
@@ -46,13 +48,13 @@ class WrapTerraform:
 
     def run_cmd_in_repo(self, t_cmd, get_reply, reply_type):
 
-        with DirContext(self.repo_path):
+        with DirContext(self.run_path):
 
             if self.cred_type == CredType.AWS_MFA:
                 cmd_prefix = get_aws_mfa_cred_command(self.cred_role)
                 t_cmd = f'{cmd_prefix} {t_cmd}'
 
-            logging.info(f"Running:\n{t_cmd}\nin: {self.repo_path}\n")
+            logging.info(f"Running:\n{t_cmd}\nin: {self.run_path}\n")
 
             if get_reply:
                 logging.info(f"Waiting for reply, this is happening in another process and might take a lot of time.")
@@ -107,7 +109,7 @@ class WrapTerraform:
         elif terraform_action == TerraformAction.INIT:
 
             if self.backend_name is not None:
-                t_cmd = f'{t_cmd} -backend-config "backend/{self.backend_name}.tf" -force-copy'
+                t_cmd = f'{t_cmd} -backend-config "../backend/{self.backend_name}.tf" -force-copy'
 
         elif terraform_action == TerraformAction.APPLY:
 
@@ -157,17 +159,17 @@ class WrapTerraform:
         if new_state:
             logging.debug("Trying to remove local terraform state files if they exist")
             r = random.randint(3, 10000)
-            full = f'{self.repo_path}/terraform.tfstate'
+            full = f'{self.run_path}/terraform.tfstate'
             _cmd(f"mv {full} {full}.{r}.copy")
 
         config_to_terraform(
             tree=self.tfvars,
-            destination=self.repo_path,
+            destination=self.run_path,
             print_vars=True
         )
 
         if self.backend_tree is not None and self.backend_name is not None:
-            backend_full_path = f'{self.repo_path}/backend/'
+            backend_full_path = f'{self.root_path}/backend/'
 
             config_to_terraform(
                 tree=self.backend_tree,
