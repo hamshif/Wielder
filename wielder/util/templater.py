@@ -5,8 +5,7 @@ import jprops
 from jprops import _CommentSentinel
 from pyhocon import ConfigTree
 
-from wielder.util.arguer import get_kube_parser, process_args, Conf
-
+from wielder.util.arguer import Conf
 
 # TODO Consider switching from tuples to dict
 from wielder.util.log_util import setup_logging
@@ -23,7 +22,9 @@ def get_template_var_by_key(template_variables, key):
 
 def gather_templates(dir_path, conf):
     """
-    This function produces a list of full paths of files ending with .tmpl from all sub  directories that are not ignored in conf
+    This function produces a list of full paths of files ending with .tmpl
+    from all sub directories that are not ignored in conf
+    :param conf:
     :param dir_path: Path to the directory to be purged
     :return: None
     """
@@ -53,6 +54,7 @@ def gather_templates(dir_path, conf):
 def remove_non_templates(dir_path, conf):
     """
     This function will delete files ending with .yaml .json from all sub  directories that are not ignored in conf
+    :param conf:
     :param dir_path: Path to the directory to be purged
     :return: None
     """
@@ -241,8 +243,8 @@ def get_raw_arg(conf, key, default_value=None):
 
     try:
         default_value = conf.raw_config_args[key]
-    except:
-        logging.error()
+    except Exception as e:
+        logging.error(e)
         pass
 
     return default_value
@@ -280,14 +282,18 @@ def config_tree_to_tuple(tree, print_vars=True, template=True, escape_sequence='
 
 def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=True):
     """
-    TODO support terraform dictionary and list depth
-    Take a pyhocon tree and converts it to a terraform file
+    Take a pyhocon tree and converts it to a terraform.tfvrs file
     :param tree: pyhocon tree
     :param destination:
     :param name:
     :param print_vars: should print vars to console
     :return: nothing
     """
+
+    tfvrs = hocon_to_tfvrs('', '', tree)
+
+    if print_vars:
+        logging.info(f'tfvars:\n\n{tfvrs}')
 
     config_file = f"{destination}/{name}"
 
@@ -298,56 +304,107 @@ def config_to_terraform(tree, destination, name='terraform.tfvars', print_vars=T
 
     with open(config_file, "a") as file_out:
 
-        hocon_to_terraform_syntax(tree, file_out, print_vars)
-
-        file_out.write(f'\n\n')
+        file_out.write(f'{tfvrs}\n\n')
 
 
-def hocon_to_terraform_syntax(tree, file_out, print_vars, indent=''):
+def hocon_to_tfvrs(acc, k, v, indent=''):
 
-    for k in tree:
+    if isinstance(v, str):
 
-        v = tree[k]
+        if k != '':
+            acc = acc + f'{indent}{k} = "{v}"\n'
+        else:
+            acc = acc + f'{indent}"{v}"'
 
-        if print_vars:
-            logging.info(f"k: {k}   v: {v}")
+    elif isinstance(v, bool):
 
-        if isinstance(v, ConfigTree):
+        if k != '':
+            acc = acc + f'{indent}{k} = ' + f'{v}'.lower() + "\n"
+        else:
+            acc = acc + f'{indent}"{v}"'
 
-            file_out.write(f"{k} = " + '{\n')
-            hocon_to_terraform_syntax(v, file_out, print_vars, f'  {indent}')
-            file_out.write('}\n\n')
-            continue
+    elif isinstance(v, ConfigTree):
 
-        elif isinstance(v, str):
-            v = f'"{v}"'
-        elif isinstance(v, bool):
-            v = f'{v}'.lower()
-        elif isinstance(v, list):
-            v = f"{v}".replace("'", '"')
-        elif isinstance(v, dict):
-            # TODO check dictionaries
-            v = f"{v}".replace("'", '"')
+        indent_1 = indent
 
-        file_out.write(f'{indent}{k} = {v}\n\n')
+        if k != '':
+            acc = acc + f"{indent}{k} = " + '{\n'
+            indent_1 = f'{indent}  '
+
+        for kk in v:
+
+            vv = v[kk]
+            acc = hocon_to_tfvrs(acc, kk, vv, indent_1)
+
+        if k != '':
+            acc = acc + indent + '}\n'
+
+        print(f'{acc}')
+        return acc
+
+    elif isinstance(v, list):
+
+        if k == '':
+            acc = acc + f'{indent}[\n'
+        else:
+            acc = acc + f'{indent}{k} = [\n'
+
+        for i in v:
+
+            add_indent = ''
+
+            if isinstance(i, dict):
+
+                acc = acc + f"{indent}   " + '{\n'
+                add_indent = '   '
+
+            acc = hocon_to_tfvrs(acc, '', i, f'{indent}  {add_indent}')
+
+            if isinstance(i, dict):
+
+                acc = acc + f"{indent}   " + '}'
+
+            acc = acc + f',\n'
+
+        if len(v) > 0:
+            acc = acc[:-2] + '\n'
+
+        acc = acc + indent + ']\n'
+
+    elif isinstance(v, dict):
+
+        acc = acc + f"{indent}{k} = " + '{\n'
+
+        for kk, vv in v.items():
+
+            acc = hocon_to_tfvrs(acc, kk, vv, f'{indent}  ')
+
+        acc = acc + indent + '}\n\n'
+
+    elif type(v) == int or float:
+
+        if k != '':
+            acc = acc + f'{indent}{k} = ' + str(v) + "\n"
+        else:
+            acc = acc + f'{indent}"{v},"\n'
+
+    return acc
 
 
 if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    logging.debug(f"current working dir: {dir_path}")
+    _dir_path = os.path.dirname(os.path.realpath(__file__))
+    logging.debug(f"current working dir: {_dir_path}")
 
-    conf = Conf()
-    conf.template_variables = [
+    _conf = Conf()
+    _conf.template_variables = [
         ("#yo#", "Goofy"),
         ("#bro#", "Joker")
     ]
 
-    templates = gather_templates(dir_path, conf)
+    _templates = gather_templates(_dir_path, _conf)
 
-    logging.info(f"templates:\n{templates}")
-    templates_to_instances(templates, conf.template_variables)
-
-
+    logging.info(f"templates:\n{_templates}")
+    templates_to_instances(_templates, _conf.template_variables)

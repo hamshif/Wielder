@@ -18,13 +18,6 @@ from wielder.util.credential_helper import get_aws_mfa_cred
 from wielder.util.log_util import setup_logging
 
 
-def get_kube_context():
-
-    context = async_cmd('kubectl config current-context')[0][:-1]
-
-    return context
-
-
 def get_external_ip():
 
     try:
@@ -32,7 +25,7 @@ def get_external_ip():
     except Exception as e:
         logging.error(str(e))
     else:
-        ip = 'couldnt get ip'
+        ip = "couldn't get ip"
 
     logging.info(f'My public IP address is:{ip}')
     return ip
@@ -141,9 +134,9 @@ def write_action_report(name, value):
         file_out.write(report)
 
 
-def get_pod_env_var_value(namespace, pod, var_name):
+def get_pod_env_var_value(context, namespace, pod, var_name):
 
-    reply = async_cmd(f'kubectl exec -it -n {namespace} {pod} printenv')
+    reply = async_cmd(f'kubectl --context {context} exec -it -n {namespace} {pod} printenv')
 
     for var in reply:
 
@@ -157,11 +150,11 @@ def get_pod_env_var_value(namespace, pod, var_name):
                 return tup[1]
 
 
-def get_pod_actions(namespace, pod_name):
+def get_pod_actions(context, namespace, pod_name):
 
     report_path = '/tmp/actions/actions_report.yaml'
 
-    _cmd = f'kubectl exec -it -n {namespace} {pod_name} -- cat {report_path}'
+    _cmd = f'kubectl --context {context} exec -it -n {namespace} {pod_name} -- cat {report_path}'
 
     logging.debug(f'command is is:\n{_cmd}')
 
@@ -185,10 +178,11 @@ def get_pod_actions(namespace, pod_name):
     return actions
 
 
-def block_for_action(namespace, pod, var_name, expected_value, slumber=5, _max=10):
+def block_for_action(context, namespace, pod, var_name, expected_value, slumber=5, _max=10):
     """
     This method is a primitive polling mechanism to make sure a pod has completed an assignment.
     It assumes the pod has written a Yaml action to a file and attempts to read it.
+    :param context: Kubernetes context
     :param namespace: Pod namespace
     :type namespace: str
     :param pod: The pod name
@@ -208,7 +202,7 @@ def block_for_action(namespace, pod, var_name, expected_value, slumber=5, _max=1
     for i in range(_max):
 
         try:
-            actions = get_pod_actions(namespace, pod)
+            actions = get_pod_actions(context, namespace, pod)
 
             var_value = actions[var_name]
 
@@ -250,13 +244,13 @@ def get_aws_session(conf):
     return session
 
     
-def copy_file_to_pod(pod, file_full_path, pod_path, namespace):
-    os.system(f'kubectl cp -n {namespace} {file_full_path} {pod.metadata.name}:{pod_path}')
+def copy_file_to_pod(pod, file_full_path, pod_path, namespace, context):
+    os.system(f'kubectl --context {context} cp -n {namespace} {file_full_path} {pod.metadata.name}:{pod_path}')
 
 
-def copy_file_to_pods(pods, src, pod_dest, namespace):
+def copy_file_to_pods(pods, src, pod_dest, namespace, context):
     for p in pods:
-        os.system(f'kubectl cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
+        os.system(f'kubectl --context {context} cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
 
 
 def create_pyenv(name, py_version):

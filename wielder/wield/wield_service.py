@@ -102,7 +102,7 @@ class WieldService(WielderBase):
 
         self.packaging = self.plan.module_conf.packaging
 
-        wielder_sanity(self.conf, self.wield_mode, self.service_mode)
+        wielder_sanity(self.conf, self.wield_mode)
 
     def make_sure_module_local_conf_exists(self):
 

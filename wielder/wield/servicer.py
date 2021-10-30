@@ -45,11 +45,13 @@ def get_svc_hostname(svc):
     return hostname
 
 
-def get_service(name, namespace="default"):
+def get_service(name, context, namespace="default"):
 
-    config.load_kube_config(os.path.join(os.environ["HOME"], '.kube/config'))
+    # config.load_kube_config(os.path.join(os.environ["HOME"], '.kube/config'))
 
-    v1 = client.CoreV1Api()
+    v1 = client.CoreV1Api(
+        api_client=config.new_client_from_config(context=context)
+    )
 
     svc_list = v1.list_namespaced_service(namespace)
 
@@ -62,7 +64,7 @@ def get_service(name, namespace="default"):
 # TODO merge this with init_observe_service or deprecate
 # TODO find a better way to make sure the service is up
 # make sure the service in the cloud is up by checking ip
-def observe_service(svc_name, svc_namespace, prop_name='ip'):
+def observe_service(context, svc_name, svc_namespace, prop_name='ip'):
 
     interval = 5
 
@@ -72,12 +74,11 @@ def observe_service(svc_name, svc_namespace, prop_name='ip'):
 
     while prop is None:
 
-        svc = get_service(svc_name, namespace=svc_namespace)
+        svc = get_service(context=context, name=svc_name, namespace=svc_namespace)
 
         if time_waiting > 400:
             logging.info(f"waited {time_waiting} that'sn enough exiting")
             return "timeout either provisioning might be too long or some code problem", svc_name, svc
-            break
 
         prop = get_svc_ingress_property(svc, prop_name)
 
@@ -96,6 +97,7 @@ def observe_service(svc_name, svc_namespace, prop_name='ip'):
 def init_observe_service(svc_tuple):
     # TODO add ip or hostname property for services of both kinds
 
+    context = svc_tuple[3]
     svc_name = svc_tuple[0]
     svc_file_path = svc_tuple[1]
 
@@ -106,7 +108,7 @@ def init_observe_service(svc_tuple):
 
     interval = 5
 
-    result = async_cmd(f"kubectl create -f {svc_file_path}")
+    result = async_cmd(f"kubectl --context {context} create -f {svc_file_path}")
     logging.info(f"result: {result}")
 
     time_waiting = 0
@@ -116,12 +118,11 @@ def init_observe_service(svc_tuple):
 
     while ip is None:
 
-        svc = get_service(svc_name, namespace=svc_namespace)
+        svc = get_service(context=context, name=svc_name, namespace=svc_namespace)
 
         if time_waiting > 400:
             logging.info(f"waited {time_waiting} that'sn enough exiting")
             return "timeout either provisioning might be too long or some code problem", svc_name, svc
-            break
 
         ip = get_svc_ip(svc)
 
@@ -137,8 +138,8 @@ def init_observe_service(svc_tuple):
     return svc_name, svc, ip
 
 
-def get_tuple_generator(f, values):
-    return ((v, f(v)) for v in values)
+def get_tuple_generator(f, values, n, c):
+    return ((v, f(v), n, c) for v in values)
 
 
 # TODO write error and progress discerning logic or use Observer
@@ -157,8 +158,12 @@ if __name__ == "__main__":
     logging.debug(f"two dirs above where we start path to files: {d}")
 
     # TODO get the service names from config
+    _context = 'docker-desktop'
+    _namespace = 'wielder-services'
     svc_names = ['cep', 'data-exchange', 'sso', 'backoffice']
-    svc_tup_gen = get_tuple_generator(lambda sn: f"{root_path}/deploy/{sn}/gcp/{sn}-service.yaml", svc_names)
+    svc_tup_gen = get_tuple_generator(
+        lambda sn: f"{root_path}/deploy/{sn}/gcp/{sn}-service.yaml", svc_names, _namespace, _context
+    )
 
     source = rx.from_(svc_tup_gen)
 

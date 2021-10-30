@@ -20,6 +20,7 @@ class WieldPlan(WielderBase):
 
     def __init__(self, name, conf, plan_dir, plan_format=PlanType.YAML):
 
+        self.context = conf.kube_context
         self.name = name
         self.conf = conf
         self.plan_dir = plan_dir
@@ -83,18 +84,19 @@ class WieldPlan(WielderBase):
         if service_only:
 
             plan_path = self.to_plan_path(res='service')
-            os.system(f"kubectl apply -f {plan_path};")
+            os.system(f"kubectl --context {self.context} apply -f {plan_path};")
 
         else:
 
             for res in self.ordered_kube_resources:
 
                 plan_path = self.to_plan_path(res=res)
-                os.system(f"kubectl apply -f {plan_path};")
+                os.system(f"kubectl --context {self.context} apply -f {plan_path};")
 
                 if 'service' in res and observe_svc:
 
                     observe_service(
+                        context=self.context,
                         svc_name=self.name,
                         svc_namespace=self.namespace
                     )
@@ -104,21 +106,23 @@ class WieldPlan(WielderBase):
                     # Observe the pods created
                     pods = get_pods(
                         self.name,
+                        context=self.context,
                         namespace=self.namespace
                     )
 
                     for pod in pods:
-                        observe_pod(pod)
+                        observe_pod(pod, self.context)
 
                     if '-' in res:
 
                         res_tup = res.split('-')
 
-                        observe_set(self.namespace, res_tup[0], res_tup[1])
+                        observe_set(self.context, self.namespace, res_tup[0], res_tup[1])
 
         if self.module_conf.observe_svc:
 
             observe_service(
+                context=self.context,
                 svc_name=self.name,
                 svc_namespace=self.namespace
             )
@@ -142,7 +146,7 @@ class WieldPlan(WielderBase):
             else:
                 answer = 'N'
 
-            if answer is not 'Y':
+            if answer != 'Y':
                 logging.warning(f'\nAborting deletion of {self.name} resources\n')
                 return
 
@@ -154,10 +158,10 @@ class WieldPlan(WielderBase):
             plan_path = self.to_plan_path(res=res)
 
             if 'namespace' not in res:
-                os.system(f"kubectl delete -f {plan_path} --wait=false;")
+                os.system(f"kubectl --context {self.context} delete -f {plan_path} --wait=false;")
 
         # TODO check for exit commands in all wield-services
-        os.system(f"kubectl delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
+        os.system(f"kubectl --context {self.context} delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
 
 
 
