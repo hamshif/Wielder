@@ -92,6 +92,7 @@ class WrapHelm:
         logging.info(f'Running command:\n{_cmd}')
         os.system(_cmd)
 
+        # TODO take care of hanging when a lot of pods (bot)
         if helm_cmd == HelmCommand.UNINSTALL:
             observe = False
             os.system(f"kubectl --context {self.context} -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
