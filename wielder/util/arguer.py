@@ -224,32 +224,37 @@ def get_kube_parser():
 
 def wielder_sanity(conf, mode):
 
-    contexts, current_context = config.list_kube_config_contexts()
+    try:
 
-    contexts = [context['name'] for context in contexts]
-    current_context = current_context['name']
+        contexts, current_context = config.list_kube_config_contexts()
 
-    if not conf.insane:
+        contexts = [context['name'] for context in contexts]
+        current_context = current_context['name']
 
-        message = f"\nkube context   : {conf.kube_context}" \
-                  f"\nmode.runtime_env is: {mode.runtime_env}" \
-                  f"\ncurrent context       : {current_context}" \
-                  f"\neIf you wish you can either change context or configure congruent runtime_env" \
-                  f"\nto change context run:" \
-                  f"\nkubectl config use-context <the context you meant>" \
+        if not conf.insane:
 
-        if conf.kube_context not in current_context:
+            message = f"\nkube context   : {conf.kube_context}" \
+                      f"\nmode.runtime_env is: {mode.runtime_env}" \
+                      f"\ncurrent context       : {current_context}" \
+                      f"\neIf you wish you can either change context or configure congruent runtime_env" \
+                      f"\nto change context run:" \
+                      f"\nkubectl config use-context <the context you meant>" \
 
-            message = f"There is a discrepancy between the configured and actual contexts:\n{message}"
+            if conf.kube_context not in current_context:
 
-            if conf.kube_context not in contexts:
-                message = f"There appears to be no configuration for configured context:\n{message}"
+                message = f"There is a discrepancy between the configured and actual contexts:\n{message}"
 
-        logging.warning(message)
+                if conf.kube_context not in contexts:
+                    message = f"There appears to be no configuration for configured context:\n{message}"
 
-    else:
+            logging.warning(message)
 
-        logging.warning(f'Skipping context check!!\nCurrent context is: {current_context}')
+        else:
+
+            logging.warning(f'Skipping context check!!\nCurrent context is: {current_context}')
+
+    except Exception as e:
+        logging.warning(f"{e}")
 
 
 def sanity(conf):
