@@ -256,8 +256,8 @@ def copy_file_to_pods(pods, src, pod_dest, namespace, context=None):
             os.system(f'kubectl cp --context {context} -n {namespace} {src} {p.metadata.name}:{pod_dest}')
 
 
-def send_command_to_pod(namespace, pod_name, command):
-    os.system(f'kubectl exec -n {namespace} {pod_name} -- {command}')
+def send_command_to_pod(namespace, pod_name, context, command):
+    os.system(f'kubectl exec --context {context} -n {namespace} {pod_name} -- {command}')
 
 
 def create_pyenv(name, py_version):
