@@ -253,6 +253,10 @@ def copy_file_to_pods(pods, src, pod_dest, namespace, context):
         os.system(f'kubectl --context {context} cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
 
 
+def send_command_to_pod(namespace, pod_name, context, command):
+    os.system(f'kubectl exec --context {context} -n {namespace} {pod_name} -- {command}')
+
+
 def create_pyenv(name, py_version):
 
     wield_path = get_wield_root()
