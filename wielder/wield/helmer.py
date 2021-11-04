@@ -51,7 +51,11 @@ class WrapHelm:
 
             _cmd = f'helm --kube-context {self.context} get notes {self.release} -n {self.namespace}'
             logging.info(f'Running command:\n{_cmd}')
-            os.system(_cmd)
+
+            try:
+                os.system(_cmd)
+            except:
+                pass
             return
         elif helm_cmd == HelmCommand.INIT_REPO:
             _cmd = f'helm --kube-context {self.context} repo add {self.repo} {self.repo_url}'
