@@ -20,7 +20,7 @@ def sync_dev_to_kube(locale, conf):
         context: kind-pepticom-local
 
         airflow-worker {
-               mount_folders: false # do we need mount pvc and clasess to airflow-worker (custom parameter)
+               mount_folders: false # do we need mount pvc and classes to airflow-worker (custom parameter)
                module_list: [dud, pep-services, Wielder, pep-terraform]
                namespace: airflow
                pod_destination: /tmp/duds
@@ -52,14 +52,3 @@ def sync_dev_to_kube(locale, conf):
                     namespace=pod_settings.namespace,
                     context=conf.dev.context
                 )
-
-
-if __name__ == "__main__":
-
-    _locale = get_project_locale(__file__)
-
-    _, _conf, _ = get_project_deploy_mode()
-
-    sync_dev_to_kube(_locale, _conf)
-
-
