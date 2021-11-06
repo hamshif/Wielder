@@ -25,12 +25,6 @@ def sync_dev_to_kube(locale, conf):
                namespace: airflow
                pod_destination: /tmp/duds
           }
-
-          bot {
-              module_list: [dud, pep-services, Wielder, pep-terraform]
-              namespace: bot
-              pod_destination: /bot_folder/super_bot_folder
-          }
     }
     :param locale:
     :param conf:
@@ -42,13 +36,13 @@ def sync_dev_to_kube(locale, conf):
         for pod_search_name in conf.dev.pod_names:
 
             pod_settings = conf.dev[pod_search_name]
-            pods = get_pods(pod_search_name, None, False, 'airflow')
+            pods = get_pods(pod_search_name, None, False, pod_settings.namespace)
 
             for module_name in pod_settings.module_list:
                 copy_file_to_pods(
                     pods=pods,
                     src=f'{locale.super_project_root}/{module_name}',
-                    pod_dest=pod_settings.pod_destination,
+                    pod_dest=f'{pod_settings.pod_destination}',
                     namespace=pod_settings.namespace,
                     context=conf.dev.context
                 )
