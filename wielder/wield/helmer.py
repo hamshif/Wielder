@@ -17,6 +17,11 @@ class WrapHelm:
     def __init__(self, conf, values_path=None,
                  res_type=KubeResType.STATEFUL_SET, res_name=None):
 
+        unique_name = conf.unique_name
+        values_path = f'{values_path}/plan/{unique_name}'
+        os.makedirs(values_path, exist_ok=True)
+
+        self.unique_name = unique_name
         self.context = conf.kube_context
         self.repo = conf.repo
         self.repo_url = conf.repo_url
