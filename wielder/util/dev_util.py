@@ -1,10 +1,11 @@
 import logging
 
-from wield_services.wield.deploy.configurer import get_project_deploy_mode
-from wield_services.wield.deploy.util import get_project_locale
 from wielder.util.util import copy_file_to_pods
 from wielder.wield.deployer import get_pods
 
+
+# TODO Consider not copying all files at once and adding a filter for ignored stuff
+#  e.g. .iml and use staging tmp dir
 
 def sync_dev_to_kube(locale, conf):
     """
