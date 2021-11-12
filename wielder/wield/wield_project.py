@@ -159,6 +159,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     injection['bootstrap_env'] = bootstrap_env
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = locale.super_project_name
+    injection['code_repo_name'] = locale.code_repo_name
     injection['conf_dir'] = unique_conf
     injection['code_repo_commit'] = code_repo_commit
     injection['bootstrap_conf_root'] = conf_dir
@@ -180,10 +181,11 @@ class WieldProject(WielderBase):
 
         self.name = name
         self.locale = locale
+        self.unique_name = conf.unique_name
         self.conf = conf
         self.mode = mode if mode else WieldMode()
         self.conf_dir = conf_dir if conf_dir else f'{locale.project_root}conf'
-        self.plan_dir = plan_dir if plan_dir else f'{locale.project_root}plan'
+        self.plan_dir = plan_dir if plan_dir else f'{locale.project_root}plan/{conf.unique_name}'
 
         if conf.show_project:
             self.pretty()

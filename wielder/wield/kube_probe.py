@@ -59,6 +59,25 @@ def get_kube_res_by_name(context, namespace, kube_res, res_name):
 
             return res
 
+    logging.warning(
+        f"Didn't find a resource for:\n"
+        f" context: {context}\n"
+        f" namespace: {namespace}\n"
+        f" res_name: {res_name}\n"
+        f"Going for pods with the res type in them"
+    )
+
+    for res in resources['items']:
+
+        actual_res = res['metadata']['name']
+        if res_name in actual_res:
+
+            logging.info(f'Found res with similar name: {actual_res}')
+            s = json.dumps(res, indent=4, sort_keys=True)
+            logging.debug(s)
+
+            return res
+
 
 def is_kube_set_ready(context, namespace, kube_res, res_name):
     """
@@ -76,13 +95,19 @@ def is_kube_set_ready(context, namespace, kube_res, res_name):
 
     try:
 
-        status = get_kube_res_by_name(context, namespace, kube_res, res_name)['status']
+        status = get_kube_res_by_name(context, namespace, kube_res, res_name)
 
-        if status['replicas'] == status['currentReplicas']:
+        if status is not None:
 
-            if 'readyReplicas' in status and status['readyReplicas'] == status['currentReplicas']:
+            status = status['status']
 
-                return True
+            if status['replicas'] == status['currentReplicas']:
+
+                if 'readyReplicas' in status and status['readyReplicas'] == status['currentReplicas']:
+
+                    return True
+        else:
+            logging.warning(f'status came back None')
 
     except Exception as e:
         logging.warning(e)

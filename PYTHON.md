@@ -8,7 +8,7 @@ pyenv virtualenvs
 https://github.com/pyenv/pyenv-virtualenv
 ```
 brew install pyenv
-pyenv install 3.6.5 / 3.7.5 not tested with airflow / 3.8.0 (problems with hocon parsing)
+pyenv install 3.8.7
 brew install pyenv-virtualenv pyenv-virtualenvwrapper
 ```
 To config add these lines in .zshrc or .bashrc
@@ -19,7 +19,7 @@ eval "$(pyenv virtualenv-init -)"
 
 Create virtualenv
 ```
-pyenv virtualenv 3.7.5 wielder
+pyenv virtualenv 3.8.7 wielder
 pyenv activate wielder 
 ```
 
@@ -27,9 +27,7 @@ dependencies while in virtualenv active shell
 ```
 pip install --upgrade pip
 
-pip install gitpython rx Cython pyhocon flask confluent-kafka kafka-python Kazoo cassandra-driver kubernetes kafka
-
-pip install apache-airflow
+./Wielder/package_py.bash
 ```
 
 you can Either use wielder locally with .package_by_bash.sh script or pip install wielder
