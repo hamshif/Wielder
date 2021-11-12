@@ -17,6 +17,11 @@ class WrapHelm:
     def __init__(self, conf, values_path=None,
                  res_type=KubeResType.STATEFUL_SET, res_name=None):
 
+        unique_name = conf.unique_name
+        values_path = f'{values_path}/plan/{unique_name}'
+        os.makedirs(values_path, exist_ok=True)
+
+        self.unique_name = unique_name
         self.context = conf.kube_context
         self.repo = conf.repo
         self.repo_url = conf.repo_url
@@ -51,7 +56,11 @@ class WrapHelm:
 
             _cmd = f'helm --kube-context {self.context} get notes {self.release} -n {self.namespace}'
             logging.info(f'Running command:\n{_cmd}')
-            os.system(_cmd)
+
+            try:
+                os.system(_cmd)
+            except:
+                pass
             return
         elif helm_cmd == HelmCommand.INIT_REPO:
             _cmd = f'helm --kube-context {self.context} repo add {self.repo} {self.repo_url}'
@@ -92,7 +101,6 @@ class WrapHelm:
         logging.info(f'Running command:\n{_cmd}')
         os.system(_cmd)
 
-        # TODO take care of hanging when a lot of pods (bot)
         if helm_cmd == HelmCommand.UNINSTALL:
             observe = False
             os.system(f"kubectl --context {self.context} -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")

@@ -243,17 +243,14 @@ def get_aws_session(conf):
 
     return session
 
+    
+def copy_file_to_pod(pod, src, pod_dest, namespace, context):
+    os.system(f'kubectl --context {context} cp -n {namespace} {src} {pod.metadata.name}:{pod_dest}')
 
-def copy_file_to_pod(pod, file_full_path, pod_path, namespace):
-    os.system(f'kubectl cp -n {namespace} {file_full_path} {pod.metadata.name}:{pod_path}')
 
-
-def copy_file_to_pods(pods, src, pod_dest, namespace, context=None):
-    for p in pods:
-        if context is None:
-            os.system(f'kubectl cp -n {namespace} {src} {p.metadata.name}:{pod_dest}')
-        else:
-            os.system(f'kubectl cp --context {context} -n {namespace} {src} {p.metadata.name}:{pod_dest}')
+def copy_file_to_pods(pods, src, pod_dest, namespace, context):
+    for pod in pods:
+        copy_file_to_pod(pod, src, pod_dest, namespace, context)
 
 
 def send_command_to_pod(namespace, pod_name, context, command):
