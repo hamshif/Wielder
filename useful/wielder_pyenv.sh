@@ -33,10 +33,10 @@ if [[ "$existing_envs" == *"$v"* ]]; then
     echo "$v virtualenv exists."
 else
 
-#    pyenv install 3.7.5
+   pyenv install 3.8.7
 
     echo "$v virtualenv doesn't exist.";
-    pyenv virtualenv 3.7.5 $v
+    pyenv virtualenv 3.8.7 $v
 
 fi
 #pyenv virtualenv 3.7.5 $v
