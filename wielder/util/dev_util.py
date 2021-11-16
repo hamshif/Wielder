@@ -1,4 +1,6 @@
 import logging
+import os
+import shutil
 
 from wielder.util.cool import filter_walk
 from wielder.util.util import copy_file_to_pods
@@ -16,7 +18,7 @@ def is_valid_file(name, forbidden):
 
 def is_valid_dir(name, forbidden):
 
-    if name[0] == '.' or name in forbidden:
+    if name.endswith('.egg-info') or name[0] == '.' or name in forbidden:
 
         return False
 
@@ -24,6 +26,12 @@ def is_valid_dir(name, forbidden):
 
 
 def sync_filtered_to_kube(conf):
+
+    stage = '/tmp/pep_dev'
+
+    os.makedirs(stage, exist_ok=True)
+    shutil.rmtree(stage)
+    os.makedirs(stage, exist_ok=True)
 
     for sync_dir, sync_conf in conf.dev_sync.sync_dirs.items():
 
@@ -43,9 +51,21 @@ def sync_filtered_to_kube(conf):
 
         for dir_path, sub_dirs, file_names in gen:
 
+            nd = dir_path.replace(src, '')
+
+            stage_dest = f'{stage}/{nd}'
+            os.makedirs(stage_dest, exist_ok=True)
+
+            for file_name in file_names:
+
+                src_file = f'{dir_path}/{file_name}'
+                tmp_file = f'{stage_dest}/{file_name}'
+
+                shutil.copyfile(src_file, tmp_file)
+
+            print(f'dir_path: {nd}')
             print(f'sub_dir_names: {sub_dirs}')
             print(f'file_names: {file_names}')
-
 
 
 def sync_dev_to_kube(locale, conf):
