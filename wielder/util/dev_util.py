@@ -41,10 +41,10 @@ def sync_filtered_to_kube(conf):
             forbidden_files=ff
         )
 
-        for dirpath, dirnames, filenames in gen:
+        for dir_path, sub_dirs, file_names in gen:
 
-            print(f'dirnames: {dirnames}')
-            print(f'filenames: {filenames}')
+            print(f'sub_dir_names: {sub_dirs}')
+            print(f'file_names: {file_names}')
 
 
 
