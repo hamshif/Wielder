@@ -1,11 +1,52 @@
 import logging
 
+from wielder.util.cool import filter_walk
 from wielder.util.util import copy_file_to_pods
 from wielder.wield.deployer import get_pods
 
 
-# TODO Consider not copying all files at once and adding a filter for ignored stuff
-#  e.g. .iml and use staging tmp dir
+def is_valid_file(name, forbidden):
+
+    for f in forbidden:
+        if name.endswith(f):
+            return False
+
+    return True
+
+
+def is_valid_dir(name, forbidden):
+
+    if name[0] == '.' or name in forbidden:
+
+        return False
+
+    return True
+
+
+def sync_filtered_to_kube(conf):
+
+    for sync_dir, sync_conf in conf.dev_sync.sync_dirs.items():
+
+        src = sync_conf.src
+        dst = sync_conf.dst
+
+        fd = conf.ignored_dirs
+        ff = conf.ignored_files
+
+        gen = filter_walk(
+            src,
+            f_filter_dirs=is_valid_dir,
+            forbidden_dirs=fd,
+            f_filter_files=is_valid_file,
+            forbidden_files=ff
+        )
+
+        for dirpath, dirnames, filenames in gen:
+
+            print(f'dirnames: {dirnames}')
+            print(f'filenames: {filenames}')
+
+
 
 def sync_dev_to_kube(locale, conf):
     """
