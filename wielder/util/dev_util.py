@@ -27,16 +27,16 @@ def is_valid_dir(name, forbidden):
 
 def sync_filtered_to_kube(conf):
 
-    stage = '/tmp/pep_dev'
+    stage = '/tmp/wield_dev_stage'
 
     os.makedirs(stage, exist_ok=True)
     shutil.rmtree(stage)
     os.makedirs(stage, exist_ok=True)
 
-    for sync_dir, sync_conf in conf.dev_sync.sync_dirs.items():
+    for sync, sync_conf in conf.dev_sync.sync_dirs.items():
 
+        sync_dir = sync_conf.name
         src = sync_conf.src
-        dst = sync_conf.dst
 
         fd = conf.ignored_dirs
         ff = conf.ignored_files
@@ -49,11 +49,13 @@ def sync_filtered_to_kube(conf):
             forbidden_files=ff
         )
 
+        nd = None
+
         for dir_path, sub_dirs, file_names in gen:
 
             nd = dir_path.replace(src, '')
 
-            stage_dest = f'{stage}/{nd}'
+            stage_dest = f'{stage}/{sync_dir}/{nd}'
             os.makedirs(stage_dest, exist_ok=True)
 
             for file_name in file_names:
@@ -66,6 +68,22 @@ def sync_filtered_to_kube(conf):
             print(f'dir_path: {nd}')
             print(f'sub_dir_names: {sub_dirs}')
             print(f'file_names: {file_names}')
+
+        if nd is not None:
+
+            pod_search_name = sync_conf.pod_search_name
+            pods = get_pods(pod_search_name, conf.kube_context, False, sync_conf.namespace)
+
+            src = f'{stage}/{sync_dir}'
+            dst = sync_conf.dst
+
+            copy_file_to_pods(
+                pods=pods,
+                src=src,
+                pod_dest=dst,
+                namespace=sync_conf.namespace,
+                context=conf.kube_context
+            )
 
 
 def sync_dev_to_kube(locale, conf):
