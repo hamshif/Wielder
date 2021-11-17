@@ -260,6 +260,11 @@ def send_command_to_pod(namespace, pod_name, context, command):
     os.system(f'kubectl exec --context {context} -n {namespace} {pod_name} -- {command}')
 
 
+def send_command_to_pods(namespace, pods, context, command):
+    for pod in pods:
+        send_command_to_pod(namespace, pod.metadata.name, context, command)
+
+
 def create_pyenv(name, py_version):
 
     wield_path = get_wield_root()
