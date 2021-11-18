@@ -62,6 +62,36 @@ class Bucketeer:
             for file in files:
                 self.s3.upload_file(os.path.join(root, file), bucket_name, f'{prefix}{file}')
 
+    def download_objects(self, bucket_name, prefix='', dest='/tmp'):
+        """
+        Download a chunk of objects
+
+        :param prefix:
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+        try:
+
+            names = self.get_object_names(bucket_name, prefix)
+
+            for name in names:
+
+                print(name)
+
+                obj_path = name[:name.rindex('/')]
+                pdest = f'{dest}/{obj_path}'
+                print(obj_path)
+                # create nested directory structure
+                os.makedirs(pdest, exist_ok=True)
+
+                # save file with full path locally
+                self.s3.download_file(bucket_name, name, f'{dest}/{name}')
+
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
+
     def delete_file(self, bucket_name, file_name):
         """Empty an S3 bucket
         :param file_name:
