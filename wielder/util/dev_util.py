@@ -25,15 +25,42 @@ def is_valid_dir(name, forbidden):
     return True
 
 
-def sync_filtered_to_kube(conf):
+def sync_filtered_to_kube(conf, sync_list=None):
+    """
+    Synchronises select files (code & configuration) between local workstation and Kubernetes pods
+    Files from a root directory are listed, filtering directories and files from configuration,
+    into a tmp staging directory and then copied whole into pods (kubectl)
 
+    :param conf: hocon configuration as in the example below.
+    :param sync_list: If supplied overrides configuration e.g. [airflow_Wielder]
+    :return:
+
+    dev_sync: {
+
+      sync_list: []
+
+      sync_dirs: {
+
+        airflow_Wielder: {
+
+          name: Wielder
+          namespace: airflow
+          pod_search_name: airflow-worker
+
+          src: ${super_project_root}/Wielder
+          dst: /data/${super_project_name}
+        }
+    }
+
+    """
     stage = '/tmp/wield_dev_stage'
 
     os.makedirs(stage, exist_ok=True)
     shutil.rmtree(stage)
     os.makedirs(stage, exist_ok=True)
 
-    sync_list = conf.dev_sync.sync_list
+    if sync_list is None:
+        sync_list = conf.dev_sync.sync_list
 
     for sync, sync_conf in conf.dev_sync.sync_dirs.items():
 
@@ -91,44 +118,3 @@ def sync_filtered_to_kube(conf):
         else:
             logging.debug(f'{sync} wont be loaded')
 
-
-def sync_dev_to_kube(locale, conf):
-    """
-    Synchronises files (code & configuration) from a development workstation and kubernetes pods
-    for development purposes
-
-    # Example of config need to be add to developer.conf
-    dev: {
-
-        push: true
-        dev_mode: false # if in dev mode then copy files to pod
-        pod_names: [airflow-worker] # list of pods in which we need to push modules
-        context: kind-pepticom-local
-
-        airflow-worker {
-               mount_folders: false # do we need mount pvc and classes to airflow-worker (custom parameter)
-               module_list: [dud, pep-services, Wielder, pep-terraform]
-               namespace: airflow
-               pod_destination: /tmp/duds
-          }
-    }
-    :param locale:
-    :param conf:
-    :return:
-    """
-
-    if conf.dev.push:
-
-        for pod_search_name in conf.dev.pod_names:
-
-            pod_settings = conf.dev[pod_search_name]
-            pods = get_pods(pod_search_name, conf.kube_context, False, pod_settings.namespace)
-
-            for module_name in pod_settings.module_list:
-                copy_file_to_pods(
-                    pods=pods,
-                    src=f'{locale.super_project_root}/{module_name}',
-                    pod_dest=f'{pod_settings.pod_destination}',
-                    namespace=pod_settings.namespace,
-                    context=conf.kube_context
-                )

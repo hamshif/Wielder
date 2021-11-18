@@ -5,7 +5,6 @@ import os
 from botocore.exceptions import ClientError
 
 from wielder.util.boto3_session_cache import boto3_client
-from wielder.util.log_util import setup_logging
 from wielder.util.util import get_aws_session
 
 DEFAULT_REGION = "us-east-2"
@@ -66,6 +65,7 @@ class Bucketeer:
         """
         Download a chunk of objects
 
+        :param dest: local destination prefix
         :param prefix:
         :param bucket_name: Bucket to deleted
         :return: True if bucket deleted, else False
