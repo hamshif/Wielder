@@ -135,9 +135,11 @@ def aws_push_image(aws_conf, name, tag):
     logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {name} --region {region};')
 
 
-def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
+def pack_image(image_root, name, image_name=None, force=False, tag='dev', runtime_env=None, kind_context='kind'):
     """
 
+    :param kind_context: 
+    :param runtime_env:
     :param image_name:
     :param tag:
     :param name: The name of the directory in which all the necessary resources for packing the image reside
@@ -174,6 +176,14 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev'):
         logging.info(f'running:\n{_cmd}')
 
         os.system(_cmd)
+
+        if runtime_env is not None and runtime_env == 'kind':
+
+            _cmd = f'kind load docker-image {image_name}:{tag} --name {kind_context}'
+
+            logging.info(f'running:\n{_cmd}')
+
+            os.system(_cmd)
 
 
 if __name__ == "__main__":
