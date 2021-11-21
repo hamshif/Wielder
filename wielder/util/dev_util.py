@@ -25,14 +25,14 @@ def is_valid_dir(name, forbidden):
     return True
 
 
-def sync_filtered_to_kube(conf, sync_list=None):
+def sync_filtered_to_kube(conf, module_name):
     """
     Synchronises select files (code & configuration) between local workstation and Kubernetes pods
     Files from a root directory are listed, filtering directories and files from configuration,
     into a tmp staging directory and then copied whole into pods (kubectl)
 
     :param conf: hocon configuration as in the example below.
-    :param sync_list: If supplied overrides configuration e.g. [airflow_Wielder]
+    :param module_name
     :return:
 
     dev_sync: {
@@ -59,10 +59,11 @@ def sync_filtered_to_kube(conf, sync_list=None):
     shutil.rmtree(stage)
     os.makedirs(stage, exist_ok=True)
 
-    if sync_list is None:
-        sync_list = conf.dev_sync.sync_list
+    dev_conf = conf[module_name].dev
 
-    for sync, sync_conf in conf.dev_sync.sync_dirs.items():
+    sync_list = dev_conf.sync_list
+
+    for sync, sync_conf in dev_conf.sync_dirs.items():
 
         if sync in sync_list:
 
