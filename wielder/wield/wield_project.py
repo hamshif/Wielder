@@ -58,29 +58,7 @@ def make_sure_project_local_conf_exists(locale, bootstrap_env, runtime_env, depl
 
         logging.info(f'\nCould not find file: {local_path}\nCreating it on the fly!\n')
 
-        if not runtime_env:
-            runtime_env = 'docker'
-
-        if not deploy_env:
-            deploy_env = 'dev'
-
-        if not bootstrap_env:
-            bootstrap_env = 'local'
-
-        project_file = f'{locale.project_root}conf/deploy_env/{deploy_env}/project.conf'
-
-        # TODO use in the future
-        tmp_conf = Cf.parse_file(project_file)
-
         local_properties = get_basic_module_properties()
-        # TODO
-        # namespace = 'default'
-        #
-        # local_properties.append(f'namespace : {namespace}')
-        #
-        # relative_code_path = tmp_conf[self.name]['relativeCodePath']
-        #
-        # local_code_path = f'{self.super_project_root}/{relative_code_path}'
 
         with open(local_path, 'wt') as file_out:
 
