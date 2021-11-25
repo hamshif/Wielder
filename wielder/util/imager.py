@@ -4,6 +4,7 @@ import os
 from shutil import rmtree, copyfile, copytree
 from wielder.util.commander import async_cmd
 from wielder.util.log_util import setup_logging
+from wielder.util.util import DirContext
 from wielder.wield.enumerator import CloudProvider
 
 
@@ -184,6 +185,52 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev', runtim
             logging.info(f'running:\n{_cmd}')
 
             os.system(_cmd)
+
+
+def shallow(base, tag, host_path, host_target, image_dest):
+    """
+    Use with caution!!!
+    This function builds another layer on an existing image.
+    The base looks like this:
+        ARG BASE
+        ARG TAG
+        ARG HOST_PATH
+        ARG IMAGE_PATH
+
+        FROM ${BASE}:${TAG}
+        COPY ${TARGET} ${IMAGE_PATH}
+
+    Intended use case is to change configuration on an existing image
+
+    :param host_target: The file or directory to be added to the image
+    :param base: image name
+    :param tag: image tag
+    :param host_path:
+    :param image_dest:
+    :return:
+    """
+
+    _cmd = f'docker build . -t {base}:{tag} ' \
+           f'--build-arg BASE={base} ' \
+           f'--build-arg TAG={tag} ' \
+           f'--build-arg HOST_TARGET={host_target} ' \
+           f'--build-arg IMAGE_DEST={image_dest} '
+
+    logging.info(f'running command:\n{_cmd}')
+
+    here = __file__
+    i = here.rfind('/')
+    here = here[:i]
+    _shallow = f'{here}/shallow'
+
+    logging.debug(f'shallow is:\n{_shallow}')
+
+    copyfile(f'{_shallow}/Dockerfile',  f'{host_path}/Dockerfile')
+
+    with DirContext(host_path):
+
+        os.system('ls -la')
+        os.system(_cmd)
 
 
 if __name__ == "__main__":
