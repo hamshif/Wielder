@@ -148,6 +148,8 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
         injection_str=injection_str
     )
 
+    conf['unique_name_underscore'] = conf.unique_name.lower()
+
     return conf
 
 
