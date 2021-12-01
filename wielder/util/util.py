@@ -245,7 +245,10 @@ def get_aws_session(conf):
 
     
 def copy_file_to_pod(pod, src, pod_dest, namespace, context):
-    os.system(f'kubectl --context {context} cp -n {namespace} {src} {pod.metadata.name}:{pod_dest}')
+
+    _cmd = f'kubectl --context {context} cp -n {namespace} {src} {pod.metadata.name}:{pod_dest}'
+    logging.info(_cmd)
+    os.system(_cmd)
 
 
 def copy_file_to_pods(pods, src, pod_dest, namespace, context):
@@ -255,6 +258,11 @@ def copy_file_to_pods(pods, src, pod_dest, namespace, context):
 
 def send_command_to_pod(namespace, pod_name, context, command):
     os.system(f'kubectl exec --context {context} -n {namespace} {pod_name} -- {command}')
+
+
+def send_command_to_pods(namespace, pods, context, command):
+    for pod in pods:
+        send_command_to_pod(namespace, pod.metadata.name, context, command)
 
 
 def create_pyenv(name, py_version):

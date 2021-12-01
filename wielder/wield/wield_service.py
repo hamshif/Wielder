@@ -65,12 +65,6 @@ class WieldService(WielderBase):
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
             module_paths.append(self.local_mount)
 
-        self.local_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-local.conf'
-        module_paths.append(self.local_path)
-
-        self.local_path = self.make_sure_module_local_conf_exists()
-        module_paths.append(self.local_path)
-
         if self.service_mode.project_override:
 
             logging.info(f'\nTo Override module conf with project conf use\n{locale.unique_conf_root}')
@@ -83,6 +77,10 @@ class WieldService(WielderBase):
             )
 
         else:
+
+            self.local_path = self.make_sure_module_local_conf_exists()
+            self.local_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-local.conf'
+            module_paths.append(self.local_path)
 
             self.conf = get_conf_ordered_files(module_paths, injection=injection)
 
