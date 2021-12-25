@@ -59,7 +59,17 @@ class Bucketeer:
 
         for root, dirs, files in os.walk(source):
             for file in files:
-                self.s3.upload_file(os.path.join(root, file), bucket_name, f'{prefix}{file}')
+
+                sub = root.replace(source, '')
+
+                if sub == '/':
+                    sub = ''
+                else:
+                    sub = f'{sub}/'
+
+                dest = f'{prefix}{sub}{file}'
+                print(dest)
+                self.s3.upload_file(os.path.join(root, file), bucket_name, dest)
 
     def download_objects(self, bucket_name, prefix='', dest='/tmp'):
         """
