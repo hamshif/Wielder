@@ -71,35 +71,60 @@ class Bucketeer:
                 print(dest)
                 self.s3.upload_file(os.path.join(root, file), bucket_name, dest)
 
-    def download_objects(self, bucket_name, prefix='', dest='/tmp'):
+    def download_object(self, bucket_name, key, name, dest='/tmp'):
         """
         Download a chunk of objects
 
+        :param key:
+        :param name: the object's full key
         :param dest: local destination prefix
-        :param prefix:
         :param bucket_name: Bucket to deleted
         :return: True if bucket deleted, else False
         """
         try:
 
-            names = self.get_object_names(bucket_name, prefix)
+            print(name)
 
-            for name in names:
+            # create nested directory structure
+            os.makedirs(dest, exist_ok=True)
 
-                print(name)
-
-                obj_path = name[:name.rindex('/')]
-                pdest = f'{dest}/{obj_path}'
-                print(obj_path)
-                # create nested directory structure
-                os.makedirs(pdest, exist_ok=True)
-
-                # save file with full path locally
-                self.s3.download_file(bucket_name, name, f'{dest}/{name}')
+            # save file with full path locally
+            self.s3.download_file(bucket_name, f'{key}/{name}', f'{dest}/{name}')
 
         except ClientError as e:
             logging.error(e)
             return False
+        return True
+
+    def download_objects(self, bucket_name, root_key='', dest='/tmp'):
+        """
+        Download a chunk of objects
+
+        :param dest: local destination prefix
+        :param root_key:
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+
+        try:
+
+            names = self.get_object_names(bucket_name, root_key)
+
+            for name in names:
+
+                obj_path = name[:name.rindex('/')]
+
+                obj_name = name.split('/')[-1]
+                logging.debug(f'obj_path: {obj_path}\nobj_name: {obj_name}')
+
+                ok = self.download_object(bucket_name, obj_path, obj_name, dest)
+                if not ok:
+                    return False
+
+        except ClientError as e:
+            logging.error(e)
+            return False
+
         return True
 
     def delete_file(self, bucket_name, file_name):
