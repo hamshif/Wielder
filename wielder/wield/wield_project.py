@@ -127,6 +127,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
         injection_str = wg.as_hocon_injection()
 
         code_repo_commit = wg.get_submodule_commit(locale.code_repo_name)
+        wielder_commit = wg.get_submodule_commit('Wielder')
     except Exception as e:
 
         logging.error(e)
@@ -139,6 +140,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     injection['super_project_name'] = locale.super_project_name
     injection['code_repo_name'] = locale.code_repo_name
     injection['conf_dir'] = unique_conf
+    injection['wielder_commit'] = wielder_commit
     injection['code_repo_commit'] = code_repo_commit
     injection['bootstrap_conf_root'] = conf_dir
 
