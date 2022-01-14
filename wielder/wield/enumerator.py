@@ -1,6 +1,20 @@
 from enum import Enum
 
 
+class RuntimeEnv(Enum):
+    """
+    This class bears the same name as wielder enum, here it encompasses the differences between the local hardware and it's GUI.
+    """
+
+    MAC = 'mac'
+    UBUNTU = 'ubuntu'
+    DOCKER = 'docker'
+    KIND = 'kind'
+    AWS = 'aws'
+    GCP = 'gcp'
+    AZURE = 'azure'
+
+
 class CloudProvider(Enum):
     GCP = 'gcp'
     AWS = 'aws'
