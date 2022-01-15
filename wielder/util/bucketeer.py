@@ -20,6 +20,7 @@ class Bucketeer:
     def __init__(self, conf=None):
 
         if conf is None:
+            logging.info('conf is None getting default client')
             self.s3 = boto3_client(service_name='s3')
         else:
 
