@@ -138,7 +138,7 @@ def get_kube_parser():
     parser.add_argument(
         '-re', '--runtime_env',
         type=str,
-        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind'],
+        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
         help='Runtime environment refers to where the Kubernetes cluster is running',
         default='docker'
     )

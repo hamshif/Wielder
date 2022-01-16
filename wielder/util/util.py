@@ -232,7 +232,9 @@ def get_random_string(length):
 
 def get_aws_session(conf):
 
-    cred = get_aws_mfa_cred(conf.terraformer.super_cluster.cred_role)
+    role = conf.terraformer.super_cluster.cred_role
+
+    cred = get_aws_mfa_cred(role)
 
     session = boto3.Session(
         aws_access_key_id=cred["AWS_ACCESS_KEY_ID"],
