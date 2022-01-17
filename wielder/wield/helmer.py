@@ -79,6 +79,11 @@ class WrapHelm:
                 helm_cmd = HelmCommand.UPGRADE
         else:
             if helm_cmd == HelmCommand.UPGRADE:
+
+                _cmd = f'helm repo update {self.repo}'
+
+                os.system(_cmd)
+
                 helm_cmd = HelmCommand.INSTALL
 
         _cmd = f'helm --kube-context {self.context} {helm_cmd.value} {self.release} -n {self.namespace}'
