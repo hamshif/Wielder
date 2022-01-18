@@ -70,7 +70,7 @@ class WrapHelm:
             return
 
         try:
-            data = get_kube_res_by_name(self.context, self.namespace, self.res_type, self.release)
+            data = get_kube_res_by_name(self.context, self.namespace, self.res_type, self.res_name)
         except:
             data = None
 

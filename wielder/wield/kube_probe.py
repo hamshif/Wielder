@@ -24,8 +24,12 @@ def get_kube_namespace_resources_by_type(context, namespace, kube_res, verbose=F
     """
 
     res_bytes = subprocess_cmd(f'kubectl --context {context} get {kube_res} -n {namespace} -o json')
-    res_json = res_bytes.decode('utf8').replace("'", '"')
-    data = json.loads(res_json)
+
+    try:
+        res_json = res_bytes.decode('utf8').replace("'", '"')
+        data = json.loads(res_json)
+    except Exception as e:
+        data = json.loads(res_bytes)
 
     if verbose:
         s = json.dumps(data, indent=4, sort_keys=True)
