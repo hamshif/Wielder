@@ -81,6 +81,8 @@ class WieldPlan(WielderBase):
 
     def apply(self, observe_deploy=False, observe_svc=False, service_only=False):
 
+        os.system(f"kubectl --context {self.context} create namespace {self.namespace};")
+
         if service_only:
 
             plan_path = self.to_plan_path(res='service')
