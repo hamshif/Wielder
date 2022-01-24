@@ -15,7 +15,7 @@ from pyhocon.tool import HOCONConverter as Hc
 class WrapHelm:
 
     def __init__(self, conf, values_path=None,
-                 res_type=KubeResType.STATEFUL_SET, res_name=None):
+                 res_type=KubeResType.STATEFUL_SET):
 
         unique_name = conf.unique_name
         values_path = f'{values_path}/plan/{unique_name}'
@@ -34,10 +34,17 @@ class WrapHelm:
         self.values_path = f'{values_path}/{self.release}-values.yaml'
         self.res_type = res_type.value
 
-        if res_name is None:
-            res_name = self.release
+        try:
+            self.res_name = conf.res_name
+        except Exception:
+            self.res_name = self.release
 
-        self.res_name = res_name
+        try:
+            self.observe_timeout = conf.observe_timeout
+        except Exception:
+            self.observe_timeout = 400
+
+        logging.debug('constructor finished')
 
     def plan(self):
 
@@ -48,7 +55,7 @@ class WrapHelm:
         with open(self.values_path, 'wt') as file_out:
             file_out.write(plan)
 
-    def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False, observe_timeout=400, delete_pvc=True):
+    def wield(self, helm_cmd=HelmCommand.INSTALL, observe=False, delete_pvc=True):
 
         self.plan()
 
@@ -115,5 +122,9 @@ class WrapHelm:
 
         if observe:
 
-            observe_set(self.context, self.namespace, self.res_type, self.res_name, observe_timeout)
+            self.observe()
+
+    def observe(self):
+
+        observe_set(self.context, self.namespace, self.res_type, self.res_name, self.observe_timeout)
 
