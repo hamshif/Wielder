@@ -105,9 +105,14 @@ def is_kube_set_ready(context, namespace, kube_res, res_name):
 
             status = status['status']
 
-            if status['replicas'] == status['currentReplicas']:
+            if 'currentReplicas' in status:
+                actual_replicas = status['currentReplicas']
+            else:
+                actual_replicas = status['updatedReplicas']
 
-                if 'readyReplicas' in status and status['readyReplicas'] == status['currentReplicas']:
+            if status['replicas'] == actual_replicas:
+
+                if 'readyReplicas' in status and status['readyReplicas'] == actual_replicas:
 
                     return True
         else:
