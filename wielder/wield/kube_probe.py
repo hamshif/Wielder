@@ -6,7 +6,30 @@ import time
 
 from wielder.util.commander import subprocess_cmd
 from wielder.util.log_util import setup_logging
-from wielder.wield.enumerator import KubeResType
+from wielder.wield.enumerator import KubeResType, KubeJobStatus
+
+
+def is_job_complete(context, namespace, res_name):
+
+    status = get_job_status(context, namespace, res_name)
+
+    if status == KubeJobStatus.COMPLETE.value:
+
+        return True
+
+    return False
+
+
+def get_job_status(context, namespace, res_name):
+
+    job = get_kube_res_by_name(context, namespace, KubeResType.JOBS.value, res_name)
+
+    status = job['status']['conditions'][0]['type']
+
+    logging.info(f'context = {context} namespace = {namespace} res_name = {res_name}')
+    logging.info(f'status: {status}')
+
+    return status
 
 
 def get_kube_namespace_resources_by_type(context, namespace, kube_res, verbose=False):

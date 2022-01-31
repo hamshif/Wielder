@@ -37,6 +37,7 @@ class KubeResType(Enum):
     PV = 'pv'
     PVC = 'pvc'
     STORAGE = 'storageclasses'
+    JOBS = 'jobs'
 
 
 class PlanType(Enum):
@@ -96,6 +97,12 @@ class HelmCommand(Enum):
 class CredType(Enum):
 
     AWS_MFA = "aws_mfa"
+
+
+class KubeJobStatus(Enum):
+
+    COMPLETE = 'Complete'
+    FAILED = 'Failed'
 
 
 def wield_to_terraform(action):
