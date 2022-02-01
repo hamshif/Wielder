@@ -102,17 +102,21 @@ def wield_deployment_batches(conf, action, key, func_map):
         if parallel:
             deploy_batch(action, batch, func_map)
 
-        for dep in batch:
-            logging.info(f"Starting observation of batch {batch}.")
+        observe = False if action == WieldAction.DELETE else True
 
-            deploy_func = func_map[dep]
-            print(f'{dep}: {deploy_func}')
+        if observe:
 
-            deploy_func(
-                action=action,
-                observe=True,
-                auto_approve=True
-            )
+            for dep in batch:
+                logging.info(f"Starting observation of batch {batch}.")
 
-        print(f'\nbatch complete\n')
+                deploy_func = func_map[dep]
+                print(f'{dep}: {deploy_func}')
+
+                deploy_func(
+                    action=action,
+                    observe=observe,
+                    auto_approve=True
+                )
+
+            print(f'\nbatch complete\n')
 
