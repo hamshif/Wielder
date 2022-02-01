@@ -22,14 +22,32 @@ def is_job_complete(context, namespace, res_name):
 
 def get_job_status(context, namespace, res_name):
 
-    job = get_kube_res_by_name(context, namespace, KubeResType.JOBS.value, res_name)
+    complete = KubeJobStatus.FAILED.value
+    counter = 0
 
-    status = job['status']['conditions'][0]['type']
+    job_active = True
+
+    while job_active:
+
+        job = get_kube_res_by_name(context, namespace, KubeResType.JOBS.value, res_name)
+
+        status = job['status']
+
+        if 'active' in status:
+
+            logging.info(f'context = {context} namespace = {namespace} res_name = {res_name}')
+            logging.info(f'status: {status},')
+            logging.info(f'{counter} Not ready sleeping for 5')
+            time.sleep(5)
+            counter = counter + 1
+        else:
+            complete = status['conditions'][0]['type']
+            job_active = False
 
     logging.info(f'context = {context} namespace = {namespace} res_name = {res_name}')
-    logging.info(f'status: {status}')
+    logging.info(f'status: {complete}')
 
-    return status
+    return complete
 
 
 def get_kube_namespace_resources_by_type(context, namespace, kube_res, verbose=False):
