@@ -58,7 +58,7 @@ class WieldPlan(WielderBase):
 
             self.plan_paths.append(plan_path)
 
-    def wield(self, action=WieldAction.PLAN, auto_approve=False, service_only=False):
+    def wield(self, action=WieldAction.PLAN, auto_approve=False, service_only=False, observe=None):
 
         if not isinstance(action, WieldAction):
             raise TypeError("action must of type WieldAction")
@@ -71,8 +71,11 @@ class WieldPlan(WielderBase):
 
         elif action == action.APPLY:
 
+            if observe is None:
+                observe = self.module_conf.observe_deploy
+
             self.apply(
-                self.module_conf.observe_deploy,
+                observe,
                 self.module_conf.observe_svc,
                 service_only
             )
