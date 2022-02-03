@@ -97,6 +97,13 @@ def wield_deployment_batches(conf, action, key, func_map):
     if action == WieldAction.DELETE:
         batches = batches[::-1]
 
+        new_batches = []
+
+        for batch in batches:
+            new_batches.append(batch[::-1])
+
+        batches = new_batches
+
     for batch in batches:
 
         if parallel:
