@@ -118,7 +118,15 @@ class WrapHelm:
             os.system(f"kubectl --context {self.context} -n {self.namespace} delete po -l app={self.res_name} --force --grace-period=0;")
 
             if delete_pvc:
-                os.system(f"kubectl --context {self.context} -n {self.namespace} delete pvc --all;")
+
+                pvc = get_kube_res_by_name(self.context, self.namespace, 'pvc', self.release)
+
+                if pvc is not None:
+
+                    pvc_name = pvc['metadata']['name']
+                    _cmd = f"kubectl --context {self.context} -n {self.namespace} delete pvc {pvc_name};"
+                    logging.info(f'Running cmd\n{_cmd}')
+                    os.system(_cmd)
 
         if observe:
 
