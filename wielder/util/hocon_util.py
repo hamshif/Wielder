@@ -1,5 +1,9 @@
 import logging
 
+import json
+import yaml
+import pyhocon
+from pyhocon.tool import HOCONConverter as Hc
 from pyhocon import ConfigFactory as Cf
 
 
@@ -40,6 +44,7 @@ def inject_vars(base, injection):
     return base
 
 
+# TODO use resolve!!!
 def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     """
     give a list of ordered configuration files creates a config-tree
@@ -60,4 +65,49 @@ def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     logging.info(f'conf Hocon object:\n{conf}')
 
     return conf
+
+
+def yaml_file_to_hocon(src_path):
+
+    with open(src_path, 'r') as yaml_in:
+
+        from_yaml = yaml.safe_load(yaml_in)
+        json_string = json.dumps(from_yaml)
+        hocon_object = pyhocon.ConfigFactory.parse_string(json_string)
+        return hocon_object
+
+
+def hocon_to_file(src_path):
+
+    conf = yaml_file_to_hocon(src_path)
+    hocon_dest = src_path.replace('.yaml', '.conf')
+
+    with open(hocon_dest, 'w') as file_hocon:
+
+        file_hocon.write(Hc().to_hocon(conf))
+
+    return hocon_dest
+
+
+basic_native_types = (str, int, float, bool)
+
+
+def conf_to_native(conf, vessel={}):
+    """
+    Converts Hocon Tree to basic native types.
+    Uses tail recursion.
+    Best used without specifying vessel.
+    :param conf:
+    :param vessel: The dict to be returned Defaults to
+    :return: vessel with native fields extracted from Hocon
+    """
+
+    for k in conf:
+        v = conf[k]
+        if type(v) in basic_native_types or type(v) == list:
+            vessel[k] = v
+        else:
+            vessel[k] = conf_to_native(v)
+
+    return vessel
 
