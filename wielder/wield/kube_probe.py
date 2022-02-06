@@ -124,9 +124,10 @@ def get_kube_res_by_name(context, namespace, kube_res, res_name):
             return res
 
 
-def is_kube_set_ready(context, namespace, kube_res, res_name):
+def is_kube_set_ready(context, namespace, kube_res, res_name, enough_replicas=20):
     """
     Checks if the kubernetes resource e.g. statefulset is ready
+    :param enough_replicas: max number of replicas to avoid tracking large incomplete sets
     :param context: Kubernetes context
     :param res_name: The name of the resource
     :type res_name: str
@@ -151,11 +152,15 @@ def is_kube_set_ready(context, namespace, kube_res, res_name):
             else:
                 actual_replicas = status['updatedReplicas']
 
-            if status['replicas'] == actual_replicas:
+            if actual_replicas == status['replicas']:
 
                 if 'readyReplicas' in status and status['readyReplicas'] == actual_replicas:
 
                     return True
+            elif actual_replicas == enough_replicas:
+
+                logging.info(f"Detected {enough_replicas}, considering the set {res_name} OK")
+                return True
         else:
             logging.warning(f'status came back None')
 
