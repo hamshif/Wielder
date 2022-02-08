@@ -52,8 +52,6 @@ def deploy_batch(action, batch, func_map):
     print(f"From main: {format(current_thread())}")
     print(str(new_dict))
 
-    print('asswipe')
-
     # with concurrent.futures.ProcessPoolExecutor(len(init_tuples)) as executor:
     #
     #     composed = source.pipe(
