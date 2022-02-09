@@ -65,10 +65,10 @@ class Sparker:
     It currently supports AWS S3, Later on we can add more Cloud providers
     """
 
-    def __init__(self, conf=None):
+    def __init__(self, conf):
 
-        if conf is None:
-            session = boto3.Session()
+        if conf.runtime_env == 'aws':
+            session = boto3.Session(region_name=conf.aws_zone)
         else:
             session = get_aws_session(conf)
 
