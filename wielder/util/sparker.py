@@ -7,6 +7,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from wielder.util.util import get_aws_session
+from wielder.wield.enumerator import RuntimeEnv
 
 
 class EMRClusterStatus(Enum):
@@ -65,9 +66,9 @@ class Sparker:
     It currently supports AWS S3, Later on we can add more Cloud providers
     """
 
-    def __init__(self, conf):
+    def __init__(self, conf, launch_env=RuntimeEnv.MAC):
 
-        if conf.runtime_env == 'aws':
+        if launch_env == RuntimeEnv.AWS:
             session = boto3.Session(region_name=conf.aws_zone)
         else:
             session = get_aws_session(conf)
