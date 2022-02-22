@@ -3,23 +3,16 @@
 __author__ = 'Gideon Bar'
 
 import logging
-import os
 from enum import Enum
 import argparse
-import yaml
-from collections import namedtuple
-from kubernetes import client, config
+from kubernetes import config
 
 from wielder.util.log_util import setup_logging
 from wielder.util.commander import async_cmd
 
-from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework
+from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework, LocalKube
 
-
-CONTEXT_MINI = 'minikube'
-CONTEXT_DOCKER = 'docker-desktop'
-
-LOCAL_CONTEXTS = [CONTEXT_DOCKER, CONTEXT_MINI]
+local_kubes = [e.value for e in LocalKube]
 
 
 class LogLevel(Enum):
@@ -135,13 +128,6 @@ def get_kube_parser():
     )
 
     parser.add_argument(
-        '-cpr', '--cloud_provider',
-        type=str,
-        choices=['gcp', 'aws', 'azure'],
-        help='Cloud provider will only mean something if not local:'
-    )
-
-    parser.add_argument(
         '-uc', '--unique_conf',
         type=str,
         help='The name of the overriding config dir, default: default_conf'
@@ -151,6 +137,7 @@ def get_kube_parser():
         default='default_conf'
     )
 
+    # TODO deprecate carefully
     parser.add_argument(
         '-ll', '--log_level',
         type=LogLevel,
@@ -218,12 +205,12 @@ def sanity(conf):
 
     if conf.deploy_env == 'local':
 
-        if conf.kube_context not in LOCAL_CONTEXTS:
+        if conf.kube_context not in local_kubes:
 
             logging.error(
                 f"There is a discrepancy between deploy_env: {conf.deploy_env} "
                 f"and kube_context: {conf.kube_context}.\n"
-                f"If you meant to one of these:\n{LOCAL_CONTEXTS} run:\n"
+                f"If you meant to one of these:\n{local_kubes} run:\n"
                 f"kubectl config use-context <some local-context>\n"
                 f"!!! Exiting ...")
             exit(1)
