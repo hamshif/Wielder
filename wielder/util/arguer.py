@@ -82,17 +82,6 @@ def destroy_sanity(conf):
 
         exit(1)
 
-    # TODO enable this
-    # elif conf.deploy_env is not 'local' or conf.kube_context is not "minikube":
-    #
-    #     confirm_destroy = input('Enter Y if you wish to destroy')
-    #
-    #     if confirm_destroy is not 'Y':
-    #
-    #         logging.error('Exiting')
-    #
-    #         exit(1)
-
 
 def get_kube_parser():
 
@@ -119,20 +108,6 @@ def get_kube_parser():
              'apply: deploys the plan\n'
              'delete: deletes the deployed resources',
         default=WieldAction.PLAN
-    )
-
-    parser.add_argument(
-        '-cf', '--conf_file',
-        type=str,
-        help='Full path to config file with all arguments.\nCommandline args override those in the file.'
-    )
-
-    parser.add_argument(
-        '-kc', '--kube_context',
-        type=str,
-        help=f'Kubernetes context i.e. run locally on docker or in cloud e.g.'
-             '\n{CONTEXT_DOCKER}',
-        default=CONTEXT_DOCKER
     )
 
     parser.add_argument(
@@ -167,38 +142,13 @@ def get_kube_parser():
     )
 
     parser.add_argument(
-        '-gp', '--gcp_project',
+        '-uc', '--unique_conf',
         type=str,
-        choices=['wielder-dev', 'wielder-gcp-poc'],
-        help='GCP project for GKE means:\n'
-             'Which project to use for deploy and resources.'
-    )
-
-    parser.add_argument(
-        '-edb', '--enable_debug',
-        type=bool,
-        default=False,
-        help='Enabling Debug ports for remote debugging:'
-    )
-
-    parser.add_argument(
-        '-edv', '--enable_dev',
-        type=bool,
-        help='Enabling Development on pods e.g. running a dud while loop instead of the server process:'
-    )
-
-    parser.add_argument(
-        '-lm', '--local_mount',
-        type=bool,
-        default=False,
-        help='If kubernetes should mount a local directory to the docker, used for local development'
-    )
-
-    parser.add_argument(
-        '-ds', '--deploy_strategy',
-        type=str,
-        help='Deployment strategy e.g. "lean" means:\n'
-             'single mongo and redis pods to conserve resources while developing or testing'
+        help='The name of the overriding config dir, default: default_conf'
+             'By convention use a string describing an underscore separated list of keys.'
+             'Used to define a unique configuration namespace e.g terraform backend, kube context.'
+             'Facilitates concurrent deployments.',
+        default='default_conf'
     )
 
     parser.add_argument(
@@ -207,16 +157,6 @@ def get_kube_parser():
         choices=list(LogLevel),
         help='LogLevel: as in Python logging',
         default=LogLevel.INFO
-    )
-
-    parser.add_argument(
-        '-uc', '--unique_conf',
-        type=str,
-        help='The name of the overriding config dir, default: default_conf'
-             'By convention use a string describing an underscore separated list of keys.'
-             'Used to define a unique configuration namespace e.g terraform backend, kube context.'
-             'Facilitates concurrent deployments.',
-        default='default_conf'
     )
 
     return parser
@@ -300,73 +240,6 @@ def sanity(conf):
         )
         exit(1)
 
-    # TODO add sanity for debug flag
-    # TODO check if configured images exist in repository using docker images | grep or gcloud ...
-
-
-def process_args(cmd_args, perform_sanity=True):
-
-    if cmd_args.conf_file is None:
-
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-
-        cmd_args.conf_file = dir_path + '/wielder_conf.yaml'
-
-    log_level = convert_log_level(cmd_args.log_level)
-
-    logger = logging.getLogger()
-
-    logger.setLevel(log_level)
-
-    for handler in logger.handlers:
-        handler.setLevel(log_level)
-
-    logging.debug(f'Set Log level to: {cmd_args.log_level} {log_level}')
-
-    with open(cmd_args.conf_file, 'r') as yaml_file:
-        conf_args = yaml.load(yaml_file, Loader=yaml.UnsafeLoader)
-
-    if not hasattr(conf_args, 'plan'):
-        conf_args['plan'] = False
-
-    logging.info('Configuration File Arguments:')
-
-    config_items = cmd_args.__dict__.items()
-
-    for k, v in config_items:
-
-        if v is not None:
-            conf_args[k] = v
-
-    named_tuple = namedtuple("Conf1", conf_args.keys())(*conf_args.values())
-
-    conf = Conf()
-
-    conf.plan = named_tuple.plan
-    conf.conf_file = named_tuple.conf_file
-    conf.deploy_env = named_tuple.deploy_env
-    conf.bootstrap_env = named_tuple.bootstrap_env
-    conf.enable_debug = named_tuple.enable_debug
-    conf.enable_dev = named_tuple.enable_dev
-    conf.deploy_strategy = named_tuple.deploy_strategy
-    conf.supported_deploy_envs = named_tuple.supported_deploy_envs
-    conf.kube_context = named_tuple.kube_context
-    conf.cloud_provider = named_tuple.cloud_provider
-    conf.gcp_image_repo_zone = named_tuple.gcp_image_repo_zone
-    conf.gcp_project = named_tuple.gcp_project
-    conf.template_ignore_dirs = named_tuple.template_ignore_dirs
-    conf.template_variables = named_tuple.template_variables
-    conf.script_variables = named_tuple.script_variables
-
-    conf.raw_config_args = conf_args
-
-    if perform_sanity:
-        sanity(conf)
-
-    conf.attr_list(True)
-
-    return conf
-
 
 def get_create_parser():
 
@@ -445,11 +318,6 @@ if __name__ == "__main__":
 
     _kube_parser = get_kube_parser()
     _kube_args = _kube_parser.parse_args()
-
-    # TODO update the process args to best practices
-    _conf = process_args(_kube_args)
-
-    destroy_sanity(_conf)
 
 
 
