@@ -139,16 +139,16 @@ def get_kube_parser():
         '-re', '--runtime_env',
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
-        help='Runtime environment refers to where the Kubernetes cluster is running',
+        help='Runtime environment refers to where clusters such as Kubernetes are running',
         default='docker'
     )
 
     parser.add_argument(
         '-be', '--bootstrap_env',
         type=str,
-        choices=['local', 'docker', 'gcp', 'on-prem', 'aws', 'azure'],
-        help='Bootstrap environment refers to where the wielder deploy script is running',
-        default='local'
+        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
+        help='Bootstrap environment refers to where Wielder deploy scripts are run',
+        default='mac'
     )
 
     parser.add_argument(
