@@ -49,6 +49,35 @@ class WGit:
 
             return submodule_pointer
 
+    def get_submodule_names(self):
+
+        with DirContext(self.repo_path):
+
+            print_line = '{ print $2 }'
+            _cmd = f"git config --file .gitmodules --get-regexp path | awk '{print_line}'"
+
+            response = async_cmd(_cmd)
+            submodule_names = []
+
+            for submodule_name in response:
+                submodule_names.append(submodule_name.replace('\n', ''))
+
+            logging.info(response)
+
+            return submodule_names
+
+    def update_submodules(self):
+
+        with DirContext(self.repo_path):
+
+            _cmd = 'git submodule update --init --recursive'
+
+            response = async_cmd(_cmd)
+
+            logging.info(response)
+
+            return response
+
     def get_diff(self, sub):
 
         sub_path = f'{self.repo_path}/{sub}'
