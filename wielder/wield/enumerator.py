@@ -13,6 +13,7 @@ class RuntimeEnv(Enum):
     AWS = 'aws'
     GCP = 'gcp'
     AZURE = 'azure'
+    EXDOCKER = 'exdocker'
 
 
 class CloudProvider(Enum):
