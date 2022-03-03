@@ -10,6 +10,14 @@ from wielder.util.util import get_aws_session
 from wielder.wield.enumerator import RuntimeEnv
 
 
+class SparkRuntime(Enum):
+    EMR = 'emr'
+    DATAPROC = 'dataproc'
+    DATABRICKS = 'databricks'
+    MAC = 'mac'
+    UBUNTU = 'ubuntu'
+
+
 class EMRClusterStatus(Enum):
 
     STARTING = 'STARTING'
@@ -66,30 +74,39 @@ class Sparker:
     It currently supports AWS S3, Later on we can add more Cloud providers
     """
 
-    def __init__(self, conf, launch_env=RuntimeEnv.MAC):
+    def __init__(self, conf, launch_env=RuntimeEnv.MAC, runtime_env=SparkRuntime.AWS):
 
-        if launch_env == RuntimeEnv.AWS:
-            session = boto3.Session(region_name=conf.aws_zone)
-        else:
-            session = get_aws_session(conf)
+        self.target_env = runtime_env
 
-        self.emr = session.client('emr')
+        if runtime_env == SparkRuntime.AWS:
 
-    def create_steps(self, pipeline_conf, f_wrap_steps=wrap_steps, step_group='jobs'):
+            if launch_env == RuntimeEnv.AWS:
+                session = boto3.Session(region_name=conf.aws_zone)
+            else:
+                session = get_aws_session(conf)
+
+            self.emr = session.client('emr')
+
+            cluster_ids = self._get_cluster_id(cluster_regx=conf.unique_name, cluster_states=['RUNNING', 'WAITING'])
+            cluster_id = cluster_ids[0]
+
+            pipeline_conf = conf.pipelines
+            pipeline_conf.cluster_id = cluster_id
+            self.pipeline_conf = pipeline_conf
+
+    def launch_jobs(self, jobs='jobs'):
         """Create EMR Steps in a specified region
 
         If a region is not specified, the bucket is created in the S3 default
         region (us-east-1).
-        :param step_group: often spark jobs have different subgroups e.g kafka ingestion, purification ...
-        :param f_wrap_steps: A function for extracting AWS from config e.g. wrap_steps above
-        :param pipeline_conf: config for pipeline
+        :param jobs: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         """
         try:
 
-            steps = f_wrap_steps(pipeline_conf, step_group)
+            steps = wrap_steps(self.pipeline_conf, jobs)
 
             response = self.emr.add_job_flow_steps(
-                JobFlowId=pipeline_conf.cluster_id,
+                JobFlowId=self.pipeline_conf.cluster_id,
                 Steps=steps
             )
 
@@ -101,7 +118,7 @@ class Sparker:
             logging.error(e)
             return False
 
-    def get_cluster_id(self, cluster_regx, cluster_states=None, create_after=None):
+    def _get_cluster_id(self, cluster_regx, cluster_states=None, create_after=None):
 
         if create_after is None:
             create_after = datetime(2021, 6, 1)
