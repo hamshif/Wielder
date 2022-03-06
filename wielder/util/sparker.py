@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import logging
+import os
 from datetime import datetime
 from enum import Enum
+from abc import ABC, abstractmethod
 
 import boto3
 from botocore.exceptions import ClientError
 
-from wielder.util.util import get_aws_session
+from wielder.util.util import get_aws_session, DirContext
 from wielder.wield.enumerator import RuntimeEnv
 
 
@@ -14,8 +16,20 @@ class SparkRuntime(Enum):
     EMR = 'emr'
     DATAPROC = 'dataproc'
     DATABRICKS = 'databricks'
-    MAC = 'mac'
-    UBUNTU = 'ubuntu'
+    DEV_SERVER = 'unix'
+
+
+class Sparker(ABC):
+
+    def __init__(self, conf, launch_env=RuntimeEnv.MAC):
+
+        self.conf = conf
+        self.launch_env = launch_env
+        self.pipeline_conf = conf.pipelines
+
+    @abstractmethod
+    def launch_jobs(self, jobs='jobs'):
+        pass
 
 
 class EMRClusterStatus(Enum):
@@ -29,81 +43,74 @@ class EMRClusterStatus(Enum):
     TERMINATED_WITH_ERRORS = 'TERMINATED_WITH_ERRORS'
 
 
-def wrap_steps(conf, step_group):
-
-    steps = []
-
-    for step_name in conf[step_group].keys():
-        step_conf = conf[step_group][step_name]
-
-        step = {
-            'Name': step_name,
-            'ActionOnFailure': 'CONTINUE',
-            'HadoopJarStep': {
-                'Properties': [
-                    {
-                        'Key': 'string',
-                        'Value': 'string'
-                    },
-                ],
-                'Jar': 'command-runner.jar',
-                # 'MainClass': 'string',
-                'Args': [
-                    "spark-submit",
-                    "--class", step_conf.main_class,
-                    "--deploy-mode", "client",
-                    step_conf.jar_path,
-                    "-re", conf.runtime_env,
-                    "-u", conf.unique_name,
-                    "-nb", conf.namespace_bucket,
-                ]
-            }
-        }
-
-        logging.info(f'step {step_name} in AWS format:\n{step}')
-
-        steps.append(step)
-
-    return steps
-
-
-class Sparker:
+class EMRSparker(Sparker):
     """
-    This wrapper object was created mainly to retain the AMI session.
-    We use MFA for development and the code is per process.
-    It currently supports AWS S3, Later on we can add more Cloud providers
+    This wrapper object was created to automate steps creation on AWS EMR.
+    It retains the AMI session. We use MFA for bootstrapping development.
+    An example"
+
+    runtime_env: docker
+    unique_name: huffelumph
+
+    aws_profile: "pooh_bear"
+    aws_cli_profile: "piglet"
+    aws_user: christopher_robin
+    ssh_password: "sanders"
+
+    aws_account_id: "123456789"
+    aws_zone: us-east-2
+    aws_image_repo_zone: us-east-2
+
+    namespace_bucket: owls_bucket
+
+    pipelines: {
+
+      runtime_env: ${runtime_env}
+      namespace_bucket: ${namespace_bucket}
+      unique_name = ${unique_name}
+
+      cluster_id: j-227D24G662GL1
+
+      kafka_ingestion: {
+        KafkaModelIngestor {
+          jar_path: "s3://"${namespace_bucket}"/spark/KafkaIngestion-1.0.0-SNAPSHOT.jar"
+          main_class: "com.forest.christopher.pipelines.kafka_ingestion.KafkaModelIngestor"
+       }
+
+      KafkaDockingExperimentsIngestor {
+          jar_path: "s3://"${namespace_bucket}"/spark/KafkaIngestion-1.0.0-SNAPSHOT.jar"
+          main_class: "com.forest.christopher.pipelines.kafka_ingestion.KafkaDockingExperimentsIngestor"
+      }
+    }
+
     """
 
-    def __init__(self, conf, launch_env=RuntimeEnv.MAC, runtime_env=SparkRuntime.AWS):
+    def __init__(self, conf, launch_env=RuntimeEnv.MAC):
 
-        self.target_env = runtime_env
+        super().__init__(conf, launch_env)
 
-        if runtime_env == SparkRuntime.AWS:
+        if launch_env == RuntimeEnv.AWS:
+            session = boto3.Session(region_name=conf.aws_zone)
+        else:
+            session = get_aws_session(conf)
 
-            if launch_env == RuntimeEnv.AWS:
-                session = boto3.Session(region_name=conf.aws_zone)
-            else:
-                session = get_aws_session(conf)
+        self.emr = session.client('emr')
 
-            self.emr = session.client('emr')
+        cluster_ids = self._get_cluster_id(cluster_regx=conf.unique_name, cluster_states=['RUNNING', 'WAITING'])
 
-            cluster_ids = self._get_cluster_id(cluster_regx=conf.unique_name, cluster_states=['RUNNING', 'WAITING'])
+        if cluster_ids:
             cluster_id = cluster_ids[0]
 
-            pipeline_conf = conf.pipelines
-            pipeline_conf.cluster_id = cluster_id
-            self.pipeline_conf = pipeline_conf
+            self.pipeline_conf.cluster_id = cluster_id
 
     def launch_jobs(self, jobs='jobs'):
         """Create EMR Steps in a specified region
-
-        If a region is not specified, the bucket is created in the S3 default
-        region (us-east-1).
+        This relies on the pipelines configuration given in the constructor
         :param jobs: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         """
         try:
 
-            steps = wrap_steps(self.pipeline_conf, jobs)
+            steps = self._wrap_steps(jobs)
 
             response = self.emr.add_job_flow_steps(
                 JobFlowId=self.pipeline_conf.cluster_id,
@@ -125,7 +132,7 @@ class Sparker:
 
         if cluster_states is None:
             cluster_states = [
-                'STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING', 'TERMINATING', 'TERMINATED','TERMINATED_WITH_ERRORS'
+                'STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING', 'TERMINATING', 'TERMINATED', 'TERMINATED_WITH_ERRORS'
             ]
 
         clusters = self.emr.list_clusters(
@@ -152,6 +159,95 @@ class Sparker:
         print('ashmagog')
         return cluster_ids
 
+    def _wrap_steps(self, step_group):
+
+        steps = []
+
+        conf = self.pipeline_conf
+
+        for step_name in conf[step_group].keys():
+            step_conf = conf[step_group][step_name]
+
+            step = {
+                'Name': step_name,
+                'ActionOnFailure': 'CONTINUE',
+                'HadoopJarStep': {
+                    'Properties': [
+                        {
+                            'Key': 'string',
+                            'Value': 'string'
+                        },
+                    ],
+                    'Jar': 'command-runner.jar',
+                    # 'MainClass': 'string',
+                    'Args': [
+                        "spark-submit",
+                        "--class", step_conf.main_class,
+                        "--deploy-mode", "client",
+                        step_conf.jar_path,
+                        "-re", conf.runtime_env,
+                        "-u", conf.unique_name,
+                        "-nb", conf.namespace_bucket,
+                    ]
+                }
+            }
+
+            logging.info(f'step {step_name} in AWS format:\n{step}')
+
+            steps.append(step)
+
+        return steps
 
 
+class DevSparker(Sparker):
+    """
+    This wrapper object was created mainly to retain the AMI session.
+    We use MFA for development and the code is per process.
+    It currently supports AWS S3, Later on we can add more Cloud providers
+    """
 
+    def __init__(self, conf, launch_env=RuntimeEnv.MAC):
+
+        super().__init__(conf, launch_env)
+
+    def launch_jobs(self, jobs='jobs'):
+        """
+        Create Local Spark jobs
+        :param jobs: often spark jobs have different subgroups e.g kafka ingestion, purification ...
+        """
+
+        conf = self.conf
+        pc = self.pipeline_conf
+
+        for job in pc[jobs].keys():
+            job_conf = pc[jobs][job]
+
+            _cmd = f"spark-submit --master spark://127.0.0.1:7077 " \
+                   f"--class {job_conf.main_class} " \
+                   f"$HOME/.m2/repository{job_conf.local_jar_path} " \
+                   f"-re {conf.runtime_env} " \
+                   f"-u {conf.unique_name} " \
+                   f"-nb {conf.namespace_bucket} "
+
+            with DirContext(conf.super_project_root):
+                os.system(_cmd)
+
+
+def get_sparker(conf, launch_env=RuntimeEnv.MAC, spark_runtime_env=SparkRuntime.EMR):
+    """
+    factory method for getting different spark job launchers depending on the runtime environment
+    :param conf:
+    :param launch_env: where this code is running
+    :param spark_runtime_env: where spark is expected to run
+    :return:
+    """
+
+    if spark_runtime_env == SparkRuntime.EMR:
+
+        return EMRSparker(conf, launch_env=launch_env)
+
+    elif spark_runtime_env == SparkRuntime.DEV_SERVER:
+
+        return DevSparker(conf, launch_env=launch_env)
+
+    raise ValueError(spark_runtime_env)
