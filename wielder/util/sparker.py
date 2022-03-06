@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from abc import ABC, abstractmethod
+from time import sleep
 
 import boto3
 from botocore.exceptions import ClientError
@@ -124,6 +125,43 @@ class EMRSparker(Sparker):
         except ClientError as e:
             logging.error(e)
             return False
+
+    def block_for_jobs_completion(self, step_ids, max_wait=50, interval=10):
+
+        complete = True
+
+        for i in range(max_wait):
+
+            for step_id in step_ids:
+
+                response = self.emr.describe_step(
+                    ClusterId=self.pipeline_conf.cluster_id,
+                    StepId=step_id
+                )
+
+                status = response['Step']['Status']['State']
+
+                if status in ['CANCELLED', 'FAILED', 'CANCEL_PENDING', 'INTERRUPTED']:
+                    logging.error(f'EMR step failed:\n{response}')
+                    return False
+                else:
+                    logging.info(f'EMR step status:\n{response}')
+
+                    if status == 'COMPLETED':
+                        continue
+                    else:
+                        complete = False
+
+            if complete:
+                return True
+            else:
+                complete = True
+
+                if i + 1 < max_wait:
+                    logging.info(f'Sleeping {interval} to see if steps completed.')
+                    sleep(interval)
+
+        return complete
 
     def _get_cluster_id(self, cluster_regx, cluster_states=None, create_after=None):
 

@@ -10,7 +10,7 @@ from kubernetes import config
 from wielder.util.log_util import setup_logging
 from wielder.util.commander import async_cmd
 
-from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework, LocalKube
+from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework, LocalKube, RuntimeEnv
 
 local_kubes = [e.value for e in LocalKube]
 
@@ -103,6 +103,7 @@ def get_kube_parser():
         default=WieldAction.PLAN
     )
 
+    # TODO enumerate
     parser.add_argument(
         '-re', '--runtime_env',
         type=str,
@@ -113,10 +114,10 @@ def get_kube_parser():
 
     parser.add_argument(
         '-be', '--bootstrap_env',
-        type=str,
-        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
-        help='Bootstrap environment refers to where Wielder deploy scripts are run',
-        default='mac'
+        type=RuntimeEnv,
+        choices=list(RuntimeEnv),
+        help='The OS where the app runs.',
+        default=RuntimeEnv.MAC
     )
 
     parser.add_argument(
