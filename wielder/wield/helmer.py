@@ -6,7 +6,7 @@ import os
 
 import logging
 
-
+from wielder.util.kuber import delete_pvcs
 from wielder.wield.enumerator import HelmCommand, KubeResType
 from wielder.wield.kube_probe import observe_set, get_kube_res_by_name, get_kube_namespace_resources_by_type
 from pyhocon.tool import HOCONConverter as Hc
@@ -119,17 +119,7 @@ class WrapHelm:
 
             if delete_pvc:
 
-                pvcs = get_kube_namespace_resources_by_type(self.context, self.namespace, 'pvc')
-
-                for pvc in pvcs['items']:
-
-                    pvc_name = pvc['metadata']['name']
-
-                    if self.release in pvc_name:
-
-                        _cmd = f"kubectl --context {self.context} -n {self.namespace} delete pvc {pvc_name};"
-                        logging.info(f'Running cmd\n{_cmd}')
-                        os.system(_cmd)
+                delete_pvcs(self.context, self.namespace, self.release)
 
         if observe:
 

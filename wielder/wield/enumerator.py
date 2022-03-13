@@ -13,6 +13,10 @@ class RuntimeEnv(Enum):
     AWS = 'aws'
     GCP = 'gcp'
     AZURE = 'azure'
+    ON_PREM = 'on-prem'
+
+    # TODO deprecate
+    EXDOCKER = 'exdocker'
 
 
 class CloudProvider(Enum):
