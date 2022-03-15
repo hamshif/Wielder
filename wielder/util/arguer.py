@@ -10,9 +10,7 @@ from kubernetes import config
 from wielder.util.log_util import setup_logging
 from wielder.util.commander import async_cmd
 
-from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework, LocalKube, RuntimeEnv
-
-local_kubes = [e.value for e in LocalKube]
+from wielder.wield.enumerator import WieldAction, CodeLanguage, LanguageFramework, local_kubes, RuntimeEnv
 
 
 class LogLevel(Enum):

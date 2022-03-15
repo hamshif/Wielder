@@ -14,6 +14,7 @@ class RuntimeEnv(Enum):
     GCP = 'gcp'
     AZURE = 'azure'
     ON_PREM = 'on-prem'
+    MINIKUBE = 'minikube'
 
     # TODO deprecate
     EXDOCKER = 'exdocker'
@@ -25,10 +26,14 @@ class CloudProvider(Enum):
     AZURE = 'azure'
 
 
-class LocalKube(Enum):
-    DOCKER = 'docker'
-    MINIKUBE = 'minikube'
-    KIND = 'kind'
+# TODO use enum without values
+local_kubes = [
+    RuntimeEnv.DOCKER.value,
+    RuntimeEnv.MINIKUBE.value,
+    RuntimeEnv.KIND.value,
+    RuntimeEnv.MAC.value,
+    RuntimeEnv.UBUNTU.value
+]
 
 
 class KubeResType(Enum):
@@ -99,18 +104,15 @@ class HelmCommand(Enum):
 
 
 class CredType(Enum):
-
     AWS_MFA = "aws_mfa"
 
 
 class KubeJobStatus(Enum):
-
     COMPLETE = 'Complete'
     FAILED = 'Failed'
 
 
 def wield_to_terraform(action):
-
     converted = None
     if action == WieldAction.PLAN:
         converted = TerraformAction.PLAN

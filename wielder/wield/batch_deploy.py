@@ -10,9 +10,7 @@ import rx
 from rx import operators as ops
 
 from rx.scheduler import CurrentThreadScheduler
-from wielder.wield.enumerator import LocalKube, WieldAction
-
-local_kubes = [e.value for e in LocalKube]
+from wielder.wield.enumerator import WieldAction
 
 
 def output(result):
