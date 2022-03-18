@@ -26,14 +26,7 @@ class CloudProvider(Enum):
     AZURE = 'azure'
 
 
-# TODO use enum without values
-local_kubes = [
-    RuntimeEnv.DOCKER.value,
-    RuntimeEnv.MINIKUBE.value,
-    RuntimeEnv.KIND.value,
-    RuntimeEnv.MAC.value,
-    RuntimeEnv.UBUNTU.value
-]
+local_kubes = ['docker', 'kind', 'mac', 'ubuntu', 'minikube']
 
 
 class KubeResType(Enum):

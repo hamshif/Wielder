@@ -101,7 +101,6 @@ def get_kube_parser():
         default=WieldAction.PLAN
     )
 
-    # TODO enumerate
     parser.add_argument(
         '-re', '--runtime_env',
         type=str,
@@ -112,10 +111,10 @@ def get_kube_parser():
 
     parser.add_argument(
         '-be', '--bootstrap_env',
-        type=RuntimeEnv,
-        choices=list(RuntimeEnv),
+        type=str,
+        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
         help='The OS where the app runs.',
-        default=RuntimeEnv.MAC
+        default='docker'
     )
 
     parser.add_argument(
