@@ -44,7 +44,7 @@ def inject_vars(base, injection):
     return base
 
 
-# TODO use resolve!!!
+# TODO deprecate and use resolve_ordered!!!
 def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     """
     give a list of ordered configuration files creates a config-tree
@@ -65,6 +65,39 @@ def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     logging.info(f'conf Hocon object:\n{conf}')
 
     return conf
+
+
+def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None):
+    """
+    Resolves a list of Hocon configuration files and optional dictionary and argparse 
+    precedence: args, injection, first to last in list
+    :param ordered_conf_paths: 
+    :param injection: 
+    :param cmd_args: 
+    :return: 
+    """
+
+    if injection is None:
+
+        injection = {}
+
+    if cmd_args is not None:
+
+        ar = vars(cmd_args)
+        injection = {**ar,  **injection}
+
+    base_conf = Cf.from_dict(injection)
+
+    for ff in reversed(ordered_conf_paths):
+
+        base_conf = base_conf.with_fallback(
+            config=ff,
+            resolve=False,
+        )
+
+    print(base_conf)
+
+    return base_conf
 
 
 def yaml_file_to_hocon(src_path):
