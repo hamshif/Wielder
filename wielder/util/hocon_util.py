@@ -84,20 +84,31 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None):
     if cmd_args is not None:
 
         ar = vars(cmd_args)
-        injection = {**ar,  **injection}
+        injection = {**injection,  **ar}
 
     base_conf = Cf.from_dict(injection)
 
-    for ff in reversed(ordered_conf_paths):
+    last_path = ordered_conf_paths[-1]
 
-        base_conf = base_conf.with_fallback(
+    files_conf = Cf.parse_file(last_path)
+
+    for ff in reversed(ordered_conf_paths[:-1]):
+
+        files_conf = files_conf.with_fallback(
             config=ff,
             resolve=False,
         )
 
-    print(base_conf)
+    conf = base_conf.with_fallback(
+        config=files_conf,
+        resolve=True,
+    )
 
-    return base_conf
+    print(conf)
+
+
+
+    return base_conf.resolve(Cf.from_dict({}))
 
 
 def yaml_file_to_hocon(src_path):
