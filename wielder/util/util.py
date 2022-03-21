@@ -318,7 +318,7 @@ def export_aws_cred_to_svc_pods(conf, service):
 
     _cmd = get_aws_mfa_cred_command(conf.cred_role)
 
-    _cmd = f"bash -c 'cat >> ~/.bashrc << EOF\n{_cmd}'"
+    _cmd = f"bash -c 'cat > /etc/profile.d/02-aws-env.sh << EOF\n{_cmd}'"
 
     pods = get_pods(service.name, kube_context, False, namespace)
 
