@@ -1,6 +1,8 @@
 import logging
 
 import json
+from pprint import pprint
+
 import yaml
 import pyhocon
 from pyhocon.tool import HOCONConverter as Hc
@@ -67,14 +69,15 @@ def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     return conf
 
 
-def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None):
+def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=True):
     """
     Resolves a list of Hocon configuration files and optional dictionary and argparse 
     precedence: args, injection, first to last in list
-    :param ordered_conf_paths: 
-    :param injection: 
-    :param cmd_args: 
-    :return: 
+    :param ordered_conf_paths: Paths to hocon config files
+    :param injection: A dictionary of values
+    :param cmd_args: commandline args from argparse
+    :param show: print config
+    :return: resolved hocon ConfigTree
     """
 
     if injection is None:
@@ -90,7 +93,7 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None):
 
     last_path = ordered_conf_paths[-1]
 
-    files_conf = Cf.parse_file(last_path)
+    files_conf = Cf.parse_file(last_path, resolve=False)
 
     for ff in reversed(ordered_conf_paths[:-1]):
 
@@ -104,11 +107,11 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None):
         resolve=True,
     )
 
-    print(conf)
+    if show:
+        for i in conf.items():
+            print(i)
 
-
-
-    return base_conf.resolve(Cf.from_dict({}))
+    return conf
 
 
 def yaml_file_to_hocon(src_path):
