@@ -26,7 +26,7 @@ class CloudProvider(Enum):
     AZURE = 'azure'
 
 
-local_kubes = ['docker', 'kind', 'mac', 'ubuntu', 'minikube']
+local_kubes = ['docker', 'kind', 'mac', 'ubuntu', 'minikube', 'exdocker']
 
 
 class KubeResType(Enum):

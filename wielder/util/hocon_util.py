@@ -69,6 +69,13 @@ def get_conf_ordered_files(ordered_conf_files, injection={}, injection_str=''):
     return conf
 
 
+def object_to_conf(obj):
+
+    v = vars(obj)
+    conf = Cf.from_dict(v)
+    return conf
+
+
 def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=True):
     """
     Resolves a list of Hocon configuration files and optional dictionary and argparse 
