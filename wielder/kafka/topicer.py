@@ -6,6 +6,7 @@ from confluent_kafka.admin import AdminClient, NewTopic
 
 import traceback
 from confluent_kafka.cimpl import KafkaError
+from wielder.datastore_admin.kafka_cli_conf import AdminAction
 
 
 class WrapKafkaAdmin:
@@ -97,3 +98,23 @@ class WrapKafkaAdmin:
         self.admin.describe_configs()
 
 
+def kafka_admin_action(conf):
+
+    action = conf.admin_action
+
+    print(f"admin_action: {action}")
+
+    kafka_wrapper = WrapKafkaAdmin(conf)
+
+    if action is AdminAction.DELETE:
+
+        kafka_wrapper.delete_topics()
+
+    elif action is AdminAction.LIST:
+
+        kafka_wrapper.list_topics()
+
+    elif action is AdminAction.CREATE:
+        kafka_wrapper.create_topics()
+    else:
+        print(f"No such action {action}")
