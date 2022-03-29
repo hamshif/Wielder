@@ -136,10 +136,12 @@ def aws_push_image(aws_conf, name, tag):
     logging.info(f'aws ecr --profile {profile} describe-images --repository-name  {name} --region {region};')
 
 
-def pack_image(image_root, name, image_name=None, force=False, tag='dev', runtime_env=None, kind_context='kind'):
+def pack_image(image_root, name, image_name=None, force=False, tag='dev',
+               runtime_env=None, kind_context='kind', build_args=None):
     """
 
-    :param kind_context: 
+    :param build_args: formulated arguments for docker build command e.g. tag=dev
+    :param kind_context:
     :param runtime_env:
     :param image_name:
     :param tag:
@@ -152,6 +154,11 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev', runtim
 
     if image_name is None:
         image_name = name
+
+    if build_args is None:
+        build_args = ''
+    else:
+        build_args = f' --build-arg {build_args}'
 
     _cmd = f'docker images | grep {tag} | grep {image_name};'
 
@@ -166,7 +173,7 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev', runtim
 
         logging.info(f"attempting to create image {name}")
 
-        _cmd = f'docker build -t {image_name}:{tag} {image_root};'
+        _cmd = f'docker build -t {image_name}:{tag}{build_args} {image_root};'
 
         logging.info(f'running:\n{_cmd}')
 
