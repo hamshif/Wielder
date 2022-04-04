@@ -1,6 +1,7 @@
 import logging
 
 import json
+import os
 from pprint import pprint
 
 import yaml
@@ -100,14 +101,23 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=True
 
     last_path = ordered_conf_paths[-1]
 
-    files_conf = Cf.parse_file(last_path, resolve=False)
+    if os.path.isfile(last_path):
+
+        files_conf = Cf.parse_file(last_path, resolve=False)
+    else:
+        logging.warning(f"Couldn't find file\n{last_path}")
+        files_conf = Cf.from_dict({})
 
     for ff in reversed(ordered_conf_paths[:-1]):
 
-        files_conf = files_conf.with_fallback(
-            config=ff,
-            resolve=False,
-        )
+        if os.path.isfile(ff):
+
+            files_conf = files_conf.with_fallback(
+                config=ff,
+                resolve=False,
+            )
+        else:
+            logging.warning(f"Couldn't find file\n{ff}")
 
     conf = base_conf.with_fallback(
         config=files_conf,
