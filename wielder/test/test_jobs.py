@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import logging
 
-from wield.kube_probe import is_job_complete
 from wielder.util.log_util import setup_logging
+from wielder.wield.kube_probe import is_job_complete
 
 if __name__ == "__main__":
 
