@@ -104,7 +104,7 @@ class EMRSparker(Sparker):
 
             self.pipeline_conf.cluster_id = cluster_id
 
-    def launch_jobs(self, jobs='jobs'):
+    def launch_jobs(self, jobs=['jobs']):
         """Create EMR Steps in a specified region
         This relies on the pipelines configuration given in the constructor
         :param jobs: often spark jobs have different subgroups e.g kafka ingestion, purification ...
@@ -203,7 +203,12 @@ class EMRSparker(Sparker):
 
         conf = self.pipeline_conf
 
-        for step_name in conf[step_group].keys():
+        group = conf[step_group[0]]
+
+        for key in step_group:
+            group = group[key]
+
+        for step_name in group.keys():
             step_conf = conf[step_group][step_name]
 
             step = {
@@ -248,17 +253,20 @@ class DevSparker(Sparker):
 
         super().__init__(conf, launch_env)
 
-    def launch_jobs(self, jobs='jobs'):
+    def launch_jobs(self, jobs_path='jobs'):
         """
         Create Local Spark jobs
-        :param jobs: often spark jobs have different subgroups e.g kafka ingestion, purification ...
+        :param jobs_path: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         """
 
         conf = self.conf
         pc = self.pipeline_conf
 
-        for job in pc[jobs].keys():
-            job_conf = pc[jobs][job]
+        for j in jobs_path:
+            pc = pc[j]
+
+        for job in pc.keys():
+            job_conf = pc[job]
 
             _cmd = f"spark-submit --master spark://127.0.0.1:7077 " \
                    f"--class {job_conf.main_class} " \

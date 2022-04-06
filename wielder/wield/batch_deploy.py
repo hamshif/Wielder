@@ -67,7 +67,7 @@ def deploy_batch(action, batch, func_map):
     #     print(f'future job n°{future.result()} ended')
 
 
-def wield_deployment_batches(conf, action, key, func_map):
+def wield_deployment_batches(conf, action, key_path, func_map):
     """
     bootstrap_jobs: {
 
@@ -80,11 +80,14 @@ def wield_deployment_batches(conf, action, key, func_map):
     :param func_map:
     :param conf: project Hocon which includes the key e.g. bootstrap_jobs
     :param action: WieldAction
-    :param key: a key to the deployment batches
+    :param key_path: a list of keys to the deployment batches config tree.
     :return:
     """
 
-    deploy_batches = conf[key]
+    deploy_batches = conf[key_path[0]]
+
+    for key in key_path[1:]:
+        deploy_batches = deploy_batches[key]
 
     parallel = deploy_batches.parallel
 
