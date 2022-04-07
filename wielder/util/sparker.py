@@ -104,14 +104,14 @@ class EMRSparker(Sparker):
 
             self.pipeline_conf.cluster_id = cluster_id
 
-    def launch_jobs(self, jobs=['jobs']):
+    def launch_jobs(self, jobs_path=['jobs']):
         """Create EMR Steps in a specified region
         This relies on the pipelines configuration given in the constructor
-        :param jobs: often spark jobs have different subgroups e.g kafka ingestion, purification ...
+        :param jobs_path: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         """
         try:
 
-            steps = self._wrap_steps(jobs)
+            steps = self._wrap_steps(jobs_path)
 
             response = self.emr.add_job_flow_steps(
                 JobFlowId=self.pipeline_conf.cluster_id,
