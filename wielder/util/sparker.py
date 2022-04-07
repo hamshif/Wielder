@@ -205,11 +205,11 @@ class EMRSparker(Sparker):
 
         group = conf[step_group[0]]
 
-        for key in step_group:
+        for key in step_group[1:]:
             group = group[key]
 
         for step_name in group.keys():
-            step_conf = conf[step_group][step_name]
+            step_conf = group[step_name]
 
             step = {
                 'Name': step_name,
