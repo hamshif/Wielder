@@ -35,7 +35,7 @@ def sync_filtered_to_kube(conf, module_name):
     :param module_name
     :return:
 
-    dev_sync: {
+    dev: {
 
       sync_list: []
 
