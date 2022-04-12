@@ -33,6 +33,7 @@ class WieldTable:
     ):
 
         conf = project_conf.cassandra
+        meta = conf.keyspaces_meta[keyspace]
         table_conf = conf.keyspaces[keyspace][table_name]
 
         self.host = conf.host
@@ -40,6 +41,8 @@ class WieldTable:
         self.user = conf.user
         self.password = conf.password
         self.keyspace = keyspace
+        self.replication_class = meta.replication_class
+        self.replication_factor = str(meta.replication_factor)
         self.table_name = table_name
 
         self.consistency_level = conf.consistency_level
@@ -47,6 +50,7 @@ class WieldTable:
         self.cql_create = table_conf.cql_create
         self.table_fields = table_conf.table_fields
         self.cql_upsert = table_conf.cql_upsert
+        self.cql_delete_by_primary_key = table_conf.cql_delete_by_primary_key
 
         self.batch = None
         self.prepared_upsert_cql_cmd = None
@@ -119,11 +123,14 @@ class WieldTable:
         self.cluster = self.get_cluster()
         self.session = self.cluster.connect()
 
-        # self.log.info(f"creating keyspace: {self.keyspace}")
-        self.session.execute(f"""
+        keyspace_cmd = f"""
                 CREATE KEYSPACE IF NOT EXISTS {self.keyspace}
-                WITH replication = {{ 'class': 'SimpleStrategy', 'replication_factor': '2' }}
-                """)
+                WITH replication = {{ 'class': '{self.replication_class}', 'replication_factor': '{self.replication_factor}' }}
+                """
+
+        logging.info(f'Running :\n{keyspace_cmd}')
+        # self.log.info(f"creating keyspace: {self.keyspace}")
+        self.session.execute(keyspace_cmd)
 
         # self.log.info(f"keyspace: {self.keyspace} verified")
         self.session.set_keyspace(self.keyspace)
@@ -234,7 +241,6 @@ class WieldTable:
         self.upsert_count += 1
 
         if self.upsert_count > self.batch_size:
-
             print(f"upsert count:  {self.upsert_count}")
             self.upsert_count = 0
             self.session.execute(self.batch)
@@ -243,7 +249,6 @@ class WieldTable:
 
 
 def handle_success(answer):
-
     print(f"type: {type(answer)}")
     try:
 
@@ -255,12 +260,10 @@ def handle_success(answer):
 
 
 def handle_error(exception):
-
     print(exception)
 
 
 def list_tables(conf, keyspace, table_name):
-
     table = WieldTable(project_conf=conf, keyspace=keyspace, table_name=table_name)
 
     tables = table.list_tables()
@@ -269,7 +272,6 @@ def list_tables(conf, keyspace, table_name):
 
 
 def reset(conf, table_name, keyspace='grids'):
-
     table = WieldTable(
         project_conf=conf,
         keyspace=keyspace,
@@ -293,7 +295,6 @@ def reset(conf, table_name, keyspace='grids'):
 
 
 def del_table(conf, table_name, keyspace):
-
     # print(table_name)
     table = WieldTable(
         project_conf=conf,
@@ -305,7 +306,6 @@ def del_table(conf, table_name, keyspace):
 
 
 def get_parser():
-
     parser = argparse.ArgumentParser(
         description='A wrapper for Cassandra consumer\n'
                     'CLI trumps config file\n'
@@ -323,23 +323,11 @@ def get_parser():
 
 
 def reset_all_keyspaces(conf):
-
     for keyspace in conf.keyspaces:
-
         reset(conf=conf, keyspace=keyspace, table_name='table_name')
 
 
 def clear_keyspace(conf, keyspace):
-
     list_tables(conf=conf, keyspace=keyspace, table_name="woo")
 
-
-
-
-
-
 #
-
-
-
-
