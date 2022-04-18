@@ -95,9 +95,11 @@ def monitor_topics(user_conf):
                                  f'offset {msg.partition()},key {key}\n')
                                     # f'offset {msg.partition()},key {key} value {value}\n')
                 try:
-                    j_error = json.loads(value)
+                    j_value = json.loads(value)
+                    log = json.dumps(j_value, indent=4, sort_keys=True)
+                    s = f'{log}\n'
 
-                    sys.stdout.write(json.dumps(j_error, indent=4, sort_keys=True))
+                    sys.stdout.write(s)
                 except ValueError:
                     sys.stderr.write(value)
 
