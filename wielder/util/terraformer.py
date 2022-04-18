@@ -109,7 +109,7 @@ class WrapTerraform:
         elif terraform_action == TerraformAction.INIT:
 
             if self.backend_name is not None:
-                t_cmd = f'{t_cmd} -backend-config "../backend/{self.backend_name}.tf" -force-copy'
+                t_cmd = f'{t_cmd} -upgrade -backend-config "../backend/{self.backend_name}.tf" -force-copy'
 
         elif terraform_action == TerraformAction.APPLY:
 
