@@ -127,9 +127,17 @@ def block_for_action(context, namespace, pod, var_name, expected_value, slumber=
 
     return False
 
+
 def copy_file_to_pod(pod, src, pod_dest, namespace, context):
 
     _cmd = f'kubectl --context {context} cp -n {namespace} {src} {pod.metadata.name}:{pod_dest}'
+    logging.info(_cmd)
+    os.system(_cmd)
+
+
+def copy_from_pod(pod_name, dest, pod_src, namespace, context):
+
+    _cmd = f'kubectl --context {context} cp -n {namespace} {pod_name}:{pod_src} {dest}'
     logging.info(_cmd)
     os.system(_cmd)
 
