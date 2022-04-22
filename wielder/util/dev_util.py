@@ -3,7 +3,7 @@ import os
 import shutil
 
 from wielder.util.cool import filter_walk
-from wielder.util.util import copy_file_to_pods
+from wielder.util.kuber import copy_file_to_pods
 from wielder.wield.deployer import get_pods
 
 
