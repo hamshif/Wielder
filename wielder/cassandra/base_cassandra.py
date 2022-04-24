@@ -192,6 +192,23 @@ class WieldTable:
         else:
             self.log.info(f"could'nt find keyspace: {keyspace}")
 
+    def describe_keyspace(self, keyspace=None):
+
+        if keyspace is None:
+            keyspace = self.keyspace
+
+        self.cluster = self.get_cluster()
+        self.session = self.cluster.connect()
+
+        cmd = f"DESCRIBE KEYSPACE {keyspace};"
+
+        print(cmd)
+
+        description = self.session.execute(cmd)
+
+        for r in description.current_rows:
+            print(r)
+
     def list_tables(self, keyspace=None):
 
         if keyspace is None:
@@ -201,12 +218,6 @@ class WieldTable:
         self.session = self.cluster.connect()
 
         tables = self.cluster.metadata.keyspaces[keyspace]
-        # cmd = f"DESCRIBE KEYSPACES;"
-        #
-        # print(cmd)
-        #
-        # tables = self.session.execute(cmd)
-        #
 
         print(f"meta data:\n{tables.__dict__}")
 
