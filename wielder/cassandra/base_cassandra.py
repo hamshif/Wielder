@@ -44,12 +44,13 @@ class WieldTable:
         self.replication_class = meta.replication_class
         self.replication_factor = str(meta.replication_factor)
         self.table_name = table_name
-
         self.consistency_level = conf.consistency_level
+
+        self.table_conf = table_conf
         self.batch_size = table_conf.batch_size
         self.cql_create = table_conf.cql_create
         self.table_fields = table_conf.table_fields
-        self.cql_upsert = table_conf.cql_upsert
+        self.cql_upsert = table_conf.cql_upsert.replace('table_fields', self.table_fields)
         self.cql_delete_by_primary_key = table_conf.cql_delete_by_primary_key
 
         self.batch = None
@@ -125,7 +126,7 @@ class WieldTable:
 
         keyspace_cmd = f"""
                 CREATE KEYSPACE IF NOT EXISTS {self.keyspace}
-                WITH replication = {{ 'class': '{self.replication_class}', 'replication_factor': '{self.replication_factor}' }}
+                WITH replication = {{ 'class': '{self.replication_class}', 'replication_factor': '{self.replication_factor}' }} 
                 """
 
         logging.info(f'Running :\n{keyspace_cmd}')
@@ -283,6 +284,7 @@ def list_tables(conf, keyspace, table_name):
 
 
 def reset(conf, table_name, keyspace='grids'):
+
     table = WieldTable(
         project_conf=conf,
         keyspace=keyspace,
@@ -291,7 +293,6 @@ def reset(conf, table_name, keyspace='grids'):
 
     table.list_keyspaces()
 
-    # TODO deal with timeout exceptions
     table.del_keyspace()
     table.list_keyspaces()
 
@@ -301,11 +302,10 @@ def reset(conf, table_name, keyspace='grids'):
         table_name=table_name,
     )
 
-    # grid.create_table()
-    # everything(conf, table_name)
+    table.list_keyspaces()
 
 
-def del_table(conf, table_name, keyspace):
+def del_table(conf, keyspace, table_name):
     # print(table_name)
     table = WieldTable(
         project_conf=conf,
