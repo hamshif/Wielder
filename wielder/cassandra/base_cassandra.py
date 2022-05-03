@@ -336,10 +336,12 @@ def get_parser():
 
 def reset_all_keyspaces(conf):
 
-    for keyspace in conf.cassandra.keyspaces.keys():
+    for keyspace, key_conf in conf.cassandra.keyspaces.items():
+
+        table_name = list(key_conf.keys())[0]
 
         print(f'Resetting keyspace: {keyspace}')
-        reset(conf=conf, keyspace=keyspace, table_name='table_name')
+        reset(conf=conf, keyspace=keyspace, table_name=table_name)
 
 
 def clear_keyspace(conf, keyspace):
