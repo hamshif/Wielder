@@ -283,7 +283,7 @@ def list_tables(conf, keyspace, table_name):
     return tables
 
 
-def reset(conf, table_name, keyspace='grids'):
+def reset(conf, keyspace, table_name):
 
     table = WieldTable(
         project_conf=conf,
