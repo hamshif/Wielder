@@ -260,6 +260,24 @@ class WieldTable:
             self.log.info(f'Intermediate Batch Insert Completed {self.table_name}')
 
 
+def get_parser():
+
+    parser = argparse.ArgumentParser(
+        description='A wrapper for Cassandra consumer\n'
+                    'CLI trumps config file\n'
+                    'Used in tandem with Kafka.conf Hocon config file.\n'
+    )
+
+    parser.add_argument(
+        '-re', '--runtime_env',
+        type=str,
+        help='Kafka topic to override config subscriptions.',
+        default='local'
+    )
+
+    return parser
+
+
 def handle_success(answer):
     print(f"type: {type(answer)}")
     try:
@@ -276,7 +294,12 @@ def handle_error(exception):
 
 
 def list_tables(conf, keyspace, table_name):
-    table = WieldTable(project_conf=conf, keyspace=keyspace, table_name=table_name)
+
+    table = WieldTable(
+        project_conf=conf,
+        keyspace=keyspace,
+        table_name=table_name
+    )
 
     tables = table.list_tables()
 
@@ -317,23 +340,6 @@ def del_table(conf, keyspace, table_name):
     table.del_table()
 
 
-def get_parser():
-    parser = argparse.ArgumentParser(
-        description='A wrapper for Cassandra consumer\n'
-                    'CLI trumps config file\n'
-                    'Used in tandem with Kafka.conf Hocon config file.\n'
-    )
-
-    parser.add_argument(
-        '-re', '--runtime_env',
-        type=str,
-        help='Kafka topic to override config subscriptions.',
-        default='local'
-    )
-
-    return parser
-
-
 def reset_all_keyspaces(conf):
 
     for keyspace, key_conf in conf.cassandra.keyspaces.items():
@@ -345,5 +351,14 @@ def reset_all_keyspaces(conf):
 
 
 def clear_keyspace(conf, keyspace):
+
     list_tables(conf=conf, keyspace=keyspace, table_name="woo")
+
+    for keyspace, key_conf in conf.cassandra.keyspaces.items():
+
+        table_name = list(key_conf.keys())[0]
+
+        del_table(conf, keyspace, table_name)
+
+
 
