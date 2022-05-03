@@ -306,7 +306,8 @@ def reset(conf, table_name, keyspace='grids'):
 
 
 def del_table(conf, keyspace, table_name):
-    # print(table_name)
+
+    print(f'Going to delete table {keyspace}.{table_name}')
     table = WieldTable(
         project_conf=conf,
         keyspace=keyspace,
@@ -334,11 +335,13 @@ def get_parser():
 
 
 def reset_all_keyspaces(conf):
-    for keyspace in conf.keyspaces:
+
+    for keyspace in conf.cassandra.keyspaces.keys():
+
+        print(f'Resetting keyspace: {keyspace}')
         reset(conf=conf, keyspace=keyspace, table_name='table_name')
 
 
 def clear_keyspace(conf, keyspace):
     list_tables(conf=conf, keyspace=keyspace, table_name="woo")
 
-#
