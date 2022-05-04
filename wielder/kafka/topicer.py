@@ -12,12 +12,17 @@ from wielder.datastore_admin.kafka_cli_conf import AdminAction
 class WrapKafkaAdmin:
 
     def __init__(self, conf):
+        """
+        A kafka admin wrapper
+        relies on the config having a kafka tree or dict
+        :param conf:
+        """
 
-        self.conf = conf
+        self.conf = conf.kafka
 
-        print(f'Shmulik: {conf.KAFKA_BROKERS}')
+        print(f'Shmoolik: {self.conf.brokers}')
 
-        kafka_conf = {'bootstrap.servers': conf.KAFKA_BROKERS}
+        kafka_conf = {'bootstrap.servers': self.conf.brokers}
         kafka_admin = AdminClient(kafka_conf)
         self.admin = kafka_admin
 

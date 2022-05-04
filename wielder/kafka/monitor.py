@@ -22,10 +22,13 @@ def print_usage_and_exit(program_name):
     sys.exit(1)
 
 
-def monitor_topics(user_conf):
-    brokers = user_conf.KAFKA_BROKERS
-    group = user_conf.consumer_groups.monitor.id
-    topics = user_conf.topics_for_listening
+def monitor_topics(conf):
+
+    kafka_conf = conf.kafka
+
+    brokers = kafka_conf.brokers
+    group = kafka_conf.consumer_groups.monitor.id
+    topics = kafka_conf.topics_for_listening
 
     [print(f'listening to topic {t}') for t in topics]
 
@@ -89,7 +92,7 @@ def monitor_topics(user_conf):
 
             t = msg.topic()
 
-            if user_conf.topics[t].verbose:
+            if kafka_conf.topics[t].verbose:
 
                 sys.stderr.write(f'topic: {t}, partition: {msg.offset()}, '
                                  f'offset {msg.partition()},key {key}\n')

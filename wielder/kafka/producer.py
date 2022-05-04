@@ -35,20 +35,22 @@ def producer_callback(err, msg):
 
 def produce_conf(conf, listen=False):
 
-    topics = [t for t in conf.topics]
+    topics = list(conf.kafka.topics.keys())
 
-    [print(f'KAFKA_BROKERS: {conf.KAFKA_BROKERS}\n Topic {t}') for t in topics]
+    [print(f'KAFKA_BROKERS: {conf.kafka.brokers}\n Topic {t}') for t in topics]
 
-    messages = conf.demo_messages
+    messages = conf.kafka.demo_messages
 
     produce_messages(conf, messages, topics, listen)
 
 
 def produce_debug(conf):
 
+    kconf = conf.kafka
+
     topic = conf.topic if conf.topic is not None else 'docking_experiments'
 
-    debug = conf['topics'][topic]['debug']
+    debug = kconf.topics[topic].debug
 
     bot_ids = [t for t in debug.ids]
 
@@ -83,7 +85,7 @@ def produce_messages(conf, messages, topics, listen=False):
         encoded.append((str(m[0]).encode('utf-8'), str(m[1]).encode('utf-8')))
 
     conf = {
-        'bootstrap.servers': f"{conf.KAFKA_BROKERS}",
+        'bootstrap.servers': f"{conf.kafka.brokers}",
         'client.id': socket.gethostname(),
         'message.max.bytes': 15048576,
     }
