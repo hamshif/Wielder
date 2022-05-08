@@ -3,7 +3,7 @@ import argparse
 import os
 from enum import Enum
 
-from wielder.util.hocon_util import get_conf_ordered_files
+from wielder.util.hocon_util import resolve_ordered
 
 import logging
 
@@ -118,7 +118,7 @@ def get_kafka_conf(project_root=None):
         dev_override_path
     ]
 
-    conf = get_conf_ordered_files(ordered_conf_files)
+    conf = resolve_ordered(ordered_conf_files)
 
     conf.project_root = project_root
     conf.action = ar.action

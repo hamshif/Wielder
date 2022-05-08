@@ -22,8 +22,6 @@ import rx
 from rx import operators as ops
 import concurrent.futures
 
-from wielder.util.hocon_util import get_conf_ordered_files
-
 
 class WieldTable:
 
