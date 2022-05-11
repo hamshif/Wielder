@@ -1,16 +1,14 @@
-import json
+import logging
 import logging
 import os
 
+from wielder.util.arguer import wielder_sanity
+from wielder.util.hocon_util import resolve_ordered
 from wielder.util.wgit import WGit
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType
-
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
-from wielder.util.hocon_util import get_conf_ordered_files, resolve_ordered
-from wielder.util.arguer import wielder_sanity
-from pyhocon import ConfigFactory as Cf
 
 
 def get_basic_module_properties(injection=[]):

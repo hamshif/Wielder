@@ -1,14 +1,13 @@
 import logging
 import os
-from pyhocon import ConfigFactory as Cf
 
+from wielder.util.arguer import get_kube_parser
+from wielder.util.arguer import wielder_sanity
+from wielder.util.hocon_util import resolve_ordered
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
-from wielder.util.arguer import get_kube_parser
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
-from wielder.util.hocon_util import get_conf_ordered_files
-from wielder.util.arguer import wielder_sanity
 from wielder.wield.wield_project import get_basic_module_properties, get_conf_context_project
 
 
@@ -82,7 +81,7 @@ class WieldService(WielderBase):
             self.local_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-local.conf'
             module_paths.append(self.local_path)
 
-            self.conf = get_conf_ordered_files(module_paths, injection=injection)
+            self.conf = resolve_ordered(module_paths, injection=injection)
 
         unique_name = self.conf.unique_name
 

@@ -1,11 +1,10 @@
 import logging
 
 import git
+from pyhocon import ConfigFactory as Cf
 from wielder.util.commander import subprocess_cmd, async_cmd
-from wielder.util.hocon_util import inject_vars
 from wielder.util.log_util import setup_logging
 from wielder.util.util import DirContext
-from pyhocon import ConfigFactory as Cf
 
 
 class WGit:
@@ -89,14 +88,6 @@ class WGit:
             status = async_cmd(_cmd)
 
             print(status)
-
-    def as_hocon_str(self):
-
-        d = vars(self)
-
-        b = inject_vars('', d)
-
-        return 'git: {\n' + b + '\n}'
 
     def as_hocon(self):
 
