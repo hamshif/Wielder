@@ -29,7 +29,7 @@ class WGit:
 
                 if b[0] == '*':
 
-                    branch = b[1:-1]
+                    branch = b[1:-1].strip()
 
             logging.info(branch)
             self.branch = branch
@@ -114,6 +114,19 @@ class WGit:
             a = f'{a}\ngit.{k}:{v}'
 
         return a
+
+    def as_dict_injection(self):
+
+        d = vars(self)
+
+        injection = {}
+        injection['git'] = {}
+
+        for k, v in d.items():
+
+            injection['git'][k] = v
+
+        return injection
 
 
 def is_repo(path):

@@ -8,7 +8,7 @@ from wielder.wield.enumerator import PlanType
 
 from wielder.wield.modality import WieldMode
 from wielder.wield.planner import WieldPlan
-from wielder.util.hocon_util import get_conf_ordered_files
+from wielder.util.hocon_util import get_conf_ordered_files, resolve_ordered
 from wielder.util.arguer import wielder_sanity
 from pyhocon import ConfigFactory as Cf
 
@@ -119,19 +119,20 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
         module_override_path
     ]
 
-    code_repo_commit = 'wile_coyote'
-
     try:
         wg = WGit(super_project_root)
 
-        injection_str = wg.as_hocon_injection()
+        git_injection = wg.as_dict_injection()
 
         code_repo_commit = wg.get_submodule_commit(locale.code_repo_name)
         wielder_commit = wg.get_submodule_commit('Wielder')
     except Exception as e:
 
+        code_repo_commit = 'wile_coyote'
+        wielder_commit = 'elmore_fud'
+
         logging.error(e)
-        injection_str = ''
+        git_injection = {}
 
     injection['runtime_env'] = runtime_env
     injection['deploy_env'] = deploy_env
@@ -144,10 +145,11 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     injection['code_repo_commit'] = code_repo_commit
     injection['bootstrap_conf_root'] = conf_dir
 
-    conf = get_conf_ordered_files(
-        ordered_conf_files=ordered_project_files,
-        injection=injection,
-        injection_str=injection_str
+    injection = {**injection, **git_injection}
+
+    conf = resolve_ordered(
+        ordered_conf_paths=ordered_project_files,
+        injection=injection
     )
 
     conf['unique_name_underscore'] = conf.unique_name.lower()
