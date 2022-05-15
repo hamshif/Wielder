@@ -150,7 +150,8 @@ def get_aws_session(conf):
         aws_access_key_id=cred["AWS_ACCESS_KEY_ID"],
         aws_secret_access_key=cred["AWS_SECRET_ACCESS_KEY"],
         aws_session_token=cred["AWS_SESSION_TOKEN"],
-        profile_name=conf.aws_profile
+        profile_name=conf.aws_profile,
+        region_name=conf.aws_zone
     )
 
     return session
