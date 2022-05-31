@@ -118,6 +118,8 @@ def wield_to_terraform(action):
         converted = TerraformAction.OUTPUT
     elif action == WieldAction.SHOW:
         converted = TerraformAction.SHOW
+    elif action == WieldAction.INIT:
+        converted = TerraformAction.INIT
 
     return converted
 
