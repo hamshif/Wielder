@@ -56,6 +56,7 @@ class WieldAction(Enum):
     SHOW = 'show'
     UPDATE = 'update'
     INIT = 'init'
+    REFRESH = 'refresh'
 
 
 class CodeLanguage(Enum):
@@ -120,6 +121,8 @@ def wield_to_terraform(action):
         converted = TerraformAction.SHOW
     elif action == WieldAction.INIT:
         converted = TerraformAction.INIT
+    elif action == WieldAction.REFRESH:
+        converted = TerraformAction.REFRESH
 
     return converted
 
