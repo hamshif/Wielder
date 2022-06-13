@@ -104,6 +104,34 @@ class EMRSparker(Sparker):
 
             self.pipeline_conf.cluster_id = cluster_id
 
+    def is_job_active(self, jobs_path=['jobs']):
+        """Create EMR Steps in a specified region
+        This relies on the pipelines configuration given in the constructor
+        :param jobs_path: often spark jobs have different subgroups e.g kafka ingestion, purification ...
+        """
+        try:
+
+            steps = self._wrap_steps(jobs_path)
+
+            step_name = steps[0]['Name']
+
+            response = self.emr.list_steps(
+                ClusterId=self.pipeline_conf.cluster_id,
+                StepStates=['PENDING', 'RUNNING'],
+            )
+
+            logging.info(f'response:\n{response}')
+
+            for live_step in response['Steps']:
+                if live_step['Name'] == step_name:
+                    return True
+
+            return False
+
+        except ClientError as e:
+            logging.error(e)
+            return False
+
     def launch_jobs(self, jobs_path=['jobs']):
         """Create EMR Steps in a specified region
         This relies on the pipelines configuration given in the constructor
@@ -112,6 +140,8 @@ class EMRSparker(Sparker):
         try:
 
             steps = self._wrap_steps(jobs_path)
+
+            # self.emr.
 
             response = self.emr.add_job_flow_steps(
                 JobFlowId=self.pipeline_conf.cluster_id,
