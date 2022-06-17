@@ -33,13 +33,13 @@ class WieldService(WielderBase):
     """
 
     def __init__(self, name, locale, wield_mode=None, service_mode=None,
-                 conf_dir=None, plan_dir=None, plan_format=PlanType.YAML, injection={}):
+                 plan_format=PlanType.YAML, injection={}):
 
         self.name = name
         self.locale = locale
         self.wield_mode = wield_mode if wield_mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
-        self.conf_dir = conf_dir if conf_dir else f'{locale.module_root}conf'
+        self.conf_dir = f'{locale.module_root}conf'
 
         self.wield_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{name}-wield.conf'
 
@@ -85,7 +85,7 @@ class WieldService(WielderBase):
 
         unique_name = self.conf.unique_name
 
-        self.plan_dir = plan_dir if plan_dir else f'{locale.module_root}plan/{unique_name}'
+        self.plan_dir = f'{locale.module_root}plan/{unique_name}'
 
         self.plan = WieldPlan(
             name=self.name,

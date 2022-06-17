@@ -67,11 +67,12 @@ def make_sure_project_local_conf_exists(locale, bootstrap_env, runtime_env, depl
     return conf_dir
 
 
-def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
+def get_conf_context_project(wield_mode, locale, module_paths=[], app='', injection={}):
     """
     Gets the configuration from environment specific config.
     Config files gateways [specific include statements] have to be placed and named according to convention.
     by convention use the unique name.
+    :param app: the application modality overrides
     :param locale: Locale object with real paths to directories
     :param wield_mode: A project modality derived from cli arguments
     :param injection: a dictionary of variables to override hocon file variables on the fly.
@@ -102,6 +103,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
     bootstrap_conf_path = f'{project_root}conf/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
+    app_conf_path = f'{project_root}conf/app/{app}/app.conf'
     developer_conf_path = f'{conf_dir}/developer.conf'
     module_override_path = f'{conf_dir}/modules_override.conf'
 
@@ -110,6 +112,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], injection={}):
         bootstrap_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
+        app_conf_path,
         developer_conf_path,
         module_override_path
     ]
