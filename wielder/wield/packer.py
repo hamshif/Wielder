@@ -12,7 +12,7 @@ class WieldPacker:
         self.wielder_commit = conf.wielder_commit
         self.origin_commit = conf.code_repo_commit
         self.plan = conf.cicd.pack
-        self.build_conf = conf.pack.build
+        self.build_conf = conf.pack.build.build_instructions
 
         pack_dir = f'{locale.packing_root}/{conf.unique_name}/{locale.code_repo_name}'
         os.makedirs(pack_dir, exist_ok=True)
