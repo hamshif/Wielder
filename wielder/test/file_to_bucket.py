@@ -2,7 +2,7 @@
 import logging
 
 
-from wielder.util.bucketeer import Bucketeer
+from wielder.util.bucketeer import AWSBucketeer
 from wielder.util.log_util import setup_logging
 
 if __name__ == "__main__":
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     _bucket_name = 'pep-dev-test'
 
     _region = "us-east-2"
-    b = Bucketeer(None)
+    b = AWSBucketeer(None)
 
     b.get_bucket_names()
 

@@ -1,23 +1,74 @@
 #!/usr/bin/env python
 import logging
 import os
+import pathlib
+import shutil
+from abc import ABC, abstractmethod
 
 from botocore.exceptions import ClientError
 
 from wielder.util.boto3_session_cache import boto3_client
 from wielder.util.util import get_aws_session
+from wielder.wield.enumerator import RuntimeEnv, local_deployments
+from wielder.wield.project import WielderProject
 
 DEFAULT_REGION = "us-east-2"
 
 
-class Bucketeer:
+class Bucketeer(ABC):
+
+    def __init__(self, conf):
+
+        self.conf = conf
+
+    @abstractmethod
+    def create_bucket(self, bucket_name, region=None):
+        pass
+
+    @abstractmethod
+    def upload_file(self, source, bucket_name, dest):
+        pass
+
+    @abstractmethod
+    def upload_directory(self, source, bucket_name, prefix):
+        pass
+
+    @abstractmethod
+    def download_object(self, bucket_name, key, name, dest='/tmp'):
+        pass
+
+    @abstractmethod
+    def download_objects(self, bucket_name, root_key='', dest='/tmp'):
+        pass
+
+    @abstractmethod
+    def delete_file(self, bucket_name, file_name):
+        pass
+
+    @abstractmethod
+    def delete_bucket(self, bucket_name):
+        pass
+
+    @abstractmethod
+    def get_bucket_names(self):
+        pass
+
+    @abstractmethod
+    def get_object_names(self, bucket_name, prefix=''):
+        pass
+
+
+class AWSBucketeer(Bucketeer):
     """
+    A convenience interface for working with AWS buckets.
     This wrapper object was created mainly to retain the AMI session.
     We use MFA for development and the code is per process.
-    It currently supports AWS S3, Later on we can add more Cloud providers
+    It currently supports AWS S3.
     """
 
     def __init__(self, conf=None):
+
+        super().__init__(conf)
 
         if conf is None:
             logging.info('conf is None getting default client')
@@ -129,7 +180,7 @@ class Bucketeer:
         return True
 
     def delete_file(self, bucket_name, file_name):
-        """Empty an S3 bucket
+        """Delete an S3 object
         :param file_name:
         :param bucket_name: Bucket to deleted
         :return: True if bucket deleted, else False
@@ -225,3 +276,159 @@ class Bucketeer:
             logging.error(e)
             logging.info(f"No objects in key {prefix}")
 
+
+class DevBucketeer(Bucketeer):
+    """
+    A mock bucket object
+    The class emulates a cloud bucket by performing similar functionality on
+    A directory
+    """
+
+    def __init__(self, conf=None):
+
+        super().__init__(conf)
+
+        wpj = WielderProject()
+
+        self.buckets_root = wpj.mock_buckets_root
+        self.default_bucket = conf.namespace_bucket
+
+    def create_bucket(self, bucket_name, region=None):
+        """Create a local directory to emulate cloud bucket behavior
+
+        :param bucket_name: Bucket to create
+        :param region: Ignored but kept to save interface compatibility
+        :return: True if bucket created, else False
+        """
+        os.makedirs(f'{self.buckets_root}/{bucket_name}', exist_ok=True)
+
+        return True
+
+    def upload_file(self, source, bucket_name, dest):
+
+        shutil.copy(source, f'{self.buckets_root}/{bucket_name}/{dest}')
+
+    def upload_directory(self, source, bucket_name, prefix):
+
+        shutil.copytree(source, f'{self.buckets_root}/{bucket_name}/{prefix}')
+
+    def download_object(self, bucket_name, key, name, dest='/tmp'):
+        """
+        Pretend to download a file by copying
+
+        :param key: the object's full path
+        :param name: the object's last key
+        :param dest: local destination prefix
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+        try:
+
+            print(name)
+
+            # create nested directory structure
+            os.makedirs(dest, exist_ok=True)
+            src = f'{self.buckets_root}/{bucket_name}/{key}/{name}'
+
+            stale = f'{dest}/{name}'
+            if os.path.isfile(stale):
+                os.remove(stale)
+
+            shutil.copy(src, dest)
+
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
+
+    def download_objects(self, bucket_name, root_key='', dest='/tmp'):
+        """
+        Copies A directory emulating download of a chunk of objects from cloud bucket
+
+        :param dest: local destination prefix
+        :param root_key:
+        :param bucket_name: Bucket
+        :return: True
+        """
+        shutil.rmtree(dest, ignore_errors=True)
+        shutil.copytree(f'{self.buckets_root}/{bucket_name}/{root_key}', dest)
+
+        return True
+
+    def delete_file(self, bucket_name, file_name):
+        """Delete a file to emulate deleting a bucket object
+        :param file_name:
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}/{file_name}', ignore_errors=True)
+
+        return True
+
+    def delete_objects(self, bucket_name, prefix=''):
+        """Empty a local Dir emulating a bucket
+
+        :param prefix:
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}/{prefix}', ignore_errors=True)
+
+        return True
+
+    def delete_bucket(self, bucket_name):
+        """Delete an S3 bucket by emptying it and deleting the empty bucket.
+
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}', ignore_errors=True)
+
+        return True
+
+    def get_bucket_names(self):
+        """
+        Retrieve a list of existing buckets.
+        :return: list of bucket names
+        """
+
+        bucket_names = [p for p in pathlib.Path(f'{self.buckets_root}').iterdir() if p.is_dir()]
+
+        return bucket_names
+
+    def get_object_names(self, bucket_name, prefix=''):
+
+        try:
+
+            bucket_names = [p for p in pathlib.Path(f'{self.buckets_root}/{prefix}').iterdir() if p.is_dir()]
+
+            return bucket_names
+
+        except KeyError as e:
+            logging.error(e)
+            logging.info(f"No objects in key {prefix}")
+
+
+def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS):
+    """
+    Factory method for standardizing bucket access e.g. S3 boto3 client, GCP Client , Local Directory to simulate bucket,
+     depending on the combination of runtime environment and deploy environment.
+    :param conf:
+    :param runtime_env: where this code is running
+    :param bootstrap_env: where spark is expected to run
+    :return:
+    """
+
+    if bootstrap_env.value in local_deployments:
+
+        if runtime_env == RuntimeEnv.AWS:
+            return AWSBucketeer(conf)
+        elif runtime_env == RuntimeEnv.DOCKER:
+            return DevBucketeer(conf)
+
+    elif bootstrap_env == RuntimeEnv.AWS:
+        return AWSBucketeer(None)
+
+    raise ValueError(bootstrap_env)

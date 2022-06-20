@@ -311,7 +311,7 @@ class DevSparker(Sparker):
 
 def get_sparker(conf, launch_env=RuntimeEnv.MAC, spark_runtime_env=SparkRuntime.EMR):
     """
-    factory method for getting different spark job launchers depending on the runtime environment
+    Factory method for getting different spark job launchers depending on the runtime environment
     :param conf:
     :param launch_env: where this code is running
     :param spark_runtime_env: where spark is expected to run
