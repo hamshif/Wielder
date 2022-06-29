@@ -425,7 +425,7 @@ def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS
 
         if runtime_env == RuntimeEnv.AWS:
             return AWSBucketeer(conf)
-        elif runtime_env == RuntimeEnv.DOCKER:
+        elif runtime_env == RuntimeEnv.DOCKER or runtime_env == RuntimeEnv.KIND:
             return DevBucketeer(conf)
 
     elif bootstrap_env == RuntimeEnv.AWS:
