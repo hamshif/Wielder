@@ -38,7 +38,11 @@ class Bucketeer(ABC):
         pass
 
     @abstractmethod
-    def download_objects(self, bucket_name, root_key='', dest='/tmp'):
+    def download_objects(self, bucket_name, keys, dest='/tmp'):
+        pass
+
+    @abstractmethod
+    def download_objects_by_key(self, bucket_name, root_key='', dest='/tmp'):
         pass
 
     @abstractmethod
@@ -145,10 +149,33 @@ class AWSBucketeer(Bucketeer):
 
         except ClientError as e:
             logging.error(e)
-            return False
+            # return False
         return True
 
-    def download_objects(self, bucket_name, root_key='', dest='/tmp'):
+    def download_objects(self, bucket_name, keys, dest='/tmp'):
+        """
+        Download a chunk of objects
+
+        :param keys:
+        :param dest: local destination prefix
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+
+        for key in keys:
+
+            obj_path = key[:key.rindex('/')]
+
+            obj_name = key.split('/')[-1]
+            logging.debug(f'obj_path: {obj_path}\nobj_name: {obj_name}')
+
+            ok = self.download_object(bucket_name, obj_path, obj_name, dest)
+            if not ok:
+                return False
+
+        return True
+
+    def download_objects_by_key(self, bucket_name, root_key='', dest='/tmp'):
         """
         Download a chunk of objects
 
@@ -158,26 +185,9 @@ class AWSBucketeer(Bucketeer):
         :return: True if bucket deleted, else False
         """
 
-        try:
+        names = self.get_object_names(bucket_name, root_key)
 
-            names = self.get_object_names(bucket_name, root_key)
-
-            for name in names:
-
-                obj_path = name[:name.rindex('/')]
-
-                obj_name = name.split('/')[-1]
-                logging.debug(f'obj_path: {obj_path}\nobj_name: {obj_name}')
-
-                ok = self.download_object(bucket_name, obj_path, obj_name, dest)
-                if not ok:
-                    return False
-
-        except ClientError as e:
-            logging.error(e)
-            return False
-
-        return True
+        return self.download_objects(bucket_name, names, dest)
 
     def delete_file(self, bucket_name, file_name):
         """Delete an S3 object
@@ -341,7 +351,30 @@ class DevBucketeer(Bucketeer):
             return False
         return True
 
-    def download_objects(self, bucket_name, root_key='', dest='/tmp'):
+    def download_objects(self, bucket_name, names, dest='/tmp'):
+        """
+
+        Copies a list of files to a destination to mimic downloading objects
+
+        :param dest: local destination prefix
+        :param names: list of files
+        :param bucket_name: Bucket
+        :return: True
+        """
+
+        os.makedirs(dest, exist_ok=True)
+
+        for name in names:
+
+            dest1 = f'{dest}/{name}'
+
+            if os.path.exists(dest1):
+                os.remove(dest1)
+
+            src = f'{bucket_name}/{name}'
+            shutil.copyfile(src, dest)
+
+    def download_objects_by_key(self, bucket_name, root_key='', dest='/tmp'):
         """
         Copies A directory emulating download of a chunk of objects from cloud bucket
 
