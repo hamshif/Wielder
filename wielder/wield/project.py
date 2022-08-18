@@ -11,12 +11,18 @@ def get_super_project_root():
 
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
-    for i in range(4):
+    for i in range(3):
         super_project_root = super_project_root[:super_project_root.rfind('/')]
 
     logging.info(f'super_project_root:\n{super_project_root}')
 
-    return super_project_root
+    project_root = super_project_root
+
+    project_name = super_project_root[super_project_root.rfind('/') + 1:]
+
+    super_project_root = super_project_root[:super_project_root.rfind('/')]
+
+    return super_project_root, project_root, project_name
 
 
 class WielderProject:
@@ -25,18 +31,26 @@ class WielderProject:
     peculiar to the machine wielder is running on.
     """
 
-    def __init__(self, super_project_root=None, packing_root=None, provision_root=None, mock_buckets_root=None):
+    def __init__(self, super_project_root=None, project_root=None, project_name=None, packing_root=None, provision_root=None, mock_buckets_root=None, build_root=None):
 
-        if super_project_root is None:
-            super_project_root = get_super_project_root()
+        if super_project_root is None or project_root is None or project_name is None:
+            super_project_root, project_root, project_name = get_super_project_root()
 
         self.super_project_root = super_project_root
+        self.project_root = project_root
+        self.project_name = project_name
 
         if packing_root is None:
             packing_root = f'{super_project_root}/pack'
             os.makedirs(packing_root, exist_ok=True)
 
         self.packing_root = packing_root
+
+        if build_root is None:
+            build_root = f'{super_project_root}/build'
+            os.makedirs(build_root, exist_ok=True)
+
+        self.build_root = build_root
 
         if provision_root is None:
             provision_root = f'{super_project_root}/provision'

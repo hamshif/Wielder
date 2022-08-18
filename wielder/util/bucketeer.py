@@ -26,6 +26,10 @@ class Bucketeer(ABC):
         pass
 
     @abstractmethod
+    def cli_upload_file(self, source, bucket_name, dest):
+        pass
+
+    @abstractmethod
     def upload_file(self, source, bucket_name, dest):
         pass
 
@@ -59,6 +63,10 @@ class Bucketeer(ABC):
 
     @abstractmethod
     def get_object_names(self, bucket_name, prefix=''):
+        pass
+
+    @abstractmethod
+    def object_exists(self, bucket_name, prefix, object_name):
         pass
 
 
@@ -105,6 +113,12 @@ class AWSBucketeer(Bucketeer):
             logging.error(e)
             return False
         return True
+
+    def cli_upload_file(self, source, bucket_name, dest):
+
+        _cmd = f'aws s3 cp {source} "s3://{bucket_name}/{dest} " --profile {self.conf.aws_cli_profile}'
+        logging.info(f'Running command:\n{_cmd}')
+        os.system(_cmd)
 
     def upload_file(self, source, bucket_name, dest):
 
@@ -286,6 +300,19 @@ class AWSBucketeer(Bucketeer):
             logging.error(e)
             logging.info(f"No objects in key {prefix}")
 
+    def object_exists(self, bucket_name, prefix, object_name):
+
+        object_names = self.get_object_names(
+            bucket_name=bucket_name,
+            prefix=prefix
+        )
+
+        for name in object_names:
+            if name.rstrip() == f'{prefix}/{object_name}':
+                return True
+
+        return False
+
 
 class DevBucketeer(Bucketeer):
     """
@@ -313,6 +340,9 @@ class DevBucketeer(Bucketeer):
         os.makedirs(f'{self.buckets_root}/{bucket_name}', exist_ok=True)
 
         return True
+
+    def cli_upload_file(self, source, bucket_name, dest):
+        pass
 
     def upload_file(self, source, bucket_name, dest):
 
@@ -443,6 +473,18 @@ class DevBucketeer(Bucketeer):
             logging.error(e)
             logging.info(f"No objects in key {prefix}")
 
+    def object_exists(self, bucket_name, prefix, object_name):
+
+        names = self.get_object_names(
+            bucket_name=bucket_name,
+            prefix=prefix
+        )
+
+        for name in names:
+            if str(name).rstrip() == object_name:
+                return True
+
+        return False
 
 def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS):
     """

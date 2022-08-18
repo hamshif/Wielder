@@ -77,6 +77,18 @@ class WGit:
 
             return response
 
+    def update_submodule(self, sub_path):
+
+        with DirContext(self.repo_path):
+
+            _cmd = f'git submodule update --init -- {sub_path}'
+
+            response = async_cmd(_cmd)
+
+            logging.info(response)
+
+            return response
+
     def get_diff(self, sub):
 
         sub_path = f'{self.repo_path}/{sub}'
