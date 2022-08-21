@@ -290,7 +290,7 @@ class AWSBucketeer(Bucketeer):
             if 'Contents' in response:
                 s3objects = response['Contents']
                 for obj in s3objects:
-                    object_name = obj["Key"]
+                    object_name = obj["Key"].rstrip()
                     logging.debug(f'Object name: {object_name}')
                     object_names.append(object_name)
 
@@ -307,9 +307,8 @@ class AWSBucketeer(Bucketeer):
             prefix=prefix
         )
 
-        for name in object_names:
-            if name.rstrip() == f'{prefix}/{object_name}':
-                return True
+        if f'{prefix}/{object_name}' in object_names:
+            return True
 
         return False
 
