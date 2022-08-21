@@ -66,9 +66,10 @@ class MavenBuilder(WBuilder):
             object_name=artifact_name
         )
 
-    def build_artifact(self, repo_name, module_path, artifactory_key='artifactory'):
+    def build_artifact(self, repo_name, module_path, artifact_name, artifactory_key='artifactory'):
         """
 
+        :param artifact_name:
         :param repo_name:
         :param module_path:
         :param artifactory_key:
@@ -96,8 +97,7 @@ class MavenBuilder(WBuilder):
             commit_sha=sub_commit
         )
 
-        artifact_name = module_path[module_path.rfind('/') + 1:]
-        local_artifact_path = f'{build_dir}/{module_path}/target'
+        local_artifact_path = f'{build_dir}/{module_path}/target'.replace("//", '/')
         renamed = f'{artifact_name}-{sub_commit}.jar'
         local_renamed = f'{local_artifact_path}/{renamed}'
 
