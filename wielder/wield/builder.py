@@ -67,6 +67,13 @@ class MavenBuilder(WBuilder):
         )
 
     def build_artifact(self, repo_name, module_path, artifactory_key='artifactory'):
+        """
+
+        :param repo_name:
+        :param module_path:
+        :param artifactory_key:
+        :return:
+        """
 
         sub_commit = self.wg.get_submodule_commit(repo_name)
 
@@ -96,13 +103,22 @@ class MavenBuilder(WBuilder):
 
         if not self.verify_local_artifact(local_artifact_path, renamed):
 
-            with DirContext(build_dir):
+            if self.verify_remote_artifact(artifactory_key, renamed):
 
-                build_command = 'mvn clean install -f pom.xml'
-                logging.info(f"Running cmd:\n{build_command}")
-                os.system(build_command)
+                self.bucketeer.cli_download_object(
+                    bucket_name=self.artifactory,
+                    key=f'{artifactory_key}/{renamed}',
+                    dest=local_renamed
+                )
 
-            shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_renamed)
+            else:
+                with DirContext(build_dir):
+
+                    build_command = 'mvn clean install -f pom.xml'
+                    logging.info(f"Running cmd:\n{build_command}")
+                    os.system(build_command)
+
+                shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_renamed)
 
         self.push_artifact(local_renamed, artifactory_key, renamed)
 

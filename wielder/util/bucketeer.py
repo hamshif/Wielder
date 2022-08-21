@@ -42,6 +42,10 @@ class Bucketeer(ABC):
         pass
 
     @abstractmethod
+    def cli_download_object(self, bucket_name, key, dest):
+        pass
+
+    @abstractmethod
     def download_objects(self, bucket_name, keys, dest='/tmp'):
         pass
 
@@ -165,6 +169,12 @@ class AWSBucketeer(Bucketeer):
             logging.error(e)
             # return False
         return True
+
+    def cli_download_object(self, bucket_name, key, dest):
+
+        _cmd = f'aws s3 cp "s3://{bucket_name}/{key} " {dest} --profile {self.conf.aws_cli_profile}'
+        logging.info(f'Running command:\n{_cmd}')
+        os.system(_cmd)
 
     def download_objects(self, bucket_name, keys, dest='/tmp'):
         """
@@ -380,6 +390,9 @@ class DevBucketeer(Bucketeer):
             return False
         return True
 
+    def cli_download_object(self, bucket_name, key, dest):
+        pass
+
     def download_objects(self, bucket_name, names, dest='/tmp'):
         """
 
@@ -484,6 +497,7 @@ class DevBucketeer(Bucketeer):
                 return True
 
         return False
+
 
 def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS):
     """
