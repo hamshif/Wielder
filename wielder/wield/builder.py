@@ -66,13 +66,16 @@ class MavenBuilder(WBuilder):
             object_name=artifact_name
         )
 
-    def build_artifact(self, repo_name, module_path, artifact_name, artifactory_key='artifactory'):
+    def build_artifact(self, repo_name, module_path, artifact_name, artifactory_key='artifactory', push=True):
         """
+        Lazily brings or builds an artifact corresponding to the exact super repo commit of the code.
+        By default the artifact is pushed to the runtime environment bucket which serves as an artifactory.
 
+        :param repo_name: The submodule where the artifact code resides
+        :param module_path: The directory path to the module
         :param artifact_name:
-        :param repo_name:
-        :param module_path:
-        :param artifactory_key:
+        :param artifactory_key: the artifactory key e.g. spark/
+        :param push: If the artifact should be pushed to the artifactory bucket or not, defaults to true
         :return:
         """
 
@@ -120,7 +123,8 @@ class MavenBuilder(WBuilder):
 
                 shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_renamed)
 
-        self.push_artifact(local_renamed, artifactory_key, renamed)
+        if push:
+            self.push_artifact(local_renamed, artifactory_key, renamed)
 
     def verify_local_artifact(self, artifact_path, artifact_name):
 
