@@ -2,11 +2,16 @@ import logging
 import os
 import shutil
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from wielder.util.bucketeer import get_bucketeer
 from wielder.util.util import DirContext
 from wielder.util.wgit import WGit, clone_or_update
 from wielder.wield.enumerator import RuntimeEnv
+
+
+class BuilderType(Enum):
+    MAVEN = 'Maven'
 
 
 class WBuilder(ABC):
@@ -28,7 +33,15 @@ class WBuilder(ABC):
         self.bucketeer = get_bucketeer(conf, RuntimeEnv(conf.bootstrap_env), RuntimeEnv(conf.runtime_env))
 
     @abstractmethod
-    def build_artifact(self, repo_name, module_path, artifactory_key):
+    def build_artifact(self, build_path):
+        pass
+
+    @abstractmethod
+    def ensure_build_path(self, repo_name):
+        pass
+
+    @abstractmethod
+    def ensure_artifact(self, repo_name, module_path, artifactory_key, push):
         pass
 
     @abstractmethod
@@ -66,18 +79,15 @@ class MavenBuilder(WBuilder):
             object_name=artifact_name
         )
 
-    def build_artifact(self, repo_name, module_path, artifact_name, artifactory_key='artifactory', push=True):
-        """
-        Lazily brings or builds an artifact corresponding to the exact super repo commit of the code.
-        By default the artifact is pushed to the runtime environment bucket which serves as an artifactory.
+    def build_artifact(self, build_path):
 
-        :param repo_name: The submodule where the artifact code resides
-        :param module_path: The directory path to the module
-        :param artifact_name:
-        :param artifactory_key: the artifactory key e.g. spark/
-        :param push: If the artifact should be pushed to the artifactory bucket or not, defaults to true
-        :return:
-        """
+        with DirContext(build_path):
+
+            build_command = 'mvn clean install -f pom.xml'
+            logging.info(f"Running cmd:\n{build_command}")
+            os.system(build_command)
+
+    def ensure_build_path(self, repo_name):
 
         sub_commit = self.wg.get_submodule_commit(repo_name)
 
@@ -91,16 +101,34 @@ class MavenBuilder(WBuilder):
                 break
 
         source = f'{self.locale.super_project_root}/{submodule_path}'
-        build_dir = f'{self.build_root}/{submodule_path}'
+        build_path = f'{self.build_root}/{submodule_path}'
 
         clone_or_update(
             source=source,
-            destination=build_dir,
+            destination=build_path,
             branch='dev',
             commit_sha=sub_commit
         )
 
-        local_artifact_path = f'{build_dir}/{module_path}/target'.replace("//", '/')
+        return sub_commit, build_path
+
+    def ensure_artifact(self, repo_name, module_path, artifact_name, dependencies, artifactory_key='artifactory', push=True):
+        """
+        Lazily brings or builds an artifact corresponding to the exact super repo commit of the code.
+        By default the artifact is pushed to the runtime environment bucket which serves as an artifactory.
+
+        :param dependencies: Local build dependencies in case the artifact has to be built
+        :param repo_name: The submodule where the artifact code resides
+        :param module_path: The directory path to the module
+        :param artifact_name:
+        :param artifactory_key: the artifactory key e.g. spark/
+        :param push: If the artifact should be pushed to the artifactory bucket or not, defaults to true
+        :return:
+        """
+
+        sub_commit, build_path = self.ensure_build_path(repo_name)
+
+        local_artifact_path = f'{build_path}/{module_path}/target'.replace("//", '/')
         renamed = f'{artifact_name}-{sub_commit}.jar'
         local_renamed = f'{local_artifact_path}/{renamed}'
 
@@ -115,11 +143,14 @@ class MavenBuilder(WBuilder):
                 )
 
             else:
-                with DirContext(build_dir):
 
-                    build_command = 'mvn clean install -f pom.xml'
-                    logging.info(f"Running cmd:\n{build_command}")
-                    os.system(build_command)
+                for dependency in dependencies:
+
+                    _, dependency_repo_path = self.ensure_build_path(dependency.repo_name)
+                    dependency_path = f'{dependency_repo_path}/{dependency.module_path}'
+                    self.build_artifact(dependency_path)
+
+                self.build_artifact(build_path)
 
                 shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_renamed)
 
@@ -147,17 +178,19 @@ class MavenBuilder(WBuilder):
             self.bucketeer.cli_upload_file(local_path, self.artifactory, remote_name)
 
 
-def get_builder(conf, locale, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS):
+def get_builder(conf, locale, builder_type):
     """
     Factory method for standardizing build access e.g. Maven, SBT, Gradle.
      depending on the combination of runtime environment and deploy environment.
+    :param builder_type:
     :param locale:
     :param conf:
-    :param runtime_env: where this code is running
-    :param bootstrap_env: where the code is built
     :return:
     """
 
-    builder = MavenBuilder(conf, locale)
+    builder = None
+
+    if builder_type == BuilderType.MAVEN:
+        builder = MavenBuilder(conf, locale)
 
     return builder
