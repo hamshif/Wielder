@@ -122,12 +122,15 @@ class WGit:
 
         d = vars(self)
 
-        injection = {}
-        injection['git'] = {}
+        injection = {'git': {'subs': {}}}
 
         for k, v in d.items():
 
             injection['git'][k] = v
+
+        for sub in self.get_submodule_names():
+
+            injection['git']['subs'][sub] = self.get_submodule_commit(sub)
 
         return injection
 

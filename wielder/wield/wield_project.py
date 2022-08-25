@@ -113,27 +113,25 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
         app_conf_path
     ]
 
+    wg = WGit(super_project_root)
+
+    git_injection = wg.as_dict_injection()
+
+    for sub in git_injection['git']['subs'].keys():
+        potential_conf_path = f'{super_project_root}/{sub}/app.conf'
+        if os.path.exists(potential_conf_path):
+            ordered_project_files.append(potential_conf_path)
+
     try:
-        wg = WGit(super_project_root)
-
-        subs = wg.get_submodule_names()
-
-        for sub in subs:
-            potential_conf_path = f'{super_project_root}/{sub}/app.conf'
-            if os.path.exists(potential_conf_path):
-                ordered_project_files.append(potential_conf_path)
-
-        git_injection = wg.as_dict_injection()
-
-        code_repo_commit = wg.get_submodule_commit(locale.code_repo_name)
-        wielder_commit = wg.get_submodule_commit('Wielder')
+        wielder_commit = git_injection['git']['subs']['Wielder']
     except Exception as e:
-
-        code_repo_commit = 'wile_coyote'
         wielder_commit = 'elmore_fud'
-
         logging.error(e)
-        git_injection = {}
+    try:
+        code_repo_commit = git_injection['git']['subs'][locale.code_repo_name]
+    except Exception as e:
+        code_repo_commit = 'wile_coyote'
+        logging.error(e)
 
     developer_conf_path = f'{conf_dir}/developer.conf'
     module_override_path = f'{conf_dir}/modules_override.conf'
