@@ -104,21 +104,24 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
     runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
     deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
     app_conf_path = f'{project_root}conf/app/{app}/app.conf'
-    developer_conf_path = f'{conf_dir}/developer.conf'
-    module_override_path = f'{conf_dir}/modules_override.conf'
 
     ordered_project_files = module_paths + [
         project_conf_path,
         bootstrap_conf_path,
         runtime_conf_path,
         deploy_env_conf_path,
-        app_conf_path,
-        developer_conf_path,
-        module_override_path
+        app_conf_path
     ]
 
     try:
         wg = WGit(super_project_root)
+
+        subs = wg.get_submodule_names()
+
+        for sub in subs:
+            potential_conf_path = f'{super_project_root}/{sub}/app.conf'
+            if os.path.exists(potential_conf_path):
+                ordered_project_files.append(potential_conf_path)
 
         git_injection = wg.as_dict_injection()
 
@@ -131,6 +134,14 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
 
         logging.error(e)
         git_injection = {}
+
+    developer_conf_path = f'{conf_dir}/developer.conf'
+    module_override_path = f'{conf_dir}/modules_override.conf'
+
+    ordered_project_files = ordered_project_files + [
+        developer_conf_path,
+        module_override_path
+    ]
 
     injection['runtime_env'] = runtime_env
     injection['deploy_env'] = deploy_env
