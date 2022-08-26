@@ -139,18 +139,21 @@ class MavenBuilder(WBuilder):
 
         full_local_path = f'{full_local_artifactory_path}/{renamed}'
 
-        if not self.verify_local_artifact(full_local_artifactory_path, renamed):
+        remote_exists = self.verify_local_artifact(full_local_artifactory_path, renamed)
+        local_exists = self.verify_remote_artifact(artifactory_key, renamed)
 
-            if self.verify_remote_artifact(artifactory_key, renamed):
+        if remote_exists:
+
+            if not local_exists:
 
                 self.bucketeer.cli_download_object(
                     bucket_name=self.artifactory,
                     key=f'{artifactory_key}/{renamed}',
                     dest=full_local_path
-                )
+                )             
+        else:
 
-            else:
-
+            if not local_exists:
                 for dependency in dependencies:
 
                     _, dependency_repo_path = self.ensure_build_path(dependency.repo_name)
@@ -161,8 +164,8 @@ class MavenBuilder(WBuilder):
 
                 shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', full_local_path)
 
-        if push:
-            self.push_artifact(full_local_path, artifactory_key, renamed)
+            if push:
+                self.push_artifact(full_local_path, artifactory_key, renamed)
 
     def verify_local_artifact(self, artifact_path, artifact_name):
 
