@@ -139,8 +139,8 @@ class MavenBuilder(WBuilder):
 
         full_local_path = f'{full_local_artifactory_path}/{renamed}'
 
-        remote_exists = self.verify_local_artifact(full_local_artifactory_path, renamed)
-        local_exists = self.verify_remote_artifact(artifactory_key, renamed)
+        local_exists = self.verify_local_artifact(full_local_artifactory_path, renamed)
+        remote_exists = self.verify_remote_artifact(artifactory_key, renamed)
 
         if remote_exists:
 
@@ -150,7 +150,7 @@ class MavenBuilder(WBuilder):
                     bucket_name=self.artifactory,
                     key=f'{artifactory_key}/{renamed}',
                     dest=full_local_path
-                )             
+                )
         else:
 
             if not local_exists:
