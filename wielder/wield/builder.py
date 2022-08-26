@@ -129,24 +129,24 @@ class MavenBuilder(WBuilder):
         :return:
         """
 
-        full_artifactory_path = f'{self.local_artifactory}/{artifactory_key}'
-        os.makedirs(full_artifactory_path, exist_ok=True)
+        full_local_artifactory_path = f'{self.local_artifactory}/{artifactory_key}'
+        os.makedirs(full_local_artifactory_path, exist_ok=True)
 
         sub_commit, build_path = self.ensure_build_path(repo_name)
 
         local_artifact_path = f'{build_path}/{module_path}/target'.replace("//", '/')
         renamed = f'{artifact_name}-{sub_commit}.jar'
 
-        local_full_path = f'{full_artifactory_path}/{renamed}'
+        full_local_path = f'{full_local_artifactory_path}/{renamed}'
 
-        if not self.verify_local_artifact(local_artifact_path, renamed):
+        if not self.verify_local_artifact(full_local_artifactory_path, renamed):
 
             if self.verify_remote_artifact(artifactory_key, renamed):
 
                 self.bucketeer.cli_download_object(
                     bucket_name=self.artifactory,
                     key=f'{artifactory_key}/{renamed}',
-                    dest=local_full_path
+                    dest=full_local_path
                 )
 
             else:
@@ -159,10 +159,10 @@ class MavenBuilder(WBuilder):
 
                 self.build_artifact(build_path)
 
-                shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_full_path)
+                shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', full_local_path)
 
         if push:
-            self.push_artifact(local_full_path, artifactory_key, renamed)
+            self.push_artifact(full_local_path, artifactory_key, renamed)
 
     def verify_local_artifact(self, artifact_path, artifact_name):
 

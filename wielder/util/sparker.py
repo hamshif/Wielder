@@ -300,7 +300,7 @@ class DevSparker(Sparker):
 
             _cmd = f"spark-submit --master spark://127.0.0.1:7077 " \
                    f"--class {job_conf.main_class} " \
-                   f"$HOME/.m2/repository{job_conf.local_jar_path} " \
+                   f"{job_conf.local_jar_path} " \
                    f"-re {conf.runtime_env} " \
                    f"-u {conf.unique_name} " \
                    f"-nb {conf.namespace_bucket} "
