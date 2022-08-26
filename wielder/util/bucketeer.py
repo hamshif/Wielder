@@ -120,7 +120,7 @@ class AWSBucketeer(Bucketeer):
 
     def cli_upload_file(self, source, bucket_name, dest):
 
-        _cmd = f'aws s3 cp {source} "s3://{bucket_name}/{dest} " --profile {self.conf.aws_cli_profile}'
+        _cmd = f'aws s3 cp {source} "s3://{bucket_name}/{dest}" --profile {self.conf.aws_cli_profile}'
         logging.info(f'Running command:\n{_cmd}')
         os.system(_cmd)
 
@@ -172,7 +172,7 @@ class AWSBucketeer(Bucketeer):
 
     def cli_download_object(self, bucket_name, key, dest):
 
-        _cmd = f'aws s3 cp "s3://{bucket_name}/{key} " {dest} --profile {self.conf.aws_cli_profile}'
+        _cmd = f'aws s3 cp "s3://{bucket_name}/{key}" {dest} --profile {self.conf.aws_cli_profile}'
         logging.info(f'Running command:\n{_cmd}')
         os.system(_cmd)
 
