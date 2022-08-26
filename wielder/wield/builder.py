@@ -26,8 +26,11 @@ class WBuilder(ABC):
 
         build_root = f'{locale.build_root}/{locale.super_project_name}'
         os.makedirs(build_root, exist_ok=True)
-
         self.build_root = build_root
+
+        local_artifactory = f'{locale.local_buckets}/{conf.artifactory_bucket}'
+        os.makedirs(local_artifactory, exist_ok=True)
+        self.local_artifactory = local_artifactory
 
         self.artifactory = conf.artifactory_bucket
         self.bucketeer = get_bucketeer(conf, RuntimeEnv(conf.bootstrap_env), RuntimeEnv(conf.runtime_env))
@@ -126,11 +129,15 @@ class MavenBuilder(WBuilder):
         :return:
         """
 
+        full_artifactory_path = f'{self.local_artifactory}/{artifactory_key}'
+        os.makedirs(full_artifactory_path, exist_ok=True)
+
         sub_commit, build_path = self.ensure_build_path(repo_name)
 
         local_artifact_path = f'{build_path}/{module_path}/target'.replace("//", '/')
         renamed = f'{artifact_name}-{sub_commit}.jar'
-        local_renamed = f'{local_artifact_path}/{renamed}'
+
+        local_full_path = f'{full_artifactory_path}/{renamed}'
 
         if not self.verify_local_artifact(local_artifact_path, renamed):
 
@@ -139,7 +146,7 @@ class MavenBuilder(WBuilder):
                 self.bucketeer.cli_download_object(
                     bucket_name=self.artifactory,
                     key=f'{artifactory_key}/{renamed}',
-                    dest=local_renamed
+                    dest=local_full_path
                 )
 
             else:
@@ -152,10 +159,10 @@ class MavenBuilder(WBuilder):
 
                 self.build_artifact(build_path)
 
-                shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_renamed)
+                shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', local_full_path)
 
         if push:
-            self.push_artifact(local_renamed, artifactory_key, renamed)
+            self.push_artifact(local_full_path, artifactory_key, renamed)
 
     def verify_local_artifact(self, artifact_path, artifact_name):
 
