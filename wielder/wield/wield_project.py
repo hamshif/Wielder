@@ -88,6 +88,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
 
     project_root = locale.project_root
     super_project_root = locale.super_project_root
+    local_buckets_root = locale.local_buckets
 
     conf_dir = f'{project_root}conf/unique_conf/{unique_conf}'
     locale.unique_conf_root = conf_dir
@@ -151,6 +152,7 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
     injection['wielder_commit'] = wielder_commit
     injection['code_repo_commit'] = code_repo_commit
     injection['bootstrap_conf_root'] = conf_dir
+    injection['local_buckets_root'] = local_buckets_root
 
     injection = {**injection, **git_injection}
 
