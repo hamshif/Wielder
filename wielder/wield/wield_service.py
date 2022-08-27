@@ -58,10 +58,11 @@ class WieldService(WielderBase):
             self.debug_path = f'{self.conf_dir}/{name}-debug.conf'
             module_paths.append(self.debug_path)
 
-        app_conf_path = f'{locale.code_root}/ex_config/app.conf'
+        app_conf_path = f'{locale.code_root}/app.conf'
 
         module_paths = module_paths + [app_conf_path]
 
+        # TODO reconsider local mounts it should probably be removed
         if self.service_mode.local_mount:
 
             # adding to self to facilitate debugging
