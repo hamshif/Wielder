@@ -51,7 +51,9 @@ fi
 
 brew install wget -vd
 
-brew cask install iterm2
+brew install --cask iterm2
+
+brew install --cask atom
 
 if [[ $(command -v which pyenv) == "which" ]]; then
   brew install pyenv -vd
@@ -66,6 +68,8 @@ else
    which pyenv
 fi
 
+softwareupdate --install-rosetta
+
 if [[ $(command -v which jenv) == "which" ]]; then
 
   brew install jenv
@@ -74,14 +78,14 @@ if [[ $(command -v which jenv) == "which" ]]; then
 
   brew tap AdoptOpenJDK/openjdk
 
-  brew cask install adoptopenjdk11
+  brew install adoptopenjdk11
 
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
 
   jenv versions
 
   jenv enable-plugin maven
-  jenv enable plugin export
+  jenv enable-plugin export
 
   jenv global 11.0
 
@@ -96,15 +100,15 @@ if [[ $(command -v which maven) == "which" ]]; then
   brew install maven -vd
 
 else
-   echo "pyenv already installed"
+   echo "maven already installed"
    which maven
 fi
 
 brew install kubectl -vd
 brew install helm -vd
 
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
-helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm repo add stable https://charts.helm.sh/stable
+helm repo add incubator https://charts.helm.sh/incubator
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
 
