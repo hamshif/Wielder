@@ -50,6 +50,7 @@ else
 fi
 
 brew install wget -vd
+brew install --cask openssl
 
 brew install --cask iterm2
 
@@ -120,7 +121,7 @@ brew install hudochenkov/sshpass/sshpass
 
 if [[ $(command -v docker) == "" ]]; then
     echo "Installing Docker"
-    brew cask install docker
+    brew install docker
     # echo "Starting docker"
     # open /Applications/Docker.app
 else
@@ -129,8 +130,15 @@ else
 fi
 
 
-brew doctor
+brew install tfenv -vd
+tfenv install 1.1.9
+tfenv use 1.1.9
+terraform -install-autocomplete
 
+brew install librdkafka -vd
+
+
+brew doctor
 
 #
 #if [[ $(command -v which gcloud) == "which" ]]; then
@@ -142,3 +150,5 @@ brew doctor
 #    echo "gcloud already installed"
 #    which gcloud
 #fi
+
+
