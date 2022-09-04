@@ -34,20 +34,18 @@ Add SDK pointing to python interpreter -
 `For downloading SDK from IntelliJ IDEA go to File -> Project Structure... -> SDKs -> '+' -> Download JDK chose version and download`
 
 
-Open project with atom and copy all .imld files into .iml and make sure the pyenv is correct etc...
-
-
 ###Open workspace
 1. open project structure
 2. remove any module if it was created automatically (File -> Project Structure... -> Modules -> '-')
 
 ###Python modules:
-1. Add Wielder module (File -> New -> Module from existing sourse -> select folder Wielder (~/duds/Wielder))
-    - If module wasn't add to the project try **File -> New -> Module... -> Select SDK -> Next -> Select folder -> (if it ask override click Yes) -> Finish**
-2. Add pep-services module in the same way as Wielder module(step 1)
-3. To get intellisense add module src dirs to SDK classpath thus:
+1. Add Wielder module (File -> New -> Module from existing source -> select folder Wielder (e.g. ~/duds/Wielder))
+    - If module wasn't added to the project try **File -> New -> Module... -> Select SDK -> Next -> Select folder -> (if it ask override click Yes) -> Finish**
+1. If .imld exists compare with .iml to see how others set up the project.
+1. Add pep-services module in the same way as Wielder module(step 1)
+1. To get intellisense add module src dirs to SDK classpath thus:
    - **File >> project structure >> SDKs >> class path tab >> + >> ..../pep-services/src  or mark src dir as source for intellisense with right click on project (right click -> Mark directory as -> Sources Root)**
-4. Add dependencies for pep-services to **Wielder File -> Project Structure... -> Modules -> choise pep-services -> tab dependencies -> '+' ->  Module dependency -> select Wielder**
+1. Add dependencies for pep-services to **Wielder File -> Project Structure... -> Modules -> choise pep-services -> tab dependencies -> '+' ->  Module dependency -> select Wielder**
 
 ###Maven modules:
 Maven modules e.g. pipelines add a module using maven (there is some fine-tuning because the project structure is nested modules)
