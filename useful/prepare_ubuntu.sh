@@ -45,8 +45,10 @@ sudo apt-get install -y helm kubectl
 # Add neccessary helm repositories
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
 helm repo add k8ssandra https://helm.k8ssandra.io/stable
 helm repo add kminion https://raw.githubusercontent.com/cloudhut/kminion/master/charts/archives
+helm repo add elastic https://helm.elastic.co
 
 # Install awscli
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
