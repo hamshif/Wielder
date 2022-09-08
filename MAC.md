@@ -2,7 +2,7 @@
 New Mac Installations
 =
 * Xcode (it has lots of necessary c libs)
-* xcode cmd tools 
+* xcode cmd tools
 ```
 xcode-select -install
 ```
@@ -15,12 +15,9 @@ https://www.freecodecamp.org/news/how-to-configure-your-macos-terminal-with-zsh-
     * maven
     * gradle
     * sbt
-    * kubernetes-cli
-    * kubernetes-helm
+
 
 * Docker + configure Kubernetes
 * Source tree (or Kraken)
-* Atom 
+* Atom
 * IntelliJ IDE
-
-
