@@ -91,7 +91,7 @@ if [[ $(command -v which jenv) == "which" ]]; then
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
   jenv versions
-  jenv global 11.0
+  jenv global 1.8
 
   jenv enable-plugin maven
   jenv enable-plugin export
