@@ -28,9 +28,9 @@ fi
 if [[ $(command -v which zsh) == "which" ]]; then
    echo "Installing zsh"
    brew install zsh
-   echo 'export PATH="/opt/homebrew/Cellar/ncurses/bin:$PATH"' >> ~/.zshrc
-   echo 'export LDFLAGS="-L/opt/homebrew/Cellar/ncurses/lib"' >> ~/.zshrc
-   echo 'export CPPFLAGS="-I/opt/homebrew/Cellar/ncurses/include"' >> ~/.zshrc
+   echo 'export PATH="/opt/homebrew/opt/ncurses/bin:$PATH"' >> ~/.zshrc
+   echo 'export LDFLAGS="-L/opt/homebrew/opt/ncurses/lib"' >> ~/.zshrc
+   echo 'export CPPFLAGS="-I/opt/homebrew/opt/ncurses/include"' >> ~/.zshrc
 
    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
@@ -49,23 +49,24 @@ else
     echo "oh-my-zsh already exists"
 fi
 
+
 brew install wget -vd
-brew install git-lfs
-# brew install cask openssl
-brew install --cask openssl
-brew install libgd
-brew install libgcrypt
+brew install git-lfs -vd
+brew install cask openssl -vd
+brew install librdkafka -vd
+brew install libgd -vd
+brew install libgcrypt -vd
 
 
-brew install --cask iterm2
+brew install --cask iterm2 -vd
 
-brew install --cask atom
+brew install --cask atom -vd
 
 if [[ $(command -v which pyenv) == "which" ]]; then
   brew install pyenv -vd
-  echo 'export PATH="/opt/homebrew/Cellar/openssl@1.1/bin:$PATH"' >> ~/.zshrc
-  echo 'export LDFLAGS="-L/opt/homebrew/Cellar/openssl@1.1/lib"' >> ~/.zshrc
-  echo 'export CPPFLAGS="-I/opt/homebrew/Cellar/openssl@1.1/include"' >> ~/.zshrc
+  echo 'export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH"' >> ~/.zshrc
+  echo 'export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib"' >> ~/.zshrc
+  echo 'export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"' >> ~/.zshrc
   echo 'eval "$(pyenv init -)"' >> ~/.zshrc
   echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
 
@@ -78,14 +79,14 @@ softwareupdate --install-rosetta
 
 if [[ $(command -v which jenv) == "which" ]]; then
 
-  brew install jenv
+  brew install jenv -vd
   echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.zshrc
   echo 'eval "$(jenv init -)"' >> ~/.zshrc
 
-  brew tap AdoptOpenJDK/openjdk
+  brew tap AdoptOpenJDK/openjdk -vd
 
-  brew install adoptopenjdk11
-  brew install adoptopenjdk8
+  brew install adoptopenjdk11 -vd
+  brew install adoptopenjdk8 -vd
 
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
@@ -126,16 +127,13 @@ helm repo update
 
 brew install awscli -vd
 
-brew install hudochenkov/sshpass/sshpass
+brew install hudochenkov/sshpass/sshpass -vd
 
 if [[ $(command -v docker) == "" ]]; then
-    echo "Installing Docker"
-    brew install docker
-    # echo "Starting docker"
-    # open /Applications/Docker.app
+    echo "Please install Docker from dmg"
+
 else
     echo "Docker already installed"
-    # open /Applications/Docker.app
 fi
 
 
@@ -144,7 +142,6 @@ tfenv install 1.1.9
 tfenv use 1.1.9
 terraform -install-autocomplete
 
-brew install librdkafka -vd
 
 
 brew doctor
