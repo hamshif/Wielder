@@ -113,6 +113,9 @@ else
    which maven
 fi
 
+brew install scala -vd
+brew install apache-spark -vd
+
 brew install kubectl -vd
 brew install helm -vd
 
