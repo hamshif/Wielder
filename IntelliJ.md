@@ -42,7 +42,7 @@ Add SDK pointing to python interpreter -
 1. Add Wielder module (File -> New -> Module from existing source -> select folder Wielder (e.g. ~/duds/Wielder))
     - If module wasn't added to the project try **File -> New -> Module... -> Select SDK -> Next -> Select folder -> (if it ask override click Yes) -> Finish**
 1. If .imld exists compare with .iml to see how others set up the project.
-1. Add pep-services module in the same way as Wielder module(step 1)
+1. Add pep-services/data-common/pep-dags/pep-terraform/dud/pypep(in dud) modules in order, the same way as Wielder module(step 1)
 1. To get intellisense add module src dirs to SDK classpath thus:
    - **File >> project structure >> SDKs >> class path tab >> + >> ..../pep-services/src  or mark src dir as source for intellisense with right click on project (right click -> Mark directory as -> Sources Root)**
 1. Add dependencies for pep-services to **Wielder File -> Project Structure... -> Modules -> choise pep-services -> tab dependencies -> '+' ->  Module dependency -> select Wielder**
