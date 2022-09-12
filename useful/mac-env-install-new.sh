@@ -114,7 +114,19 @@ else
 fi
 
 brew install scala -vd
-brew install apache-spark -vd
+
+# TODO if you want the newest spark install with brew
+#brew install apache-spark -vd
+
+echo 'installing spark'
+wget https://archive.apache.org/dist/spark/spark-3.0.3/spark-3.0.3-bin-hadoop3.2.tgz -P ~/Downloads
+mkdir -p ~/hadoop/spark-3.0.3
+tar -xvzf ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz -C ~/hadoop/spark-3.0.3 --strip 1
+rm -f ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz
+echo 'export SPARK_HOME=~/hadoop/spark-3.0.3' >> ~/.zshrc
+echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.zshrc
+echo 'installed spark'
+
 
 brew install kubectl -vd
 brew install helm -vd
