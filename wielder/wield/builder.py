@@ -7,7 +7,7 @@ from enum import Enum
 from wielder.util.bucketeer import get_bucketeer
 from wielder.util.util import DirContext
 from wielder.util.wgit import WGit, clone_or_update
-from wielder.wield.enumerator import RuntimeEnv
+from wielder.wield.enumerator import RuntimeEnv, local_deployments
 
 
 class BuilderType(Enum):
@@ -140,32 +140,45 @@ class MavenBuilder(WBuilder):
         full_local_path = f'{full_local_artifactory_path}/{renamed}'
 
         local_exists = self.verify_local_artifact(full_local_artifactory_path, renamed)
-        remote_exists = self.verify_remote_artifact(artifactory_key, renamed)
 
-        if remote_exists:
+        if self.conf.runtime_env in local_deployments:
 
             if not local_exists:
-
-                self.bucketeer.cli_download_object(
-                    bucket_name=self.artifactory,
-                    key=f'{artifactory_key}/{renamed}',
-                    dest=full_local_path
-                )
+                self.build_local_artifact(artifact_name, build_path, dependencies, full_local_path,
+                                          local_artifact_path)
         else:
 
-            if not local_exists:
-                for dependency in dependencies:
+            remote_exists = self.verify_remote_artifact(artifactory_key, renamed)
 
-                    _, dependency_repo_path = self.ensure_build_path(dependency.repo_name)
-                    dependency_path = f'{dependency_repo_path}/{dependency.module_path}'
-                    self.build_artifact(dependency_path)
+            if remote_exists:
 
-                self.build_artifact(build_path)
+                if not local_exists:
 
-                shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar', full_local_path)
+                    self.bucketeer.cli_download_object(
+                        bucket_name=self.artifactory,
+                        key=f'{artifactory_key}/{renamed}',
+                        dest=full_local_path
+                    )
+            else:
 
-            if push:
-                self.push_artifact(full_local_path, artifactory_key, renamed)
+                if not local_exists:
+                    self.build_local_artifact(artifact_name, build_path, dependencies, full_local_path,
+                                              local_artifact_path)
+
+                if push:
+                    self.push_artifact(full_local_path, artifactory_key, renamed)
+
+    def build_local_artifact(self, artifact_name, build_path, dependencies, full_local_path, local_artifact_path):
+
+        for dependency in dependencies:
+            _, dependency_repo_path = self.ensure_build_path(dependency.repo_name)
+            dependency_path = f'{dependency_repo_path}/{dependency.module_path}'
+            self.build_artifact(dependency_path)
+
+        self.build_artifact(build_path)
+
+        shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar',
+                        full_local_path)
 
     def verify_local_artifact(self, artifact_path, artifact_name):
 

@@ -91,7 +91,7 @@ if [[ $(command -v which jenv) == "which" ]]; then
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
   jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
   jenv versions
-  jenv global 11.0
+  jenv global 1.8
 
   jenv enable-plugin maven
   jenv enable-plugin export
@@ -112,6 +112,35 @@ else
    echo "maven already installed"
    which maven
 fi
+
+brew install scala -vd
+
+# TODO
+#brew install apache-spark -vd
+
+if [[ ! $(command -v spark-submit) == "" ]]; then
+
+    printf "spark exists\n"
+
+    spark-shell --version
+
+    printf 'if you want the newest spark install with brew run:\n\n'
+
+    printf '  brew install apache-spark -vd\n'
+
+else
+
+  echo 'installing spark'
+  wget https://archive.apache.org/dist/spark/spark-3.0.3/spark-3.0.3-bin-hadoop3.2.tgz -P ~/Downloads
+  mkdir -p ~/hadoop/spark-3.0.3
+  tar -xvzf ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz -C ~/hadoop/spark-3.0.3 --strip 1
+  rm -f ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz
+  echo 'export SPARK_HOME=~/hadoop/spark-3.0.3' >> ~/.zshrc
+  echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.zshrc
+  echo 'installed spark'
+
+fi
+
 
 brew install kubectl -vd
 brew install helm -vd
