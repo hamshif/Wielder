@@ -126,7 +126,7 @@ if [[ ! $(command -v spark-submit) == "" ]]; then
 
     printf 'if you want the newest spark install with brew run:\n\n'
 
-    echo '  brew install apache-spark -vd\n'
+    printf '  brew install apache-spark -vd\n'
 
 else
 
