@@ -32,6 +32,10 @@ class Sparker(ABC):
     def launch_jobs(self, jobs='jobs'):
         pass
 
+    @abstractmethod
+    def is_job_active(self, jobs_path=['jobs']):
+        pass
+
 
 class EMRClusterStatus(Enum):
 
@@ -279,6 +283,8 @@ class DevSparker(Sparker):
     It currently supports AWS S3, Later on we can add more Cloud providers
     """
 
+    def is_job_active(self, jobs_path=['jobs']):
+        raise Exception("is_job_active function must be implemented in DevSparker class")
     def __init__(self, conf, launch_env=RuntimeEnv.MAC):
 
         super().__init__(conf, launch_env)

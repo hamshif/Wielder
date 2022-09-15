@@ -14,6 +14,7 @@ import logging
 from cassandra import ConsistencyLevel, ReadTimeout
 from cassandra.cluster import Cluster, BatchStatement
 from cassandra.auth import PlainTextAuthProvider
+from cassandra.policies import WhiteListRoundRobinPolicy
 # from cassandra.policies import RoundRobinPolicy
 from cassandra.query import SimpleStatement
 from pyhocon import ConfigFactory
@@ -103,12 +104,17 @@ class WieldTable:
 
         node_ips = [self.host]
 
+        policy = None
+
+        if self.host in ["localhost", "127.0.0.1"]:
+            policy = WhiteListRoundRobinPolicy(node_ips)
+
         cluster = Cluster(
             node_ips,
             auth_provider=self.credentials,
             protocol_version=4,
             port=self.port,
-            # load_balancing_policy=RoundRobinPolicy(),
+            load_balancing_policy=policy,
         )
 
         return cluster
