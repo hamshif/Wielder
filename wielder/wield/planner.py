@@ -169,7 +169,7 @@ class WieldPlan(WielderBase):
         os.system(f"kubectl --context {self.context} delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
 
 
-def plan_resource(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
+def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
 
     plan_conf = conf.planables[plan_key]
     plan_resources = plan_conf.ordered_resources
@@ -183,15 +183,15 @@ def plan_resource(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML
             resolve=True,
         )
 
-        plan = Hc.convert(new_conf[f'{res}'], plan_format.value, 2)
+        plans = Hc.convert(new_conf[f'{res}'], plan_format.value, 2)
 
-        logging.info(f'\n{plan}')
+        logging.info(f'\n{plans}')
 
         if not os.path.exists(plan_dir):
             os.makedirs(plan_dir)
 
-        with open(f'{plan_path}/{res}.yaml', 'wt') as file_out:
-            file_out.write(plan)
+        with open(f'{plan_path}/{res}.{plan_format.value}', 'wt') as file_out:
+            file_out.write(plans)
 
 
 
