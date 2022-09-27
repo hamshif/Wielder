@@ -14,7 +14,7 @@ from wielder.wield.deployer import get_pods, observe_pod
 from wielder.wield.kube_probe import observe_set
 from wielder.wield.servicer import observe_service
 from wielder.util.arguer import destroy_sanity
-
+from pyhocon import ConfigFactory as Cf
 
 class WieldPlan(WielderBase):
 
@@ -168,6 +168,30 @@ class WieldPlan(WielderBase):
         # TODO check for exit commands in all wield-services
         os.system(f"kubectl --context {self.context} delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
 
+
+def plan_resource(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
+
+    plan_conf = conf.planables[plan_key]
+    plan_resources = plan_conf.ordered_resources
+
+    for res in plan_resources:
+
+        files_conf = Cf.parse_file(f'{plan_path}/{res}.conf', resolve=False)
+
+        new_conf = conf.with_fallback(
+            config=files_conf,
+            resolve=True,
+        )
+
+        plan = Hc.convert(new_conf[f'{res}'], plan_format.value, 2)
+
+        logging.info(f'\n{plan}')
+
+        if not os.path.exists(plan_dir):
+            os.makedirs(plan_dir)
+
+        with open(f'{plan_path}/{res}.yaml', 'wt') as file_out:
+            file_out.write(plan)
 
 
 
