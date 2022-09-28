@@ -147,6 +147,9 @@ python3 -m pip install notebook
 echo "export PYSPARK_DRIVER_PYTHON='jupyter'" >> ~/.zshrc
 echo "export PYSPARK_DRIVER_PYTHON_OPTS='notebook --no-browser --port=8889'" >> ~/.zshrc
 
+python3 -m pip install spylon-kernel
+python3 -m spylon_kernel install
+
 
 brew install kubectl -vd
 brew install helm -vd
