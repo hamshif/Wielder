@@ -285,6 +285,7 @@ class DevSparker(Sparker):
 
     def is_job_active(self, jobs_path=['jobs']):
         raise Exception("is_job_active function must be implemented in DevSparker class")
+
     def __init__(self, conf, launch_env=RuntimeEnv.MAC):
 
         super().__init__(conf, launch_env)

@@ -137,9 +137,15 @@ else
   rm -f ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz
   echo 'export SPARK_HOME=~/hadoop/spark-3.0.3' >> ~/.zshrc
   echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.zshrc
+  echo 'export PYSPARK_PYTHON=/Users/daniel/.pyenv/shims/python3' >> ~/.zshrc
   echo 'installed spark'
 
 fi
+
+
+python3 -m pip install notebook
+echo "export PYSPARK_DRIVER_PYTHON='jupyter'" >> ~/.zshrc
+echo "export PYSPARK_DRIVER_PYTHON_OPTS='notebook --no-browser --port=8889'" >> ~/.zshrc
 
 
 brew install kubectl -vd
