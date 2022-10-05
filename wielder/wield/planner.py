@@ -11,7 +11,7 @@ from pyhocon.tool import HOCONConverter as Hc
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wield.deployer import get_pods, observe_pod
-from wielder.wield.kube_probe import observe_set
+from wielder.wield.kube_probe import observe_set, delete_pvc_volumes
 from wielder.wield.servicer import observe_service
 from wielder.util.arguer import destroy_sanity
 from pyhocon import ConfigFactory as Cf
@@ -166,7 +166,13 @@ class WieldPlan(WielderBase):
                 os.system(f"kubectl --context {self.context} delete -f {plan_path} --wait=false;")
 
         # TODO check for exit commands in all wield-services
-        os.system(f"kubectl --context {self.context} delete -n {self.namespace} po -l app={self.name} --force --grace-period=0;")
+        os.system(f"kubectl --context {self.context} delete -n {self.namespace} po -l app={self.name}"
+                  f" --force --grace-period=0;")
+
+        if 'remove_storage_on_delete' in self.module_conf and self.module_conf.remove_storage_on_delete:
+            print('woo')
+
+            delete_pvc_volumes(self.context, self.namespace, 'evolution-storage-evolution')
 
 
 def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):

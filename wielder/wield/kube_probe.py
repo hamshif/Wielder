@@ -2,6 +2,7 @@
 
 import logging
 import json
+import os
 import time
 
 from wielder.util.commander import subprocess_cmd
@@ -79,7 +80,7 @@ def get_kube_namespace_resources_by_type(context, namespace, kube_res, verbose=F
     return data
 
 
-def get_kube_res_by_name(context, namespace, kube_res, res_name):
+def get_kube_resources_by_name(context, namespace, kube_res, res_name):
     """
     A Wrapper of kubectl which parses resources from json
     :param context: Kubernetes context
@@ -95,22 +96,7 @@ def get_kube_res_by_name(context, namespace, kube_res, res_name):
 
     resources = get_kube_namespace_resources_by_type(context, namespace, kube_res)
 
-    for res in resources['items']:
-
-        if res['metadata']['name'] == res_name:
-
-            s = json.dumps(res, indent=4, sort_keys=True)
-            logging.debug(s)
-
-            return res
-
-    logging.warning(
-        f"Didn't find a resource for:\n"
-        f" context: {context}\n"
-        f" namespace: {namespace}\n"
-        f" res_name: {res_name}\n"
-        f"Going for pods with the res type in them"
-    )
+    names = []
 
     for res in resources['items']:
 
@@ -121,7 +107,81 @@ def get_kube_res_by_name(context, namespace, kube_res, res_name):
             s = json.dumps(res, indent=4, sort_keys=True)
             logging.debug(s)
 
-            return res
+            names.append(res)
+
+    return names
+
+
+def get_kube_res_by_name(context, namespace, kube_res, res_name):
+    """
+    A Wrapper of kubectl which parses resources from json
+    :param context: Kubernetes context
+    :param res_name: The name of the resource
+    :type res_name: str
+    :param namespace:
+    :type namespace: str
+    :param kube_res: statefulset, deployment ...
+    :type kube_res: str
+    :return: kubernetes resource as python
+    :rtype:
+    """
+
+    resources = get_kube_resources_by_name(context, namespace, kube_res, res_name)
+
+    if len(resources) > 0:
+        return resources[0]
+
+
+def get_pvcs_pvs_by_partial_claim_name(context, namespace, res_name):
+    """
+    A Wrapper of kubectl which parses resources from json
+    :param context: Kubernetes context
+    :param res_name: The name of the resource
+    :type res_name: str
+    :param namespace:
+    :type namespace: str
+    :return: kubernetes resource as python
+    :rtype:
+    """
+
+    logging.warning(
+        f"Didn't find a resource for:\n"
+        f" context: {context}\n"
+        f" namespace: {namespace}\n"
+        f" res_name: {res_name}\n"
+    )
+
+    pvcs = get_kube_resources_by_name(context, namespace, 'pvc', res_name)
+
+    matching_resources = []
+
+    for pvc in pvcs:
+
+        pvc_name = pvc['metadata']['name']
+
+        volume_name = pvc['spec']['volumeName']
+
+        logging.info(f'Found res with similar name: {pvc_name}')
+        s = json.dumps(pvc, indent=4, sort_keys=True)
+        logging.debug(s)
+
+        matching_resources.append((pvc_name, volume_name))
+
+    return matching_resources
+
+
+def delete_pvc_volumes(context, namespace, pvc_name):
+
+    pvc_pv_tuples = get_pvcs_pvs_by_partial_claim_name(context, namespace, pvc_name)
+
+    for pvc_pv_tuple in pvc_pv_tuples:
+
+        print(pvc_pv_tuples)
+        _cmd = f'kubectl --context {context} -n {namespace} delete pvc {pvc_pv_tuple[0]};'
+        os.system(_cmd)
+
+        _cmd = f'kubectl --context {context} -n {namespace} delete pv {pvc_pv_tuple[1]};'
+        os.system(_cmd)
 
 
 def is_kube_set_ready(context, namespace, kube_res, res_name, enough_replicas=20):
@@ -141,11 +201,11 @@ def is_kube_set_ready(context, namespace, kube_res, res_name, enough_replicas=20
 
     try:
 
-        status = get_kube_res_by_name(context, namespace, kube_res, res_name)
+        stateful_set = get_kube_res_by_name(context, namespace, kube_res, res_name)
 
-        if status is not None:
+        if stateful_set is not None:
 
-            status = status['status']
+            status = stateful_set['status']
 
             if 'currentReplicas' in status:
                 actual_replicas = status['currentReplicas']
@@ -162,7 +222,7 @@ def is_kube_set_ready(context, namespace, kube_res, res_name, enough_replicas=20
                 logging.info(f"Detected {enough_replicas}, considering the set {res_name} OK")
                 return True
         else:
-            logging.warning(f'status came back None')
+            logging.warning(f'stateful set came back None')
 
     except Exception as e:
         logging.warning(e)

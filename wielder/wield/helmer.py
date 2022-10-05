@@ -2,14 +2,14 @@
 
 __author__ = 'Gideon Bar'
 
+import logging
 import os
 
-import logging
+from pyhocon.tool import HOCONConverter as Hc
 
 from wielder.util.kuber import delete_pvcs
 from wielder.wield.enumerator import HelmCommand, KubeResType
-from wielder.wield.kube_probe import observe_set, get_kube_res_by_name, get_kube_namespace_resources_by_type
-from pyhocon.tool import HOCONConverter as Hc
+from wielder.wield.kube_probe import observe_set, get_kube_resources_by_name
 
 
 class WrapHelm:
@@ -76,12 +76,9 @@ class WrapHelm:
             os.system(_cmd)
             return
 
-        try:
-            data = get_kube_res_by_name(self.context, self.namespace, self.res_type, self.res_name)
-        except:
-            data = None
+        data = get_kube_resources_by_name(self.context, self.namespace, self.res_type, self.res_name)
 
-        if data is not None:
+        if len(data) > 0:
             if helm_cmd == HelmCommand.INSTALL:
                 helm_cmd = HelmCommand.UPGRADE
         else:
