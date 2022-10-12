@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/wielder.egg-info" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (dud)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (dud)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
