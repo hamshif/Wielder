@@ -167,6 +167,8 @@ brew install awscli -vd
 
 brew install hudochenkov/sshpass/sshpass -vd
 
+softwareupdate --install-rosetta
+
 if [[ $(command -v docker) == "" ]]; then
     echo "Please install Docker from dmg"
 
