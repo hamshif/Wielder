@@ -15,9 +15,11 @@ class WGit:
 
         with DirContext(repo_path):
 
+            dir_name = repo_path.split('/')[-1]
+
             latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
 
-            logging.info(latest_commit)
+            logging.info(f'latest_commit for {dir_name}: {latest_commit}')
             self.commit = latest_commit
 
             branches = async_cmd('git branch')
@@ -30,10 +32,7 @@ class WGit:
 
                     branch = b[1:-1].strip()
 
-            logging.info(branch)
             self.branch = branch
-
-        logging.debug('akavish')
 
     def get_submodule_commit(self, sub):
 
@@ -44,7 +43,7 @@ class WGit:
             submodule_pointer = async_cmd(_cmd)
 
             submodule_pointer = submodule_pointer[0].split(' ')[2].split('\t')[0]
-            logging.info(submodule_pointer)
+            logging.info(f'submodule {sub} pointer commit: {submodule_pointer}')
 
             return submodule_pointer
 

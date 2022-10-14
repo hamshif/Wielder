@@ -14,10 +14,10 @@ from wielder.wield.wield_project import get_basic_module_properties, get_conf_co
 def get_module_root(file_context=__file__):
 
     dir_path = os.path.dirname(os.path.realpath(file_context))
-    logging.debug(f"\ncurrent working dir: {dir_path}\n")
+    logging.debug(f"\ncurrent working dir: {dir_path}")
 
     module_root = dir_path[:dir_path.rfind('/') + 1]
-    logging.info(f"Module root: {module_root}")
+    logging.debug(f"Module root: {module_root}")
 
     return module_root
 

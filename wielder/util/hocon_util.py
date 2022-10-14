@@ -15,7 +15,7 @@ def object_to_conf(obj):
     return conf
 
 
-def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=True):
+def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=False):
     """
     Resolves a list of Hocon configuration files and optional dictionary and argparse 
     precedence: args, injection, first to last in list

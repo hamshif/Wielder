@@ -15,7 +15,8 @@ def async_cmd(args, verbose=False, executable='/bin/sh'):
         lines.append(line.decode("utf-8"))
 
     return_val = p.wait()
-    logging.info(return_val)
+    if verbose:
+        logging.info(return_val)
     return lines
 
 
