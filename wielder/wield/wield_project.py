@@ -102,16 +102,12 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
 
     project_conf_path = f'{project_root}conf/project.conf'
     bootstrap_conf_path = f'{project_root}conf/bootstrap_env/{bootstrap_env}/wield.conf'
-    runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
-    deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
     app_conf_path = f'{project_root}conf/app/{app}/app.conf'
 
     ordered_project_files = module_paths + [
         project_conf_path,
         bootstrap_conf_path,
-        runtime_conf_path,
-        deploy_env_conf_path,
-        app_conf_path
+        app_conf_path,
     ]
 
     wg = WGit(super_project_root)
@@ -134,10 +130,14 @@ def get_conf_context_project(wield_mode, locale, module_paths=[], app='', inject
         code_repo_commit = 'wile_coyote'
         logging.error(e)
 
+    runtime_conf_path = f'{project_root}conf/runtime_env/{runtime_env}/wield.conf'
+    deploy_env_conf_path = f'{project_root}conf/deploy_env/{deploy_env}/wield.conf'
     developer_conf_path = f'{conf_dir}/developer.conf'
     module_override_path = f'{conf_dir}/modules_override.conf'
 
     ordered_project_files = ordered_project_files + [
+        runtime_conf_path,
+        deploy_env_conf_path,
         developer_conf_path,
         module_override_path
     ]
