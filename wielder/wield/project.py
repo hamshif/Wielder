@@ -2,27 +2,109 @@
 import logging
 import os
 
-from wielder.util.arguer import get_kube_parser
-from wielder.util.hocon_util import object_to_conf
-from wielder.wield.enumerator import local_kubes
+from wielder.util.arguer import get_kube_parser, convert_log_level
+from wielder.util.hocon_util import object_to_conf, resolve_ordered
+from wielder.util.wgit import WGit
 
 
-def get_super_project_root():
+def get_super_project_conf(conf_dir):
+    """
+    A modal configuration evaluation varying with the context of the run.
+
+    Hocon configuration files are evaluated in the overriding order listed below.
+
+    1. CLI args
+    3. Developer Instructions
+    4. Runtime Environment (Where distributed applications run e.g AWS, GCP, Azure)
+    5. Deploy Environment e.g int, dev, qa, stage, prod
+    6. Bootstrap Environment (Where Code Build transpires, Artifacts Images & Container are Packed,
+    Resource Provisioning and deployments are managed).
+    7. Project Default Instructions.
+    8. Submodule Configurations
+
+    The evaluation paths vary with the CLI arguments values.
+    Accordingly Hocon configuration files are evaluated
+    if placed in a directory structure similar to Wielder conf directory.
+
+    The function assumes Wielder is a git submodule of its parent directory
+    It actively looks for other submodules and evaluates app.conf files in each submodule top directory.
+
+    :param conf_dir: the path to the config directory starting from the parent directory of Wielder
+    :return: project level modulated hocon config tree
+    """
+
+    wield_parser = get_kube_parser()
+    wield_args = wield_parser.parse_args()
+
+    print(wield_args)
+
+    action = wield_args.wield
+    runtime_env = wield_args.runtime_env
+    deploy_env = wield_args.deploy_env
+    bootstrap_env = wield_args.bootstrap_env
+    unique_conf = wield_args.unique_conf
+    log_level = convert_log_level(wield_args.log_level)
+
+    staging_root, super_project_root, project_name = get_super_project_roots()
+
+    wg = WGit(super_project_root)
+
+    injection = wg.as_dict_injection()
+
+    injection['action'] = action
+    injection['runtime_env'] = runtime_env
+    injection['deploy_env'] = deploy_env
+    injection['bootstrap_env'] = bootstrap_env
+    injection['unique_conf'] = unique_conf
+    injection['log_level'] = log_level
+
+    injection['staging_root'] = staging_root
+    injection['super_project_root'] = super_project_root
+    injection['project_name'] = project_name
+
+    ordered_project_files = []
+
+    for sub in injection['git']['subs'].keys():
+        potential_conf_path = f'{super_project_root}/{sub}/app.conf'
+        if os.path.exists(potential_conf_path):
+            ordered_project_files.append(potential_conf_path)
+
+    conf_dir = f'{super_project_root}/{conf_dir}'
+
+    project_conf = f'{conf_dir}/project.conf'
+    deploy_conf = f'{conf_dir}/deploy_env/{deploy_env}/wield.conf'
+    bootstrap_conf = f'{conf_dir}/bootstrap_env/{bootstrap_env}/wield.conf'
+    runtime_conf = f'{conf_dir}/runtime_env/{runtime_env}/wield.conf'
+    developer_conf = f'{conf_dir}/unique_conf/{unique_conf}/developer.conf'
+
+    ordered_project_files.append(project_conf)
+    ordered_project_files.append(deploy_conf)
+    ordered_project_files.append(bootstrap_conf)
+    ordered_project_files.append(runtime_conf)
+    ordered_project_files.append(developer_conf)
+
+    conf = resolve_ordered(
+        ordered_conf_paths=ordered_project_files,
+        injection=injection
+    )
+
+    return conf
+
+
+def get_super_project_roots():
 
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
         super_project_root = super_project_root[:super_project_root.rfind('/')]
 
-    logging.info(f'super_project_root:\n{super_project_root}')
+    logging.info(f'staging_root:\n{super_project_root}')
 
-    project_root = super_project_root
+    staging_root = super_project_root[:super_project_root.rfind('/')]
 
-    project_name = super_project_root[super_project_root.rfind('/') + 1:]
+    project_name = staging_root[staging_root.rfind('/') + 1:]
 
-    super_project_root = super_project_root[:super_project_root.rfind('/')]
-
-    return super_project_root, project_root, project_name
+    return staging_root, super_project_root, project_name
 
 
 class WielderProject:
@@ -34,7 +116,7 @@ class WielderProject:
     def __init__(self, super_project_root=None, project_root=None, project_name=None, packing_root=None, provision_root=None, mock_buckets_root=None, build_root=None):
 
         if super_project_root is None or project_root is None or project_name is None:
-            super_project_root, project_root, project_name = get_super_project_root()
+            super_project_root, project_root, project_name = get_super_project_roots()
 
         self.super_project_root = super_project_root
         self.project_root = project_root
@@ -63,15 +145,6 @@ class WielderProject:
             os.makedirs(mock_buckets_root, exist_ok=True)
 
         self.mock_buckets_root = mock_buckets_root
-
-        # p = get_kube_parser()
-        # ar = p.parse_known_args()[0]
-        # # ar = vars(ar)
-        #
-        # if ar.runtime_env in local_kubes:
-        #     self.buckets_root = mock_buckets_root
-        # elif ar.runtime_env == 'aws':
-        #     self.buckets_root = 's3://'
 
     def as_hocon(self):
 
