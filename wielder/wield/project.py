@@ -7,7 +7,7 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_super_project_conf(conf_dir):
+def get_super_project_conf(conf_dir, app=None):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -30,6 +30,7 @@ def get_super_project_conf(conf_dir):
     It actively looks for other submodules and evaluates app.conf files in each submodule top directory.
 
     :param conf_dir: the path to the config directory starting from the parent directory of Wielder
+    :param app: App name for application specific configuration
     :return: project level modulated hocon config tree
     """
 
@@ -70,12 +71,17 @@ def get_super_project_conf(conf_dir):
             ordered_project_files.append(potential_conf_path)
 
     conf_dir = f'{super_project_root}/{conf_dir}'
+    bootstrap_conf_root = f'{conf_dir}/unique_conf/{unique_conf}'
+
+    if app is not None:
+        app_conf_path = f'{conf_dir}/app/{app}/app.conf'
+        ordered_project_files.append(app_conf_path)
 
     project_conf = f'{conf_dir}/project.conf'
     deploy_conf = f'{conf_dir}/deploy_env/{deploy_env}/wield.conf'
     bootstrap_conf = f'{conf_dir}/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf = f'{conf_dir}/runtime_env/{runtime_env}/wield.conf'
-    developer_conf = f'{conf_dir}/unique_conf/{unique_conf}/developer.conf'
+    developer_conf = f'{bootstrap_conf_root}/developer.conf'
 
     ordered_project_files.append(project_conf)
     ordered_project_files.append(deploy_conf)
@@ -87,6 +93,22 @@ def get_super_project_conf(conf_dir):
         ordered_conf_paths=ordered_project_files,
         injection=injection
     )
+
+    try:
+        wielder_commit = injection['git']['subs']['Wielder']
+    except Exception as e:
+        wielder_commit = 'elmore_fud'
+        logging.error(e)
+
+    try:
+        code_repo_commit = injection['git']['subs'][conf.code_repo_name]
+    except Exception as e:
+        code_repo_commit = 'wile_coyote'
+        logging.error(e)
+
+    injection['bootstrap_conf_root'] = bootstrap_conf_root
+    injection['wielder_commit'] = wielder_commit
+    injection['code_repo_commit'] = code_repo_commit
 
     return conf
 
