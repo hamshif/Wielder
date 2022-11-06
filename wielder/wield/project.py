@@ -65,7 +65,7 @@ def get_super_project_conf(conf_dir):
     ordered_project_files = []
 
     for sub in injection['git']['subs'].keys():
-        potential_conf_path = f'{super_project_root}/{sub}/app.conf'
+        potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
         if os.path.exists(potential_conf_path):
             ordered_project_files.append(potential_conf_path)
 
@@ -102,7 +102,7 @@ def get_super_project_roots():
 
     staging_root = super_project_root[:super_project_root.rfind('/')]
 
-    project_name = staging_root[staging_root.rfind('/') + 1:]
+    project_name = super_project_root[super_project_root.rfind('/') + 1:]
 
     return staging_root, super_project_root, project_name
 
