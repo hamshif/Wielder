@@ -46,7 +46,7 @@ def get_super_project_conf(conf_dir, app=None):
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
-    staging_root, super_project_root, project_name = get_super_project_roots()
+    staging_root, super_project_root, super_project_name = get_super_project_roots()
 
     wg = WGit(super_project_root)
 
@@ -61,7 +61,7 @@ def get_super_project_conf(conf_dir, app=None):
 
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
-    injection['project_name'] = project_name
+    injection['super_project_name'] = super_project_name
 
     ordered_project_files = []
 
@@ -106,9 +106,9 @@ def get_super_project_conf(conf_dir, app=None):
         code_repo_commit = 'wile_coyote'
         logging.error(e)
 
-    injection['bootstrap_conf_root'] = bootstrap_conf_root
-    injection['wielder_commit'] = wielder_commit
-    injection['code_repo_commit'] = code_repo_commit
+    conf.bootstrap_conf_root = bootstrap_conf_root
+    conf.wielder_commit = wielder_commit
+    conf.code_repo_commit = code_repo_commit
 
     return conf
 
@@ -124,9 +124,9 @@ def get_super_project_roots():
 
     staging_root = super_project_root[:super_project_root.rfind('/')]
 
-    project_name = super_project_root[super_project_root.rfind('/') + 1:]
+    super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
 
-    return staging_root, super_project_root, project_name
+    return staging_root, super_project_root, super_project_name
 
 
 class WielderProject:
@@ -135,14 +135,14 @@ class WielderProject:
     peculiar to the machine wielder is running on.
     """
 
-    def __init__(self, super_project_root=None, project_root=None, project_name=None, packing_root=None, provision_root=None, mock_buckets_root=None, build_root=None):
+    def __init__(self, super_project_root=None, project_root=None, super_project_name=None, packing_root=None, provision_root=None, mock_buckets_root=None, build_root=None):
 
-        if super_project_root is None or project_root is None or project_name is None:
-            super_project_root, project_root, project_name = get_super_project_roots()
+        if super_project_root is None or project_root is None or super_project_name is None:
+            super_project_root, project_root, super_project_name = get_super_project_roots()
 
         self.super_project_root = super_project_root
         self.project_root = project_root
-        self.project_name = project_name
+        self.super_project_name = super_project_name
 
         if packing_root is None:
             packing_root = f'{super_project_root}/pack'

@@ -178,7 +178,7 @@ def create(create_args):
     create_infrastructure(
         create_wield_services=create_args.create_project,
         target_root=create_args.target_root,
-        project_name=create_args.project_name,
+        project_name=create_args.super_project_name,
         target_module=create_args.module_name,
         origin_module=origin_module
     )
