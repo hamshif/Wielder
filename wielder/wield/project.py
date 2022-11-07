@@ -63,6 +63,14 @@ def get_super_project_conf(conf_dir, app=None):
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
 
+    try:
+        wielder_commit = injection['git']['subs']['Wielder']
+    except Exception as e:
+        wielder_commit = 'elmore_fud'
+        logging.error(e)
+
+    injection['wielder_commit'] = wielder_commit
+
     ordered_project_files = []
 
     for sub in injection['git']['subs'].keys():
@@ -72,6 +80,8 @@ def get_super_project_conf(conf_dir, app=None):
 
     conf_dir = f'{super_project_root}/{conf_dir}'
     bootstrap_conf_root = f'{conf_dir}/unique_conf/{unique_conf}'
+
+    injection['bootstrap_conf_root'] = bootstrap_conf_root
 
     if app is not None:
         app_conf_path = f'{conf_dir}/app/{app}/app.conf'
@@ -95,19 +105,11 @@ def get_super_project_conf(conf_dir, app=None):
     )
 
     try:
-        wielder_commit = injection['git']['subs']['Wielder']
-    except Exception as e:
-        wielder_commit = 'elmore_fud'
-        logging.error(e)
-
-    try:
         code_repo_commit = injection['git']['subs'][conf.code_repo_name]
     except Exception as e:
         code_repo_commit = 'wile_coyote'
         logging.error(e)
 
-    conf.bootstrap_conf_root = bootstrap_conf_root
-    conf.wielder_commit = wielder_commit
     conf.code_repo_commit = code_repo_commit
 
     return conf
