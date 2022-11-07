@@ -81,6 +81,7 @@ def get_super_project_conf(conf_dir, app=None):
     conf_dir = f'{super_project_root}/{conf_dir}'
     bootstrap_conf_root = f'{conf_dir}/unique_conf/{unique_conf}'
 
+    injection['conf_dir'] = conf_dir
     injection['bootstrap_conf_root'] = bootstrap_conf_root
 
     if app is not None:
