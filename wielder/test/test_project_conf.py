@@ -8,9 +8,9 @@ if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
 
-    conf_dir = f'Wielder/conf'
+    project_conf_dir = f'Wielder/conf'
 
-    conf = get_super_project_conf(conf_dir)
+    conf = get_super_project_conf(project_conf_dir)
 
     print("hi")
 

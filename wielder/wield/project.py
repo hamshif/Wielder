@@ -7,7 +7,7 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_super_project_conf(conf_dir, app=None):
+def get_super_project_conf(project_conf_dir, module_conf_dir=None, app=None):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -29,7 +29,8 @@ def get_super_project_conf(conf_dir, app=None):
     The function assumes Wielder is a git submodule of its parent directory
     It actively looks for other submodules and evaluates app.conf files in each submodule top directory.
 
-    :param conf_dir: the path to the config directory starting from the parent directory of Wielder
+    :param module_conf_dir:
+    :param project_conf_dir: the path to the config directory starting from the parent directory of Wielder
     :param app: App name for application specific configuration
     :return: project level modulated hocon config tree
     """
@@ -78,20 +79,20 @@ def get_super_project_conf(conf_dir, app=None):
         if os.path.exists(potential_conf_path):
             ordered_project_files.append(potential_conf_path)
 
-    conf_dir = f'{super_project_root}/{conf_dir}'
-    bootstrap_conf_root = f'{conf_dir}/unique_conf/{unique_conf}'
+    project_conf_dir = f'{super_project_root}/{project_conf_dir}'
+    bootstrap_conf_root = f'{project_conf_dir}/unique_conf/{unique_conf}'
 
-    injection['conf_dir'] = conf_dir
+    injection['conf_dir'] = project_conf_dir
     injection['bootstrap_conf_root'] = bootstrap_conf_root
 
     if app is not None:
-        app_conf_path = f'{conf_dir}/app/{app}/app.conf'
+        app_conf_path = f'{project_conf_dir}/app/{app}/app.conf'
         ordered_project_files.append(app_conf_path)
 
-    project_conf = f'{conf_dir}/project.conf'
-    deploy_conf = f'{conf_dir}/deploy_env/{deploy_env}/wield.conf'
-    bootstrap_conf = f'{conf_dir}/bootstrap_env/{bootstrap_env}/wield.conf'
-    runtime_conf = f'{conf_dir}/runtime_env/{runtime_env}/wield.conf'
+    project_conf = f'{project_conf_dir}/project.conf'
+    deploy_conf = f'{project_conf_dir}/deploy_env/{deploy_env}/wield.conf'
+    bootstrap_conf = f'{project_conf_dir}/bootstrap_env/{bootstrap_env}/wield.conf'
+    runtime_conf = f'{project_conf_dir}/runtime_env/{runtime_env}/wield.conf'
     developer_conf = f'{bootstrap_conf_root}/developer.conf'
 
     ordered_project_files.append(project_conf)
