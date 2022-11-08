@@ -7,7 +7,7 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_paths=None, injection=None):
+def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_paths=None, configure_wield_modules=True, injection=None):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -29,6 +29,7 @@ def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_
     The function assumes Wielder is a git submodule of its parent directory
     It actively looks for other submodules and evaluates app.conf files in each submodule top directory.
 
+    :param configure_wield_modules:
     :param injection:
     :param extra_paths: Config files that get overridden by project and override module if it exists.
     :param module_root:
@@ -79,10 +80,11 @@ def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_
 
     ordered_project_files = []
 
-    for sub in injection['git']['subs'].keys():
-        potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-        if os.path.exists(potential_conf_path):
-            ordered_project_files.append(potential_conf_path)
+    if configure_wield_modules:
+        for sub in injection['git']['subs'].keys():
+            potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
+            if os.path.exists(potential_conf_path):
+                ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
 

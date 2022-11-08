@@ -9,7 +9,7 @@ from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
 from wielder.wield.project import get_super_project_conf
-from wielder.wield.wield_project import get_basic_module_properties, get_conf_context_project
+from wielder.wield.wield_project import get_basic_module_properties
 
 
 def get_module_root(file_context=__file__):
@@ -17,7 +17,7 @@ def get_module_root(file_context=__file__):
     dir_path = os.path.dirname(os.path.realpath(file_context))
     logging.debug(f"\ncurrent working dir: {dir_path}")
 
-    module_root = dir_path[:dir_path.rfind('/') + 1]
+    module_root = dir_path[:dir_path.rfind('/')]
     logging.debug(f"Module root: {module_root}")
 
     return module_root
@@ -37,13 +37,13 @@ class WieldService(WielderBase):
                  plan_format=PlanType.YAML, injection={}):
 
         self.name = name
-        self.module_root = locale.module_root[:-1]
-        self.project_conf_root = f'{locale.project_root}conf'
+        self.module_root = locale.module_root
+        self.project_conf_root = f'{locale.project_root}/conf'
 
         self.locale = locale
         self.wield_mode = wield_mode if wield_mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
-        self.conf_dir = f'{locale.module_root}conf'
+        self.conf_dir = f'{locale.module_root}/conf'
 
         self.wield_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{name}-wield.conf'
 
@@ -87,13 +87,6 @@ class WieldService(WielderBase):
                 injection=injection
             )
 
-            # self.conf = get_conf_context_project(
-            #     wield_mode=self.wield_mode,
-            #     locale=locale,
-            #     module_paths=module_paths,
-            #     injection=injection
-            # )
-
         else:
 
             self.local_path = self.make_sure_module_local_conf_exists()
@@ -104,7 +97,7 @@ class WieldService(WielderBase):
 
         unique_name = self.conf.unique_name
 
-        self.plan_dir = f'{locale.module_root}plan/{unique_name}'
+        self.plan_dir = f'{locale.module_root}/plan/{unique_name}'
 
         self.plan = WieldPlan(
             name=self.name,
