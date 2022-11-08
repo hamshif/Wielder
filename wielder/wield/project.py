@@ -7,7 +7,7 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_super_project_conf(project_conf_dir, module_conf_dir=None, app=None):
+def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_paths=None, injection=None):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -29,8 +29,10 @@ def get_super_project_conf(project_conf_dir, module_conf_dir=None, app=None):
     The function assumes Wielder is a git submodule of its parent directory
     It actively looks for other submodules and evaluates app.conf files in each submodule top directory.
 
-    :param module_conf_dir:
-    :param project_conf_dir: the path to the config directory starting from the parent directory of Wielder
+    :param injection:
+    :param extra_paths: Config files that get overridden by project and override module if it exists.
+    :param module_root:
+    :param project_conf_root: the path to the config directory starting from the parent directory of Wielder
     :param app: App name for application specific configuration
     :return: project level modulated hocon config tree
     """
@@ -51,7 +53,10 @@ def get_super_project_conf(project_conf_dir, module_conf_dir=None, app=None):
 
     wg = WGit(super_project_root)
 
-    injection = wg.as_dict_injection()
+    if injection is None:
+        injection = {}
+
+    injection |= wg.as_dict_injection()
 
     injection['action'] = action
     injection['runtime_env'] = runtime_env
@@ -79,20 +84,28 @@ def get_super_project_conf(project_conf_dir, module_conf_dir=None, app=None):
         if os.path.exists(potential_conf_path):
             ordered_project_files.append(potential_conf_path)
 
-    project_conf_dir = f'{super_project_root}/{project_conf_dir}'
-    bootstrap_conf_root = f'{project_conf_dir}/unique_conf/{unique_conf}'
+    if module_root is not None:
 
-    injection['conf_dir'] = project_conf_dir
-    injection['bootstrap_conf_root'] = bootstrap_conf_root
+        module_conf_path = f'{module_root}/conf/{runtime_env}/wield.conf'
+        ordered_project_files.append(module_conf_path)
+
+    if extra_paths is not None:
+
+        ordered_project_files = ordered_project_files + extra_paths
 
     if app is not None:
-        app_conf_path = f'{project_conf_dir}/app/{app}/app.conf'
+        app_conf_path = f'{project_conf_root}/app/{app}/app.conf'
         ordered_project_files.append(app_conf_path)
 
-    project_conf = f'{project_conf_dir}/project.conf'
-    deploy_conf = f'{project_conf_dir}/deploy_env/{deploy_env}/wield.conf'
-    bootstrap_conf = f'{project_conf_dir}/bootstrap_env/{bootstrap_env}/wield.conf'
-    runtime_conf = f'{project_conf_dir}/runtime_env/{runtime_env}/wield.conf'
+    bootstrap_conf_root = f'{project_conf_root}/unique_conf/{unique_conf}'
+
+    injection['conf_dir'] = project_conf_root
+    injection['bootstrap_conf_root'] = bootstrap_conf_root
+
+    project_conf = f'{project_conf_root}/project.conf'
+    deploy_conf = f'{project_conf_root}/deploy_env/{deploy_env}/wield.conf'
+    bootstrap_conf = f'{project_conf_root}/bootstrap_env/{bootstrap_env}/wield.conf'
+    runtime_conf = f'{project_conf_root}/runtime_env/{runtime_env}/wield.conf'
     developer_conf = f'{bootstrap_conf_root}/developer.conf'
 
     ordered_project_files.append(project_conf)

@@ -8,6 +8,7 @@ from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wield.modality import WieldMode, WieldServiceMode
 from wielder.wield.planner import WieldPlan
+from wielder.wield.project import get_super_project_conf
 from wielder.wield.wield_project import get_basic_module_properties, get_conf_context_project
 
 
@@ -36,6 +37,9 @@ class WieldService(WielderBase):
                  plan_format=PlanType.YAML, injection={}):
 
         self.name = name
+        self.module_root = locale.module_root[:-1]
+        self.project_conf_root = f'{locale.project_root}conf'
+
         self.locale = locale
         self.wield_mode = wield_mode if wield_mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
@@ -51,12 +55,14 @@ class WieldService(WielderBase):
         self.pretty()
 
         module_paths = [self.wield_path]
+        extra_paths = []
 
         if self.service_mode.debug_mode:
 
             # adding to self to facilitate debugging
             self.debug_path = f'{self.conf_dir}/{name}-debug.conf'
             module_paths.append(self.debug_path)
+            extra_paths.append(self.debug_path)
 
         app_conf_path = f'{locale.code_root}/app.conf'
 
@@ -68,17 +74,25 @@ class WieldService(WielderBase):
             # adding to self to facilitate debugging
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
             module_paths.append(self.local_mount)
+            extra_paths.append(self.local_mount)
 
         if self.service_mode.project_override:
 
             logging.info(f'\nTo Override module conf with project conf use\n{locale.unique_conf_root}')
 
-            self.conf = get_conf_context_project(
-                wield_mode=self.wield_mode,
-                locale=locale,
-                module_paths=module_paths,
+            self.conf = get_super_project_conf(
+                project_conf_root=self.project_conf_root,
+                module_root=self.module_root,
+                extra_paths=extra_paths,
                 injection=injection
             )
+
+            # self.conf = get_conf_context_project(
+            #     wield_mode=self.wield_mode,
+            #     locale=locale,
+            #     module_paths=module_paths,
+            #     injection=injection
+            # )
 
         else:
 
