@@ -38,6 +38,8 @@ class WieldService(WielderBase):
 
         self.name = name
         self.module_root = locale.module_root
+        self.image_root = f'{self.module_root}/image/{name}'
+
         self.project_conf_root = f'{locale.project_root}/conf'
 
         self.locale = locale
