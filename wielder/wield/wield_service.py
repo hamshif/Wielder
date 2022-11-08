@@ -3,7 +3,6 @@ import os
 
 from wielder.util.arguer import get_kube_parser
 from wielder.util.arguer import wielder_sanity
-from wielder.util.hocon_util import resolve_ordered
 from wielder.wield.base import WielderBase
 from wielder.wield.enumerator import PlanType, WieldAction
 from wielder.wield.modality import WieldMode, WieldServiceMode
@@ -33,26 +32,23 @@ class WieldService(WielderBase):
         * Specific fields in the configuration
     """
 
-    def __init__(self, name, locale, wield_mode=None, service_mode=None,
+    def __init__(self, name, project_conf_root, module_root, wield_mode=None, service_mode=None,
                  plan_format=PlanType.YAML, injection={}):
 
         self.name = name
-        self.module_root = locale.module_root
+        self.module_root = module_root
         self.image_root = f'{self.module_root}/image/{name}'
 
-        self.project_conf_root = f'{locale.project_root}/conf'
+        self.project_conf_root = project_conf_root
 
-        self.locale = locale
         self.wield_mode = wield_mode if wield_mode else WieldMode()
         self.service_mode = service_mode if service_mode else WieldServiceMode()
-        self.conf_dir = f'{locale.module_root}/conf'
+        self.conf_dir = f'{self.module_root}/conf'
 
         self.wield_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{name}-wield.conf'
 
         if name not in injection:
             injection[name] = {}
-
-        injection[name]['code_path'] = f'{locale.code_root}'
 
         self.pretty()
 
@@ -66,40 +62,23 @@ class WieldService(WielderBase):
             module_paths.append(self.debug_path)
             extra_paths.append(self.debug_path)
 
-        app_conf_path = f'{locale.code_root}/app.conf'
-
-        module_paths = module_paths + [app_conf_path]
-
         # TODO reconsider local mounts it should probably be removed
         if self.service_mode.local_mount:
 
             # adding to self to facilitate debugging
             self.local_mount = f'{self.conf_dir}/{name}-mount.conf'
-            module_paths.append(self.local_mount)
             extra_paths.append(self.local_mount)
 
-        if self.service_mode.project_override:
-
-            logging.info(f'\nTo Override module conf with project conf use\n{locale.unique_conf_root}')
-
-            self.conf = get_super_project_conf(
-                project_conf_root=self.project_conf_root,
-                module_root=self.module_root,
-                extra_paths=extra_paths,
-                injection=injection
-            )
-
-        else:
-
-            self.local_path = self.make_sure_module_local_conf_exists()
-            self.local_path = f'{self.conf_dir}/{self.wield_mode.runtime_env}/{self.name}-local.conf'
-            module_paths.append(self.local_path)
-
-            self.conf = resolve_ordered(module_paths, injection=injection)
+        self.conf = get_super_project_conf(
+            project_conf_root=self.project_conf_root,
+            module_root=self.module_root,
+            extra_paths=extra_paths,
+            injection=injection
+        )
 
         unique_name = self.conf.unique_name
 
-        self.plan_dir = f'{locale.module_root}/plan/{unique_name}'
+        self.plan_dir = f'{self.module_root}/plan/{unique_name}'
 
         self.plan = WieldPlan(
             name=self.name,
@@ -151,8 +130,9 @@ def get_wield_svc(locale, service_name, injection={}):
 
     service = WieldService(
         name=service_name,
-        locale=locale,
-        injection=injection
+        project_conf_root=f'{locale.project_root}/conf',
+        module_root=locale.module_root,
+        injection=injection,
     )
 
     return action, service
