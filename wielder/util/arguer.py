@@ -146,7 +146,7 @@ def get_wielder_parser():
     parser.add_argument(
         '-d', '--debug_mode',
         type=bool,
-        help='Debug mode is a general instruction  '
+        help='Debug mode is a general instruction. '
              'An example would be WieldService debug_mode means the mode-debug.conf file is resolved for configuration',
         default=False
     )
@@ -155,7 +155,7 @@ def get_wielder_parser():
         '-lm', '--local_mount',
         type=bool,
         help='Local mount is an instruction to WieldService '
-             'to mount a local directory to the runtime env e.g. Kubernetes or Docker'
+             'to mount a local directory to the runtime env e.g. Kubernetes or Docker '
              'WieldService will resolve {service name}-mount.conf for configuration',
         default=False
     )
