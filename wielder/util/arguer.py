@@ -317,8 +317,8 @@ if __name__ == "__main__":
 
     setup_logging()
 
-    _kube_parser = get_wielder_parser()
-    _kube_args = _kube_parser.parse_args()
+    _wield_parser = get_wielder_parser()
+    _wield_args = _wield_parser.parse_args()
 
 
 
