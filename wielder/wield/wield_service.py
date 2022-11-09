@@ -24,7 +24,7 @@ class WieldService(WielderBase):
     """
     A class wrapping configuration and code to deploy a service on Kubernetes
     disambiguation: service => a set of kubernetes resources
-    e.g. micro-service comprised of configmap, deployment, service, storage, pvc..
+    e.g. microservice comprised of configmap, deployment, service, storage, pvc..
     By default it assumes:
         * A specific project structure
         * Specific fields in the configuration
