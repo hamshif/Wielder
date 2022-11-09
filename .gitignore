@@ -38,3 +38,4 @@ deploy/slate-storage-class.yaml.tmpl
 gcp/slate-deploy.yaml.tmpl
 image/
 plan/
+wielder/util/yarok.txt
