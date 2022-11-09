@@ -74,7 +74,7 @@ def destroy_sanity(conf):
         exit(1)
 
 
-def get_kube_parser():
+def get_wielder_parser():
 
     parser = argparse.ArgumentParser(
         description='Three rings for the cloud-kings in the sky,\n'
@@ -135,7 +135,6 @@ def get_kube_parser():
         default='default_conf'
     )
 
-    # TODO deprecate carefully
     parser.add_argument(
         '-ll', '--log_level',
         type=LogLevel,
@@ -144,10 +143,27 @@ def get_kube_parser():
         default=LogLevel.INFO
     )
 
+    parser.add_argument(
+        '-d', '--debug_mode',
+        type=bool,
+        help='Debug mode is a general instruction  '
+             'An example would be WieldService debug_mode means the mode-debug.conf file is resolved for configuration',
+        default=False
+    )
+
+    parser.add_argument(
+        '-lm', '--local_mount',
+        type=bool,
+        help='Local mount is an instruction to WieldService '
+             'to mount a local directory to the runtime env e.g. Kubernetes or Docker'
+             'WieldService will resolve {service name}-mount.conf for configuration',
+        default=False
+    )
+
     return parser
 
 
-def wielder_sanity(conf, mode):
+def wielder_sanity(conf):
 
     try:
 
@@ -159,7 +175,7 @@ def wielder_sanity(conf, mode):
         if not conf.insane:
 
             message = f"\nkube context   : {conf.kube_context}" \
-                      f"\nmode.runtime_env is: {mode.runtime_env}" \
+                      f"\nmode.runtime_env is: {conf.runtime_env}" \
                       f"\ncurrent context       : {current_context}" \
                       f"\neIf you wish you can either change context or configure congruent runtime_env" \
                       f"\nto change context run:" \
@@ -301,7 +317,7 @@ if __name__ == "__main__":
 
     setup_logging()
 
-    _kube_parser = get_kube_parser()
+    _kube_parser = get_wielder_parser()
     _kube_args = _kube_parser.parse_args()
 
 

@@ -2,12 +2,12 @@
 import logging
 import os
 
-from wielder.util.arguer import get_kube_parser, convert_log_level
+from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_paths=None, configure_wield_modules=True, injection=None):
+def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, extra_paths=None, configure_wield_modules=True, injection=None):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -38,7 +38,7 @@ def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_
     :return: project level modulated hocon config tree
     """
 
-    wield_parser = get_kube_parser()
+    wield_parser = get_wielder_parser()
     wield_args = wield_parser.parse_args()
 
     print(wield_args)
@@ -49,6 +49,8 @@ def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_
     bootstrap_env = wield_args.bootstrap_env
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
+    debug_mode = wield_args.debug_mode
+    local_mount = wield_args.local_mount
 
     staging_root, super_project_root, super_project_name = get_super_project_roots()
 
@@ -65,6 +67,8 @@ def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_
     injection['bootstrap_env'] = bootstrap_env
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
+    injection['debug_mode'] = debug_mode
+    injection['local_mount'] = local_mount
 
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
@@ -101,7 +105,7 @@ def get_super_project_conf(project_conf_root, module_root=None, app=None, extra_
 
     bootstrap_conf_root = f'{project_conf_root}/unique_conf/{unique_conf}'
 
-    injection['conf_dir'] = project_conf_root
+    injection['project_conf_root'] = project_conf_root
     injection['bootstrap_conf_root'] = bootstrap_conf_root
 
     project_conf = f'{project_conf_root}/project.conf'
