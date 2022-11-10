@@ -92,8 +92,9 @@ def get_wield_svc(locale, service_name, injection={}):
     """
     A convenience wrapper based on cli and directory conventions
     for getting WieldService.
-    :param locale: used to get directory roots
-    :param service_name: used as key to configuration
+    :param injection: A dictionary that gets evaluated as HOCON.
+    :param locale: Used to get directory roots.
+    :param service_name: Used as key to configuration.
     :return:
     """
 
