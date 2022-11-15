@@ -30,6 +30,7 @@ class WrapTerraform:
         self.run_path = f'{root_path}/{run_dir}'
         self.conf = conf
 
+        self.backend_root = conf.backend_root
         self.backend_name = conf.backend_name
         self.backend_tree = conf.backend
         self.tfvars = conf.tfvars
@@ -109,7 +110,7 @@ class WrapTerraform:
         elif terraform_action == TerraformAction.INIT:
 
             if self.backend_name is not None:
-                t_cmd = f'{t_cmd} -upgrade -backend-config "../backends_tf/{self.backend_name}.tf" -force-copy'
+                t_cmd = f'{t_cmd} -upgrade -backend-config "{self.backend_root}/{self.backend_name}.tf" -force-copy'
 
         elif terraform_action == TerraformAction.APPLY:
 
