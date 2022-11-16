@@ -7,7 +7,8 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, extra_paths=None, configure_wield_modules=True, injection=None):
+def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, extra_paths=None,
+                                 configure_wield_modules=True, injection=None, call_from_jupyter=False):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -39,6 +40,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     """
 
     wield_parser = get_wielder_parser()
+
+    if call_from_jupyter:
+        wield_parser.add_argument("-f", "--fff", help="a dummy argument to fool ipython", default="1")
+
     wield_args = wield_parser.parse_args()
 
     print(wield_args)
