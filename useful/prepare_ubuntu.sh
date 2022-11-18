@@ -58,10 +58,10 @@ rm awscliv2.zip
 rm -rf ./aws/
 
 # Install terraform
-wget https://releases.hashicorp.com/terraform/0.14.10/terraform_0.14.10_linux_amd64.zip
-unzip terraform_0.14.10_linux_amd64.zip
+wget https://releases.hashicorp.com/terraform/1.1.5/terraform_1.1.5_linux_amd64.zip
+unzip terraform_1.1.5_linux_amd64.zip
 sudo mv terraform /usr/local/bin
-rm terraform_0.14.10_linux_amd64.zip
+rm terraform_1.1.5_linux_amd64.zip
 
 # Install kind
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
@@ -79,8 +79,8 @@ echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
 echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
 eval "$(cat ~/.bashrc | tail -n +10)"
-pyenv install 3.8.1
-pyenv virtualenv 3.8.1 wielder
+pyenv install 3.10.2
+pyenv virtualenv 3.10.2 wielder
 
 # Install jenv
 sudo apt install -y openjdk-11-jdk openjdk-8-jdk
@@ -108,7 +108,7 @@ rm Lens-5.3.4-latest.20220120.1.amd64.deb
 # Install spark locally
 sudo mkdir /opt/spark
 sudo wget https://downloads.apache.org/spark/spark-3.0.3/spark-3.0.3-bin-hadoop2.7.tgz -P /opt
-sudo mv sudo mv spark-3.0.3-bin-hadoop2.7 /opt/spark
+sudo mv spark-3.0.3-bin-hadoop2.7 /opt/spark
 echo "export SPARK_HOME=/opt/spark" >> ~/.bashrc
 echo "export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin" >> ~/.bashrc
 echo "export PYSPARK_PYTHON=/usr/bin/python3" >> ~/.bashrc
