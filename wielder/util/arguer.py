@@ -104,7 +104,7 @@ def get_wielder_parser():
     parser.add_argument(
         '-re', '--runtime_env',
         type=str,
-        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
+        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker'],
         help='Runtime environment refers to where clusters such as Kubernetes are running',
         default='docker'
     )
