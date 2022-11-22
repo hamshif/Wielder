@@ -7,6 +7,41 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
+def get_project_wield_conf(conf_path, app_name, run_name, injection=None):
+
+    wield_parser = get_wielder_parser()
+    wield_args = wield_parser.parse_args()
+
+    runtime_env = wield_args.runtime_env
+
+    app_path = f"{conf_path}/app/{app_name}/app.conf"
+    run_path = f"{conf_path}/runs/{run_name}.conf"
+    runtime_env_path = f"{conf_path}/runtime_env/{runtime_env}/env.conf"
+
+    plan_path = f"{conf_path}/plan"
+
+    if injection is None:
+        injection = {}
+
+    injection['conf_path'] = conf_path
+    injection['runtime_env'] = runtime_env
+    injection['plan_path'] = plan_path
+    injection['run_name'] = run_name
+
+    ordered_conf_files = [
+        app_path,
+        runtime_env_path,
+        run_path,
+    ]
+
+    conf = resolve_ordered(
+        ordered_conf_paths=ordered_conf_files,
+        injection=injection
+    )
+
+    return conf
+
+
 def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, extra_paths=None,
                                  configure_wield_modules=True, injection=None, call_from_jupyter=False):
     """
@@ -96,12 +131,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
                 ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
-
         module_conf_path = f'{module_root}/conf/{runtime_env}/wield.conf'
         ordered_project_files.append(module_conf_path)
 
     if extra_paths is not None:
-
         ordered_project_files = ordered_project_files + extra_paths
 
     if app is not None:
@@ -142,7 +175,6 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
 
 def get_super_project_roots():
-
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
@@ -163,7 +195,8 @@ class WielderProject:
     peculiar to the machine wielder is running on.
     """
 
-    def __init__(self, super_project_root=None, project_root=None, super_project_name=None, packing_root=None, provision_root=None, mock_buckets_root=None, build_root=None):
+    def __init__(self, super_project_root=None, project_root=None, super_project_name=None, packing_root=None,
+                 provision_root=None, mock_buckets_root=None, build_root=None):
 
         if super_project_root is None or project_root is None or super_project_name is None:
             super_project_root, project_root, super_project_name = get_super_project_roots()
@@ -202,12 +235,7 @@ class WielderProject:
 
 
 if __name__ == "__main__":
-
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
     wp = WielderProject()
-
-
-
-
