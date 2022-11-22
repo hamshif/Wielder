@@ -32,7 +32,6 @@ class Locale:
         self.super_project_name = super_project_name
         self.module_root = module_root
         self.code_repo_name = code_repo_name
-        self.datastores_root = datastores_root
         self.provision_root = provision_root
         self.packing_root = packing_root
         self.image_root = image_root

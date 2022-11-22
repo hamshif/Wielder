@@ -7,7 +7,7 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_project_wield_conf(conf_path, app_name, run_name, injection=None):
+def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None):
 
     wield_parser = get_wielder_parser()
     wield_args = wield_parser.parse_args()
@@ -28,11 +28,14 @@ def get_project_wield_conf(conf_path, app_name, run_name, injection=None):
     injection['plan_path'] = plan_path
     injection['run_name'] = run_name
 
+    if override_ordered_files is None:
+        override_ordered_files = []
+
     ordered_conf_files = [
         app_path,
         runtime_env_path,
         run_path,
-    ]
+    ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
