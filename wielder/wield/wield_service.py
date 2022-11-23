@@ -42,7 +42,7 @@ class WieldService(WielderBase):
         self.service_mode = WieldServiceMode()
         self.conf_dir = f'{self.module_root}/conf'
 
-        if name not in injection:
+        if name not in injection.items():
             injection[name] = {}
 
         self.pretty()
