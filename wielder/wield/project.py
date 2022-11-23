@@ -116,6 +116,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
+    injection['project_conf_root'] = project_conf_root
 
     try:
         wielder_commit = injection['git']['subs']['Wielder']
