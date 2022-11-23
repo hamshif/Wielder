@@ -30,7 +30,7 @@ class WieldService(WielderBase):
         * Specific fields in the configuration
     """
 
-    def __init__(self, name, project_conf_root, module_root, service_mode=None,
+    def __init__(self, name, project_conf_root, module_root, app,
                  plan_format=PlanType.YAML, injection={}):
 
         self.name = name
@@ -39,7 +39,7 @@ class WieldService(WielderBase):
 
         self.project_conf_root = project_conf_root
 
-        self.service_mode = service_mode if service_mode else WieldServiceMode()
+        self.service_mode = WieldServiceMode()
         self.conf_dir = f'{self.module_root}/conf'
 
         if name not in injection:
@@ -64,6 +64,7 @@ class WieldService(WielderBase):
         self.conf = get_super_project_wield_conf(
             project_conf_root=self.project_conf_root,
             module_root=self.module_root,
+            app=app,
             extra_paths=extra_paths,
             injection=injection
         )
@@ -88,10 +89,11 @@ class WieldService(WielderBase):
         wielder_sanity(self.conf)
 
 
-def get_wield_svc(locale, service_name, injection={}):
+def get_wield_svc(locale, app, service_name, injection={}):
     """
     A convenience wrapper based on cli and directory conventions
     for getting WieldService.
+    :param app: The distributed application to which the service belongs
     :param injection: A dictionary that gets evaluated as HOCON.
     :param locale: Used to get directory roots.
     :param service_name: Used as key to configuration.
@@ -102,6 +104,7 @@ def get_wield_svc(locale, service_name, injection={}):
         name=service_name,
         project_conf_root=f'{locale.project_root}/conf',
         module_root=locale.module_root,
+        app=app,
         injection=injection,
     )
 
