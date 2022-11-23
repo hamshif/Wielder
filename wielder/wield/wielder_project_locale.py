@@ -7,7 +7,7 @@ class Locale:
     """
 
     def __init__(
-            self, project_root, super_project_root, super_project_name, module_root, code_repo_name, datastores_root,
+            self, project_root, super_project_root, super_project_name, module_root, code_repo_name,
             provision_root='unknown', packing_root='unknown', image_root='unknown', wield_root='unknown',
             code_root='unknown', unique_conf_root='unknown', buckets=None, build_root='unknown'
     ):
