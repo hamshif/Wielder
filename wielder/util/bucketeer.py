@@ -355,6 +355,10 @@ class DevBucketeer(Bucketeer):
 
     def upload_file(self, source, bucket_name, dest):
 
+        dir_path = dest[:dest.rfind('/')]
+        file_path = f'{self.buckets_root}/{bucket_name}/{dir_path}'
+        os.makedirs(file_path, exist_ok=True)
+
         shutil.copy(source, f'{self.buckets_root}/{bucket_name}/{dest}')
 
     def upload_directory(self, source, bucket_name, prefix):
@@ -379,11 +383,13 @@ class DevBucketeer(Bucketeer):
             os.makedirs(dest, exist_ok=True)
             src = f'{self.buckets_root}/{bucket_name}/{key}/{name}'
 
-            stale = f'{dest}/{name}'
-            if os.path.isfile(stale):
-                os.remove(stale)
+            if os.path.isfile(src):
 
-            shutil.copy(src, dest)
+                stale = f'{dest}/{name}'
+                if os.path.isfile(stale):
+                    os.remove(stale)
+
+                shutil.copy(src, dest)
 
         except ClientError as e:
             logging.error(e)
@@ -509,14 +515,14 @@ def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS
     :return:
     """
 
+    bconf = None
+
     if bootstrap_env.value in local_deployments:
 
-        if runtime_env == RuntimeEnv.AWS:
-            return AWSBucketeer(conf)
-        elif runtime_env == RuntimeEnv.DOCKER or runtime_env == RuntimeEnv.KIND:
-            return DevBucketeer(conf)
+        bconf = conf
 
-    elif bootstrap_env == RuntimeEnv.AWS:
-        return AWSBucketeer(None)
+    if runtime_env == RuntimeEnv.AWS:
+        return AWSBucketeer(bconf)
+    else:
+        return DevBucketeer(conf)
 
-    raise ValueError(bootstrap_env)
