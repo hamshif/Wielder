@@ -7,10 +7,15 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 
 
-def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None):
+def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None, wield_parser=None):
 
-    wield_parser = get_wielder_parser()
+    if wield_parser is None:
+        wield_parser = get_wielder_parser()
+
     wield_args = wield_parser.parse_args()
+
+    if injection is None:
+        injection = {}
 
     runtime_env = wield_args.runtime_env
 
@@ -20,13 +25,17 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
 
     plan_path = f"{conf_path}/plan"
 
-    if injection is None:
-        injection = {}
-
     injection['conf_path'] = conf_path
-    injection['runtime_env'] = runtime_env
     injection['plan_path'] = plan_path
     injection['run_name'] = run_name
+
+    action = wield_args.wield
+    injection['action'] = action
+
+    log_level = convert_log_level(wield_args.log_level)
+    injection['log_level'] = log_level
+
+    injection |= wield_args.__dict__
 
     if override_ordered_files is None:
         override_ordered_files = []
@@ -105,13 +114,8 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     injection |= wg.as_dict_injection()
 
     injection['action'] = action
-    injection['runtime_env'] = runtime_env
-    injection['deploy_env'] = deploy_env
-    injection['bootstrap_env'] = bootstrap_env
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
-    injection['debug_mode'] = debug_mode
-    injection['local_mount'] = local_mount
 
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
@@ -161,6 +165,8 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     ordered_project_files.append(bootstrap_conf)
     ordered_project_files.append(runtime_conf)
     ordered_project_files.append(developer_conf)
+
+    injection |= wield_args.__dict__
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_project_files,

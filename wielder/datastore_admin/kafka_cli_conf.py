@@ -3,6 +3,7 @@ import argparse
 import os
 from enum import Enum
 
+from wielder.util.arguer import get_wielder_parser
 from wielder.util.hocon_util import resolve_ordered
 
 import logging
@@ -23,22 +24,11 @@ class ConsumerAction(Enum):
     ONE_MSG_BATCH = 'one'
 
 
-def get_parser():
+def get_kafka_parser():
 
-    parser = argparse.ArgumentParser(
-        description='A wrapper for kafka consumer\n'
-                    'CLI trumps config file\n'
-                    'Used in tandem with Kafka.conf Hocon config file.\n'
-    )
+    wield_parser = get_wielder_parser()
 
-    parser.add_argument(
-        '-re', '--runtime_env',
-        type=str,
-        help='Kafka topic to override config subscriptions.',
-        default='kube_docker'
-    )
-
-    parser.add_argument(
+    wield_parser.add_argument(
         '-aa', '--admin_action',
         type=AdminAction,
         choices=list(AdminAction),
@@ -49,8 +39,8 @@ def get_parser():
         default=AdminAction.LIST
     )
 
-    parser.add_argument(
-        '-a', '--action',
+    wield_parser.add_argument(
+        '-a', '--consume_action',
         type=ConsumerAction,
         choices=list(ConsumerAction),
         help='Consumer actions:\n'
@@ -63,21 +53,21 @@ def get_parser():
         default=ConsumerAction.CONSUME
     )
 
-    parser.add_argument(
+    wield_parser.add_argument(
         '-id', '--group_id',
         type=str,
         help='Kafka group id for consumer.',
         default=None
     )
 
-    parser.add_argument(
+    wield_parser.add_argument(
         '-t', '--topic',
         type=str,
         help='Kafka topic to override config subscriptions.',
         default=None
     )
 
-    return parser
+    return wield_parser
 
 
 def default_project_root():
@@ -100,7 +90,7 @@ def get_kafka_conf(project_root=None):
     :rtype: hocon config tree
     """
 
-    p = get_parser()
+    p = get_kafka_parser()
     ar = p.parse_args()
 
     if project_root is None:
