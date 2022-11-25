@@ -22,7 +22,7 @@ setup(
     install_requires=[
         'Cython==0.29.24', 'GitPython==3.1.18', 'PyYAML==5.4.1', 'kubernetes==17.17.0', 'rx==3.2.0', 'jprops==2.0.2',
         'pyhocon==0.3.58', 'requests==2.26.0', 'deepdiff==6.2.1', 'botocore==1.21.21', 'boto3==1.18.21',
-        'cassandra-driver==3.25.0', 'kazoo==2.8.0', 'confluent-kafka==1.9.2', 'kafka==1.3.5'
+        'cassandra-driver==3.25.0', 'kazoo==2.8.0', 'confluent-kafka==1.5.0', 'kafka==1.3.5'
     ],
     keywords=['CI-CD', 'Kubernetes', 'Reactive'],
     classifiers=[
