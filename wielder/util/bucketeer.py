@@ -82,18 +82,16 @@ class AWSBucketeer(Bucketeer):
     It currently supports AWS S3.
     """
 
-    def __init__(self, conf=None):
+    def __init__(self, conf=None, auth=True):
 
         super().__init__(conf)
 
-        if conf is None:
-            logging.info('conf is None getting default client')
-            self.s3 = boto3_client(service_name='s3')
-        else:
-
+        if auth:
             session = get_aws_session(conf)
-
             self.s3 = session.resource('s3').meta.client
+        else:
+            logging.info('Direct auth not needed, getting default client.')
+            self.s3 = boto3_client(service_name='s3')
 
     def create_bucket(self, bucket_name, region=None):
         """Create an S3 bucket in a specified region
@@ -505,24 +503,23 @@ class DevBucketeer(Bucketeer):
         return False
 
 
-def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS):
+def get_bucketeer(conf, runtime_env=RuntimeEnv.MAC, bucket_env=RuntimeEnv.AWS):
     """
-    Factory method for standardizing bucket access e.g. S3 boto3 client, GCP Client , Local Directory to simulate bucket,
+    Factory method for standardizing bucket access e.g. S3 boto3 client, GCP Client, Local Directory to simulate bucket,
      depending on the combination of runtime environment and deploy environment.
-    :param conf:
-    :param runtime_env: where this code is running
-    :param bootstrap_env: where spark is expected to run
-    :return:
+    :param conf: project config
+    :param runtime_env: Where this code is running
+    :param bucket_env: Where the bucket is.
+    :return: a Bucketeer object wrapping buckets or local mock buckets
     """
 
-    bconf = None
+    if runtime_env.value in local_deployments:
+        auth = True
+    else:
+        auth = False
 
-    if bootstrap_env.value in local_deployments:
-
-        bconf = conf
-
-    if runtime_env == RuntimeEnv.AWS:
-        return AWSBucketeer(bconf)
+    if bucket_env == RuntimeEnv.AWS:
+        return AWSBucketeer(conf, auth=auth)
     else:
         return DevBucketeer(conf)
 
