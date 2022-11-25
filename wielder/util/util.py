@@ -142,7 +142,7 @@ def get_random_string(length):
 
 def get_aws_session(conf):
 
-    role = conf.terraformer.super_cluster.cred_role
+    role = conf.aws_cred_role
 
     cred = get_aws_mfa_cred(role)
 

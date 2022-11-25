@@ -389,7 +389,7 @@ class DevBucketeer(Bucketeer):
 
                 shutil.copy(src, dest)
 
-        except ClientError as e:
+        except Exception as e:
             logging.error(e)
             return False
         return True
