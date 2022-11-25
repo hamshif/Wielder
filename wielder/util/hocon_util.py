@@ -33,6 +33,8 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     if cmd_args is not None:
 
         ar = vars(cmd_args)
+        # TODO replace with new ** with |= when Wielder supports the new python 3.10
+        # injection |= ar
         injection = {**injection,  **ar}
 
     base_conf = Cf.from_dict(injection)

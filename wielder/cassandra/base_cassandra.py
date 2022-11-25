@@ -2,26 +2,16 @@
 """
 Author: Gideon Bar
 """
-import json
-import os
 import argparse
-import traceback
-from enum import Enum
-
-from time import sleep
-
 import logging
-from cassandra import ConsistencyLevel, ReadTimeout
-from cassandra.cluster import Cluster, BatchStatement
-from cassandra.auth import PlainTextAuthProvider
-from cassandra.policies import WhiteListRoundRobinPolicy
-# from cassandra.policies import RoundRobinPolicy
-from cassandra.query import SimpleStatement
-from pyhocon import ConfigFactory
 
-import rx
-from rx import operators as ops
-import concurrent.futures
+from cassandra import ConsistencyLevel, ReadTimeout
+from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from cassandra.policies import WhiteListRoundRobinPolicy
+
+
+# from cassandra.policies import RoundRobinPolicy
 
 
 class WieldTable:

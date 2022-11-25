@@ -35,7 +35,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
     log_level = convert_log_level(wield_args.log_level)
     injection['log_level'] = log_level
 
-    injection |= wield_args.__dict__
+    # TODO replace with new ** with |= when Wielder supports the new python 3.10
+    # injection |= wield_args.__dict__
+    ar = wield_args.__dict__
+    injection = {**injection,  **ar}
 
     if override_ordered_files is None:
         override_ordered_files = []
@@ -110,8 +113,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
     if injection is None:
         injection = {}
-
-    injection |= wg.as_dict_injection()
+    # TODO replace with new ** with |= when Wielder supports the new python 3.10
+    # injection |= wg.as_dict_injection()
+    ar = wg.as_dict_injection()
+    injection = {**injection,  **ar}
 
     injection['action'] = action
     injection['unique_conf'] = unique_conf
@@ -166,7 +171,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     ordered_project_files.append(runtime_conf)
     ordered_project_files.append(developer_conf)
 
-    injection |= wield_args.__dict__
+    # TODO replace with new ** with |= when Wielder supports the new python 3.10
+    # injection |= wield_args.__dict__
+    ar = wield_args.__dict__
+    injection = {**injection,  **ar}
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_project_files,

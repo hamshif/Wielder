@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-import argparse
+import logging
 import os
 from enum import Enum
 
 from wielder.util.arguer import get_wielder_parser
-from wielder.util.hocon_util import resolve_ordered
-
-import logging
 
 
 class AdminAction(Enum):
@@ -78,54 +75,6 @@ def default_project_root():
     project_root = dir_path.replace('/datastore_admin', '')
     return project_root
 
-
-def get_kafka_conf(project_root=None):
-    """
-    To view CLI options call this module with -h
-
-    :param project_root: full path to where the project root lies
-        i.e. a config dir with environment specific folders. If None goes to default example config.
-    :type project_root: str
-    :return: A hocon config tree overridden by CLI
-    :rtype: hocon config tree
-    """
-
-    p = get_kafka_parser()
-    ar = p.parse_args()
-
-    if project_root is None:
-        project_root = default_project_root()
-
-    conf_root = f'{project_root}/conf/kafka'
-
-    main_conf_path = f"{conf_root}/kafka.conf"
-    env_conf_path = f"{conf_root}/{ar.runtime_env}/kafka.conf"
-    dev_override_path = f"{conf_root}/dev.conf"
-
-    ordered_conf_files = [
-        main_conf_path,
-        env_conf_path,
-        dev_override_path
-    ]
-
-    conf = resolve_ordered(ordered_conf_files)
-
-    conf.project_root = project_root
-    conf.action = ar.action
-    conf.admin_action = ar.admin_action
-
-    if ar.group_id is not None:
-        conf.group_id = ar.group_id
-
-    conf.topic = ar.topic
-
-    return conf
-
-
-if __name__ == "__main__":
-
-    _conf = get_kafka_conf()
-    print(_conf)
 
 
 

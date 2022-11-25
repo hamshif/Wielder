@@ -10,7 +10,7 @@ https://github.com/pyenv/pyenv-virtualenv
 For Mac
 ```
 brew install pyenv
-pyenv install 3.10.6
+pyenv install 3.8.10
 brew install pyenv-virtualenv pyenv-virtualenvwrapper
 ```
 To config add these lines in .zshrc or .bashrc
@@ -27,7 +27,7 @@ Either run
 ```
 or
 ```
-pyenv virtualenv 3.10.6 wielder
+pyenv virtualenv 3.8.10 wielder
 pyenv activate wielder 
 ```
 
