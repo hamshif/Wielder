@@ -84,7 +84,9 @@ def wield_deployment_batches(conf, action, key_path, func_map):
     :return:
     """
 
-    deploy_batches = conf[key_path[0]]
+    app_conf = conf[conf.app]
+
+    deploy_batches = app_conf[key_path[0]]
 
     for key in key_path[1:]:
         deploy_batches = deploy_batches[key]
