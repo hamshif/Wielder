@@ -2,6 +2,8 @@
 import logging
 import os
 
+from pyhocon import ConfigFactory
+
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
@@ -67,14 +69,14 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     1. CLI args
     3. Developer Instructions
     4. Runtime Environment (Where distributed applications run e.g AWS, GCP, Azure)
-    5. Deploy Environment e.g int, dev, qa, stage, prod
+    5. Deploy Environment e.g. int, dev, qa, stage, prod
     6. Bootstrap Environment (Where Code Build transpires, Artifacts Images & Container are Packed,
     Resource Provisioning and deployments are managed).
     7. Project Default Instructions.
     8. Submodule Configurations
 
     The evaluation paths vary with the CLI arguments values.
-    Accordingly Hocon configuration files are evaluated
+    Accordingly, Hocon configuration files are evaluated
     if placed in a directory structure similar to Wielder conf directory.
 
     The function assumes Wielder is a git submodule of its parent directory
@@ -82,9 +84,9 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
     :param wield_parser: An alternative parser. best to use wield_parser as a base and add. e.g. kafka_parser
     :param configure_wield_modules:
-    :param injection:
+    :param injection: A dictionary to inject to Hocon config resolution
     :param extra_paths: Config files that get overridden by project and override module if it exists.
-    :param module_root:
+    :param module_root: The path to the module configuration root
     :param project_conf_root: the path to the config directory starting from the parent directory of Wielder
     :param app: App name for application specific configuration
     :return: project level modulated hocon config tree
@@ -95,7 +97,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
     wield_args = wield_parser.parse_args()
 
-    print(wield_args)
+    staging_root, super_project_root, super_project_name = get_super_project_roots()
+
+    if injection is None:
+        injection = {}
 
     action = wield_args.wield
     runtime_env = wield_args.runtime_env
@@ -103,28 +108,30 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     bootstrap_env = wield_args.bootstrap_env
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
-    debug_mode = wield_args.debug_mode
-    local_mount = wield_args.local_mount
-
-    staging_root, super_project_root, super_project_name = get_super_project_roots()
-
-    wg = WGit(super_project_root)
-
-    if injection is None:
-        injection = {}
-    # TODO replace with new ** with |= when Wielder supports the new python 3.10
-    # injection |= wg.as_dict_injection()
-    ar = wg.as_dict_injection()
-    injection = {**injection,  **ar}
 
     injection['action'] = action
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
-
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
     injection['project_conf_root'] = project_conf_root
+
+    # TODO add specific debug and local mount paths appropriately
+    debug_mode = wield_args.debug_mode
+    local_mount = wield_args.local_mount
+
+    # TODO replace with new ** with |= when Wielder supports the new python 3.10
+    # injection |= wield_args.__dict__
+    ar = wield_args.__dict__
+    injection = {**injection,  **ar}
+
+    wg = WGit(super_project_root)
+
+    # TODO replace with new ** with |= when Wielder supports the new python 3.10
+    # injection |= wg.as_dict_injection()
+    ar = wg.as_dict_injection()
+    injection = {**injection,  **ar}
 
     try:
         wielder_commit = injection['git']['subs']['Wielder']
@@ -153,27 +160,19 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
         app_conf_path = f'{project_conf_root}/app/{app}/app.conf'
         ordered_project_files.append(app_conf_path)
 
-    bootstrap_conf_root = f'{project_conf_root}/unique_conf/{unique_conf}'
-
-    injection['project_conf_root'] = project_conf_root
-    injection['bootstrap_conf_root'] = bootstrap_conf_root
-
-    project_conf = f'{project_conf_root}/project.conf'
     deploy_conf = f'{project_conf_root}/deploy_env/{deploy_env}/wield.conf'
     bootstrap_conf = f'{project_conf_root}/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf = f'{project_conf_root}/runtime_env/{runtime_env}/wield.conf'
-    developer_conf = f'{bootstrap_conf_root}/developer.conf'
 
-    ordered_project_files.append(project_conf)
     ordered_project_files.append(deploy_conf)
     ordered_project_files.append(bootstrap_conf)
     ordered_project_files.append(runtime_conf)
-    ordered_project_files.append(developer_conf)
 
-    # TODO replace with new ** with |= when Wielder supports the new python 3.10
-    # injection |= wield_args.__dict__
-    ar = wield_args.__dict__
-    injection = {**injection,  **ar}
+    bootstrap_conf_root = f'{project_conf_root}/unique_conf/{unique_conf}'
+    injection['bootstrap_conf_root'] = bootstrap_conf_root
+    developer_conf = f'{bootstrap_conf_root}/developer.conf'
+
+    ordered_project_files.append(developer_conf)
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_project_files,
@@ -181,12 +180,21 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     )
 
     try:
-        code_repo_commit = injection['git']['subs'][conf.code_repo_name]
+        code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
     except Exception as e:
         code_repo_commit = 'wile_coyote'
         logging.error(e)
 
-    conf.code_repo_commit = code_repo_commit
+    post_resolution = ConfigFactory.from_dict({
+        app: {
+            "code_repo_commit": code_repo_commit
+        }
+    })
+
+    conf = conf.with_fallback(
+        config=post_resolution,
+        resolve=True,
+    )
 
     return conf
 

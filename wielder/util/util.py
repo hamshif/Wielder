@@ -17,7 +17,6 @@ from wielder.util.log_util import setup_logging
 
 
 def get_external_ip():
-
     try:
         ip = get('https://api.ipify.org').text
     except Exception as e:
@@ -68,14 +67,12 @@ def replace_last(full, sub, rep=''):
 
 
 def purge(directory, pattern):
-
     for f in os.listdir(directory):
         if re.search(pattern, f):
             os.remove(os.path.join(directory, f))
 
 
 def is_line_in_file(full_path, line):
-
     with open(full_path) as f:
         content = f.readlines()
 
@@ -88,7 +85,6 @@ def is_line_in_file(full_path, line):
 
 
 def line_prepender(filename, line, once=True):
-
     with open(filename, 'r+') as f:
         content = f.read()
         f.seek(0, 0)
@@ -100,7 +96,6 @@ def line_prepender(filename, line, once=True):
 
 
 def remove_line(filename, line):
-
     f = open(filename, "r+")
     d = f.readlines()
     f.seek(0)
@@ -112,7 +107,6 @@ def remove_line(filename, line):
 
 
 def write_action_report(name, value):
-
     dir_path = '/tmp/actions'
     os.makedirs(dir_path, exist_ok=True)
 
@@ -141,7 +135,6 @@ def get_random_string(length):
 
 
 def get_aws_session(conf):
-
     role = conf.aws_cred_role
 
     cred = get_aws_mfa_cred(role)
@@ -158,7 +151,6 @@ def get_aws_session(conf):
 
 
 def create_pyenv(name, py_version):
-
     wield_path = get_wield_root()
 
     _cmd = f'{wield_path}/scripts/create_pyenv.bash {name}'
@@ -179,7 +171,6 @@ def create_pyenv(name, py_version):
 
 
 def get_wield_root():
-
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
     i = dir_path.rindex('/')
@@ -190,7 +181,6 @@ def get_wield_root():
 
 
 def block_for_file(why, full_path, interval, max_attempts=50):
-
     for i in range(max_attempts):
 
         print(f'Attempt {i} of {max_attempts}, Sleeping {interval} to check if file {full_path} was created.\n{why}')
@@ -198,6 +188,13 @@ def block_for_file(why, full_path, interval, max_attempts=50):
 
         if os.path.isfile(full_path):
             return
+
+
+def pretty(conf):
+
+    logging.info('Showing top level config items')
+
+    [print(it) for it in conf.as_plain_ordered_dict().items()]
 
 
 if __name__ == "__main__":
@@ -221,7 +218,3 @@ if __name__ == "__main__":
     logging.debug('break point')
 
     remove_line(_full_path, _line)
-
-
-
-
