@@ -58,7 +58,7 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
 
 
 def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, extra_paths=None,
-                                 configure_wield_modules=True, injection=None, call_from_jupyter=False):
+                                 configure_wield_modules=True, injection=None, wield_parser=None):
     """
     A modal configuration evaluation varying with the context of the run.
 
@@ -80,6 +80,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     The function assumes Wielder is a git submodule of its parent directory
     It actively looks for other submodules and evaluates app.conf files in each submodule top directory.
 
+    :param wield_parser: An alternative parser. best to use wield_parser as a base and add. e.g. kafka_parser
     :param configure_wield_modules:
     :param injection:
     :param extra_paths: Config files that get overridden by project and override module if it exists.
@@ -89,10 +90,8 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     :return: project level modulated hocon config tree
     """
 
-    wield_parser = get_wielder_parser()
-
-    if call_from_jupyter:
-        wield_parser.add_argument("-f", "--fff", help="a dummy argument to fool ipython", default="1")
+    if wield_parser is None:
+        wield_parser = get_wielder_parser()
 
     wield_args = wield_parser.parse_args()
 
