@@ -52,6 +52,8 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
 
         if os.path.isfile(ff):
 
+            logging.info(f'Latest hocon config file to be read:\n{ff}')
+
             files_conf = files_conf.with_fallback(
                 config=ff,
                 resolve=False,
