@@ -9,7 +9,7 @@ from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
 from wielder.util.credential_helper import get_aws_mfa_cred_command
 from wielder.util.util import DirContext
-from wielder.wield.enumerator import TerraformAction, TerraformReplyType, CredType
+from wielder.wield.enumerator import TerraformAction, TerraformReplyType, CredType, WieldAction, wield_to_terraform
 
 
 class WrapTerraform:
@@ -187,24 +187,52 @@ class WrapTerraform:
 
         return output
 
+    def actions_for_eks_destroy(self):
+
+        logging.info("In preparation for destroying EKS destroying some auth resources")
+
+        tf_cmd = "terraform state rm 'module.eks[0].kubernetes_config_map.aws_auth'"
+        logging.info(f'running terraform command:\n{tf_cmd}')
+        self.run_cmd_in_repo(t_cmd=tf_cmd, get_reply=False, reply_type=TerraformReplyType.TEXT)
+
+        tf_cmd = "terraform state rm 'module.eks[0].kubernetes_config_map_v1_data.aws_auth'"
+        logging.info(f'running terraform command:\n{tf_cmd}')
+        self.run_cmd_in_repo(t_cmd=tf_cmd, get_reply=False, reply_type=TerraformReplyType.TEXT)
+
+    def destroy_protocol(self):
+
+        destroy_protocol = self.conf.destroy_protocol
+
+        if 'destroy_eks' in destroy_protocol and destroy_protocol.destroy_eks:
+
+            self.actions_for_eks_destroy()
+
+        self.configure_tfvars(new_state=False)
+        self.terraform_cmd(terraform_action=TerraformAction.INIT)
+        self.terraform_cmd(terraform_action=TerraformAction.REFRESH)
+        terraform_action = wield_to_terraform(WieldAction.DELETE)
+
+        partial_modules = None
+        if destroy_protocol.partial:
+            partial_modules = destroy_protocol.partial_modules
+
+        # TODO parse and react to reply
+        terraform_reply = self.terraform_cmd(terraform_action=terraform_action, apply_targets=partial_modules)
+
+        out = self.read_output()
+        logging.info(out)
+        logging.info('finished destroying Terraform resources.')
+
+        if 'destroy_eks' in destroy_protocol and destroy_protocol.destroy_eks:
+
+            context_cmd = f'kubectl config use-context {destroy_protocol.kube_context}'
+            logging.info(f'running: {context_cmd}')
+            os.system(context_cmd)
+
+        return out
+
 
 if __name__ == "__main__":
     setup_logging(log_level=logging.DEBUG)
 
-    # TODO default terraform conf to wielder
-    # _conf = get_conf("mac")
-    #
-    # _tree = _conf['dataproc_terraform']
-    #
-    # _tf_dir = _conf['namespaces_dir']
-    #
-    # os.makedirs(_tf_dir, exist_ok=True)
-    #
-    # _t = WrapTerraform(tf_path=_tf_dir)
-    # _t.configure_terraform(_tree, True)
 
-    #
-    #
-    # r = t.cmd()
-    #
-    # logging.debug('foo')
