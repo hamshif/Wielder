@@ -187,6 +187,7 @@ class WrapTerraform:
 
         return output
 
+    # TODO remove these ugly AWS specific actions (Inherit Terraformer with AWSTerraformer & create factory method)
     def actions_for_eks_destroy(self):
 
         logging.info("In preparation for destroying EKS destroying some auth resources")
@@ -198,6 +199,30 @@ class WrapTerraform:
         tf_cmd = "terraform state rm 'module.eks[0].kubernetes_config_map_v1_data.aws_auth'"
         logging.info(f'running terraform command:\n{tf_cmd}')
         self.run_cmd_in_repo(t_cmd=tf_cmd, get_reply=False, reply_type=TerraformReplyType.TEXT)
+
+    def wield_protocol(self, action):
+
+        self.configure_tfvars(new_state=False)
+
+        if self.conf.init:
+            self.terraform_cmd(terraform_action=TerraformAction.INIT)
+
+        partial_modules = None
+        if self.conf.partial:
+            partial_modules = self.conf.partial_modules
+
+        if action == TerraformAction.APPLY and 'create_eks' in self.conf.tfvars and not self.conf.tfvars.create_eks:
+
+            self.actions_for_eks_destroy()
+
+        self.terraform_cmd(terraform_action=action, apply_targets=partial_modules)
+
+        logging.info('finished deploying Terraform resources')
+
+        out = self.read_output()
+        logging.info(out)
+
+        return out
 
     def destroy_protocol(self):
 
