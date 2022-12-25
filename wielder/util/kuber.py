@@ -9,7 +9,7 @@ from wielder.wield.deployer import get_pods
 from wielder.wield.kube_probe import get_kube_namespace_resources_by_type
 
 
-def update_eks_context(runtime_env, cred_profile, region, kube_cluster_name):
+def update_kubernetes_context(runtime_env, cred_profile, region, kube_cluster_name):
 
     if runtime_env == 'aws':
         context_cmd = f'aws eks --profile {cred_profile} --region {region} ' \

@@ -5,6 +5,7 @@ import os
 import random
 
 from wielder.util.commander import subprocess_cmd as _cmd, subprocess_cmd
+from wielder.util.kuber import update_kubernetes_context
 from wielder.util.log_util import setup_logging
 from wielder.util.templater import config_to_terraform
 from wielder.util.credential_helper import get_aws_mfa_cred_command
@@ -188,7 +189,7 @@ class WrapTerraform:
         return output
 
     # TODO remove these ugly AWS specific actions (Inherit Terraformer with AWSTerraformer & create factory method)
-    def actions_for_eks_destroy(self):
+    def ugly_precursor_to_eks_destroy(self):
 
         logging.info("In preparation for destroying EKS destroying some auth resources")
 
@@ -204,20 +205,30 @@ class WrapTerraform:
 
         self.configure_tfvars(new_state=False)
 
-        if self.conf.init:
+        conf = self.conf
+
+        if conf.init:
             self.terraform_cmd(terraform_action=TerraformAction.INIT)
 
         partial_modules = None
-        if self.conf.partial:
-            partial_modules = self.conf.partial_modules
+        if conf.partial:
+            partial_modules = conf.partial_modules
 
-        if action == TerraformAction.APPLY and 'create_eks' in self.conf.tfvars and not self.conf.tfvars.create_eks:
+        if action == TerraformAction.APPLY and 'create_eks' in conf.tfvars and conf.tfvars.create_eks and conf.runtime_env == 'aws':
 
-            self.actions_for_eks_destroy()
+            self.ugly_precursor_to_eks_destroy()
 
         self.terraform_cmd(terraform_action=action, apply_targets=partial_modules)
 
         logging.info('finished deploying Terraform resources')
+
+        # TODO replace platform specific name with the generic create_kube
+        if action != TerraformAction.PLAN and 'create_eks' in conf.tfvars and conf.tfvars.create_eks:
+
+            cred_profile = conf.cred_profile
+            region = conf.tfvars.aws_region
+
+            update_kubernetes_context('aws', cred_profile, region, conf.kube_context)
 
         out = self.read_output()
         logging.info(out)
@@ -230,7 +241,7 @@ class WrapTerraform:
 
         if 'destroy_eks' in destroy_protocol and destroy_protocol.destroy_eks:
 
-            self.actions_for_eks_destroy()
+            self.ugly_precursor_to_eks_destroy()
 
         self.configure_tfvars(new_state=False)
         self.terraform_cmd(terraform_action=TerraformAction.INIT)
@@ -250,11 +261,20 @@ class WrapTerraform:
 
         if 'destroy_eks' in destroy_protocol and destroy_protocol.destroy_eks:
 
-            context_cmd = f'kubectl config use-context {destroy_protocol.kube_context}'
-            logging.info(f'running: {context_cmd}')
+            context_cmd = f'kubectl config use-context {destroy_protocol.default_kube_context}'
+            logging.info(f'Switching Kubernetes context:\n{context_cmd}')
+            os.system(context_cmd)
+
+            context_cmd = f'kubectl config delete-context {destroy_protocol.kube_context}'
+
+            logging.info(f'Deleting Kubernetes context:\n{context_cmd}')
             os.system(context_cmd)
 
         return out
+
+
+
+
 
 
 if __name__ == "__main__":

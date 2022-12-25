@@ -1,6 +1,8 @@
 import os
 
+from wielder.util.terraformer import WrapTerraform
 from wielder.util.wgit import WGit, clone_or_update
+from wielder.wield.enumerator import wield_to_terraform, TerraformAction, WieldAction
 
 
 class NamespaceProvisioner:
@@ -31,4 +33,55 @@ class NamespaceProvisioner:
         )
 
         print(f'terraform plan:\n{self.plan}')
+
+
+def provision_ordered_modules(conf, wield_action, module_names, provision_root=None):
+
+    if wield_action == WieldAction.DELETE:
+        module_names.reverse()
+
+    if provision_root is None:
+
+        np = NamespaceProvisioner(conf)
+        provision_root = np.provision_dir
+
+    outputs = []
+
+    for module_name in module_names:
+
+        out = provision_module(conf, wield_action, module_name, provision_root)
+        outputs.append(out)
+
+    return outputs
+
+
+def provision_module(conf, wield_action, module_name, provision_root):
+
+    runtime_env = conf.runtime_env
+
+    tf_dir = f'{provision_root}/{runtime_env}'
+
+    terraform_output = None
+
+    terraform_action = wield_to_terraform(wield_action)
+
+    terraform_conf = conf.terraformer[module_name]
+
+    t = WrapTerraform(root_path=tf_dir, run_dir=module_name, conf=terraform_conf)
+
+    if terraform_action != TerraformAction.DESTROY:
+
+        actions = conf[conf.app].cicd.actions
+
+        if actions.provision_infrastructure or not TerraformAction.APPLY == terraform_action:
+
+            terraform_output = t.wield_protocol(terraform_action)
+    else:
+
+        actions = conf[conf.app].cicd.destroy_actions
+
+        if actions.destroy_infrastructure:
+            terraform_output = t.destroy_protocol()
+
+    return terraform_output
 
