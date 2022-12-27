@@ -69,15 +69,7 @@ def deploy_batch(action, batch, func_map):
 
 def wield_deployment_batches(conf, action, key_path, func_map):
     """
-    bootstrap_jobs: {
-
-      parallel: true
-
-      ordered_deployments: [
-        [bootcassandra, bootkafka]
-      ]
-    }
-    :param func_map:
+    :param func_map: callback functions for deployment
     :param conf: project Hocon which includes the key e.g. bootstrap_jobs
     :param action: WieldAction
     :param key_path: a list of keys to the deployment batches config tree.
@@ -93,7 +85,11 @@ def wield_deployment_batches(conf, action, key_path, func_map):
 
     parallel = deploy_batches.parallel
 
-    batches = deploy_batches.ordered_deployments
+    deployments_dict = deploy_batches.ordered_deployments
+
+    ordered = sorted(deployments_dict.keys())
+
+    batches = [deployments_dict[batch] for batch in ordered]
 
     if action == WieldAction.DELETE:
         batches = batches[::-1]
