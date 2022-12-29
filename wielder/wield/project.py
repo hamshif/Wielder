@@ -7,6 +7,7 @@ from pyhocon import ConfigFactory
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
+from wielder.wield.enumerator import local_kubes
 
 
 def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None, wield_parser=None):
@@ -212,6 +213,43 @@ def get_super_project_roots():
     super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
 
     return staging_root, super_project_root, super_project_name
+
+
+def configure_external_kafka_urls(conf):
+
+    if conf.kafka.override_exposed:
+
+        ports = [30000 + i for i in range(conf.third_party.kafka_replicas)]
+
+        print(ports)
+
+        runtime_env = conf.runtime_env
+        exposed_brokers = ""
+
+        if runtime_env == 'aws':
+            i = 0
+
+            for port in ports:
+
+                exposed_brokers = f'{exposed_brokers},broker-{i}.{conf.unique_name}:{port}'
+                i = i+1
+
+        elif runtime_env in local_kubes:
+
+            for port in ports:
+                exposed_brokers = f'{exposed_brokers},localhost:{port}'
+
+        conf.kafka['exposed_brokers'] = exposed_brokers[1:]
+    else:
+        exposed_brokers = conf.kafka['exposed_brokers']
+
+    print(f'kafka_brokers: {exposed_brokers}')
+
+
+def get_local_path(conf, relative_path):
+
+    local_destination = f'{conf.local_buckets_root}/{conf.namespace_bucket}/{relative_path}'
+    return local_destination
 
 
 class WielderProject:
