@@ -11,7 +11,7 @@ from wielder.wield.enumerator import local_deployments
 from wielder.wield.project import configure_external_kafka_urls, get_local_path
 
 
-def put_remote_unique_context(conf):
+def configure_remote_unique_context(conf):
     """
     Places project configuration in distributed env e.g. AWS
     Used for super cluster processes such as data pipelines.
