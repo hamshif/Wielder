@@ -15,7 +15,9 @@ if __name__ == "__main__":
 
     project_conf_dir = f'{p}/conf'
 
-    conf = get_super_project_wield_conf(project_conf_dir, configure_wield_modules=False)
+    app = 'snegurochka'
+
+    conf = get_super_project_wield_conf(project_conf_dir, app=app, configure_wield_modules=False)
 
     print("hi")
 
