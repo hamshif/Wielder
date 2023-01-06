@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-_version = '0.4.0'
+_version = '0.5.0'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -20,9 +20,10 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-        'Cython==0.29.24', 'GitPython==3.1.18', 'PyYAML==5.4.1', 'kubernetes==17.17.0', 'rx==3.2.0', 'jprops==2.0.2',
-        'pyhocon==0.3.58', 'requests==2.26.0', 'deepdiff==6.2.1', 'botocore==1.21.21', 'boto3==1.18.21',
-        'cassandra-driver==3.25.0', 'kazoo==2.8.0', 'kafka==1.3.5', 'confluent-kafka',
+        'Cython==0.29.32', 'GitPython==3.1.30', 'PyYAML==6.0', 'kubernetes==25.3.0', 'rx==3.2.0', 'jprops==2.0.2',
+        'pyhocon==0.3.59', 'requests==2.28.1', 'deepdiff==6.2.1', 'botocore==1.29.44', 'boto3==1.26.44',
+        'kazoo==2.9.0', 'kafka==1.3.5', 'confluent-kafka',
+        # 'cassandra-driver==3.25.0', TODO use the next version supporting up to Python 3.11
     ],
     keywords=['CI-CD', 'Kubernetes', 'Reactive'],
     classifiers=[
@@ -31,6 +32,6 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.10',
     ],
 )
