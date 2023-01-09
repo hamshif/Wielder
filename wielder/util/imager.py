@@ -155,10 +155,12 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev',
     if image_name is None:
         image_name = name
 
-    if build_args is None:
-        build_args = ''
-    else:
-        build_args = f' --build-arg {build_args}'
+    added_args = ''
+
+    if build_args is not None:
+
+        for build_arg in build_args:
+            added_args = f'{added_args} --build-arg {build_arg}'
 
     _cmd = f'docker images | grep {tag} | grep {image_name};'
 
@@ -173,7 +175,7 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev',
 
         logging.info(f"attempting to create image {name}")
 
-        _cmd = f'docker build -t {image_name}:{tag}{build_args} {image_root};'
+        _cmd = f'docker build -t {image_name}:{tag}{added_args} {image_root};'
 
         logging.info(f'running:\n{_cmd}')
 
