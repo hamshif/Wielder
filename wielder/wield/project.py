@@ -38,10 +38,7 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
     log_level = convert_log_level(wield_args.log_level)
     injection['log_level'] = log_level
 
-    # TODO replace with new ** with |= when Wielder supports the new python 3.10
-    # injection |= wield_args.__dict__
-    ar = wield_args.__dict__
-    injection = {**injection,  **ar}
+    injection |= wield_args.__dict__
 
     if override_ordered_files is None:
         override_ordered_files = []
@@ -122,17 +119,14 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     debug_mode = wield_args.debug_mode
     local_mount = wield_args.local_mount
 
-    # TODO replace with new ** with |= when Wielder supports the new python 3.10
-    # injection |= wield_args.__dict__
-    ar = wield_args.__dict__
-    injection = {**injection,  **ar}
+    injection |= wield_args.__dict__
 
     wg = WGit(super_project_root)
 
-    # TODO replace with new ** with |= when Wielder supports the new python 3.10
-    # injection |= wg.as_dict_injection()
-    ar = wg.as_dict_injection()
-    injection = {**injection,  **ar}
+    injection |= wg.as_dict_injection()
+
+    home = os.getenv('HOME', 'limbo')
+    injection['home'] = home
 
     try:
         wielder_commit = injection['git']['subs']['Wielder']
