@@ -10,6 +10,9 @@ from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
 
+DEFAULT_WIELDER_APP = 'snegurochka'
+
+
 def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None, wield_parser=None):
 
     if wield_parser is None:
@@ -55,6 +58,13 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
     )
 
     return conf
+
+
+def default_conf_root():
+
+    _, super_project_root, _ = get_super_project_roots()
+
+    return f'{super_project_root}/Wielder/conf'
 
 
 def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, extra_paths=None,
