@@ -74,7 +74,16 @@ def destroy_sanity(conf):
         exit(1)
 
 
-def get_wielder_parser():
+def get_wielder_parser(runtime_env=None, bootstrap_env=None, unique_conf=None, deploy_env=None):
+
+    if runtime_env is None:
+        runtime_env = 'docker'
+    if bootstrap_env is None:
+        bootstrap_env = 'docker'
+    if unique_conf is None:
+        unique_conf = 'default_conf'
+    if deploy_env is None:
+        deploy_env = 'dev'
 
     parser = argparse.ArgumentParser(
         description='Three rings for the cloud-kings in the sky,\n'
@@ -106,7 +115,7 @@ def get_wielder_parser():
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker'],
         help='Runtime environment refers to where clusters such as Kubernetes are running',
-        default='docker'
+        default=runtime_env
     )
 
     parser.add_argument(
@@ -114,7 +123,7 @@ def get_wielder_parser():
         type=str,
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu'],
         help='The OS where the app runs.',
-        default='docker'
+        default=bootstrap_env
     )
 
     parser.add_argument(
@@ -122,7 +131,7 @@ def get_wielder_parser():
         type=str,
         choices=['local', 'dev', 'int', 'qa', 'stage', 'prod'],
         help='Deployment environment refers to stages of production',
-        default='dev'
+        default=deploy_env
     )
 
     parser.add_argument(
@@ -132,7 +141,7 @@ def get_wielder_parser():
              'By convention use a string describing an underscore separated list of keys.'
              'Used to define a unique configuration namespace e.g terraform backend, kube context.'
              'Facilitates concurrent deployments.',
-        default='default_conf'
+        default=unique_conf
     )
 
     parser.add_argument(
