@@ -114,3 +114,16 @@ def download_stuff(conf):
         root_key=src_path,
         dest=local_dest
     )
+
+
+def upload_stuff(conf):
+
+    b = AWSBucketeer(conf)
+
+    stuff = conf.upload
+
+    bucket_path = stuff.bucket_path
+    bucket_name = stuff.bucket_name
+    src = stuff.src
+
+    b.upload_directory(src, bucket_name, bucket_path)
