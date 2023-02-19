@@ -182,7 +182,7 @@ tfenv install 1.1.9
 tfenv use 1.1.9
 terraform -install-autocomplete
 
-
+brew install graphviz
 
 brew doctor
 
