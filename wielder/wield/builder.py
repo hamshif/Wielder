@@ -86,7 +86,10 @@ class MavenBuilder(WBuilder):
 
         with DirContext(build_path):
 
-            build_command = 'mvn clean install -f pom.xml'
+            build_command = 'mvn clean install -U -f pom.xml'
+            logging.info(f"Running cmd:\n{build_command}")
+            os.system(build_command)
+            build_command = 'mvn assembly:assembly -DdescriptorId=jar-with-dependencies'
             logging.info(f"Running cmd:\n{build_command}")
             os.system(build_command)
 

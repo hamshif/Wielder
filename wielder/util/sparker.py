@@ -314,6 +314,8 @@ class DevSparker(Sparker):
                    f"-u {conf.unique_name} " \
                    f"-nb {conf.namespace_bucket} "
 
+            logging.info(f'running command:\n{_cmd}')
+
             with DirContext(conf.super_project_root):
                 os.system(_cmd)
 
