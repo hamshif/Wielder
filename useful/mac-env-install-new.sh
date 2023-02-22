@@ -56,7 +56,8 @@ brew install cask openssl -vd
 brew install librdkafka -vd
 brew install libgd -vd
 brew install libgcrypt -vd
-
+brew install cmake
+brew install gfortran
 
 brew install --cask iterm2 -vd
 
@@ -183,6 +184,7 @@ tfenv use 1.1.9
 terraform -install-autocomplete
 
 brew install graphviz
+
 
 brew doctor
 
