@@ -76,7 +76,6 @@ def configure_remote_unique_context(conf):
 
 
 def get_remote_unique_context(conf):
-
     namespace_bucket = conf.namespace_bucket
     unique_name = conf.unique_name
     unique_config_path = conf.unique_config_path
@@ -87,7 +86,6 @@ def get_remote_unique_context(conf):
     file_name = f'{unique_name}.conf'
 
     if conf.runtime_env == 'aws':
-
         b = AWSBucketeer(conf)
 
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
@@ -98,7 +96,6 @@ def get_remote_unique_context(conf):
 
 
 def download_stuff(conf):
-
     b = AWSBucketeer(conf)
 
     stuff = conf.stuff
@@ -116,8 +113,31 @@ def download_stuff(conf):
     )
 
 
-def upload_stuff(conf):
+def sync_stuff(conf):
+    b = AWSBucketeer(conf)
 
+    sync_stuff = conf.sync_stuff
+
+    source = sync_stuff.source
+    dest = sync_stuff.dest
+
+    src_path = sync_stuff.src_path
+    dest_path = sync_stuff.dest_path
+
+    for stuff in sync_stuff.stuffs:
+
+        src_key = f'{src_path}/{stuff}'
+        dest_key = f'{dest_path}/{stuff}'
+
+        b.bucket_sync(
+            source=source,
+            dest=dest,
+            src_prefix=src_key,
+            dest_prefix=dest_key
+        )
+
+
+def upload_stuff(conf):
     b = AWSBucketeer(conf)
 
     stuff = conf.upload
