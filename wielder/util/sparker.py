@@ -100,13 +100,14 @@ class EMRSparker(Sparker):
             session = get_aws_session(conf)
 
         self.emr = session.client('emr')
+        self.cluster_id = self.pipeline_conf.cluster_id
 
         cluster_ids = self._get_cluster_id(cluster_regx=conf.emr_regex, cluster_states=['RUNNING', 'WAITING'])
 
         if cluster_ids:
             cluster_id = cluster_ids[0]
 
-            self.pipeline_conf.cluster_id = cluster_id
+            self.cluster_id = cluster_id
 
     def is_job_active(self, jobs_path=['jobs']):
         """Create EMR Steps in a specified region
@@ -148,7 +149,7 @@ class EMRSparker(Sparker):
             # self.emr.
 
             response = self.emr.add_job_flow_steps(
-                JobFlowId=self.pipeline_conf.cluster_id,
+                JobFlowId=self.cluster_id,
                 Steps=steps
             )
 
