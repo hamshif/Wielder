@@ -1,4 +1,3 @@
-
 import logging
 import os
 import pathlib
@@ -18,7 +17,6 @@ DEFAULT_REGION = "us-east-2"
 class Bucketeer(ABC):
 
     def __init__(self, conf):
-
         self.conf = conf
 
     @abstractmethod
@@ -71,6 +69,10 @@ class Bucketeer(ABC):
 
     @abstractmethod
     def object_exists(self, bucket_name, prefix, object_name):
+        pass
+
+    @abstractmethod
+    def bucket_sync(self, src_bucket, dest_bucket, prefix, object_name):
         pass
 
 
@@ -320,6 +322,11 @@ class AWSBucketeer(Bucketeer):
 
         return False
 
+    def bucket_sync(self, source, dest, prefix, object_name):
+        _cmd = f'aws s3 sync "s3://{source}/{prefix}/{object_name}" "s3://{dest}/{prefix}/{object_name}" --profile {self.conf.aws_cli_profile}'
+        logging.info(f'Running command:\n{_cmd}')
+        os.system(_cmd)
+
 
 class DevBucketeer(Bucketeer):
     """
@@ -502,6 +509,10 @@ class DevBucketeer(Bucketeer):
 
         return False
 
+    def bucket_sync(self, source, dest, prefix, object_name):
+        # TODO: Fill function
+        pass
+
 
 def get_bucketeer(conf, runtime_env=RuntimeEnv.MAC, bucket_env=RuntimeEnv.AWS):
     """
@@ -522,4 +533,3 @@ def get_bucketeer(conf, runtime_env=RuntimeEnv.MAC, bucket_env=RuntimeEnv.AWS):
         return AWSBucketeer(conf, auth=auth)
     else:
         return DevBucketeer(conf)
-
