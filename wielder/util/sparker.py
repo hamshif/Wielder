@@ -264,7 +264,7 @@ class EMRSparker(Sparker):
                         step_conf.jar_path,
                         "-re", conf.runtime_env,
                         "-u", conf.unique_name,
-                        "-nb", conf.namespace_bucket,
+                        "-nb", conf.conf_bucket,
                     ]
                 }
             }
