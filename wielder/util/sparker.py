@@ -101,7 +101,7 @@ class EMRSparker(Sparker):
 
         self.emr = session.client('emr')
 
-        cluster_ids = self._get_cluster_id(cluster_regx=conf.unique_name, cluster_states=['RUNNING', 'WAITING'])
+        cluster_ids = self._get_cluster_id(cluster_regx=conf.emr_regex, cluster_states=['RUNNING', 'WAITING'])
 
         if cluster_ids:
             cluster_id = cluster_ids[0]
