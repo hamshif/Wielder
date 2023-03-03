@@ -250,9 +250,12 @@ def configure_external_kafka_urls(conf):
     print(f'kafka_brokers: {exposed_brokers}')
 
 
-def get_local_path(conf, relative_path):
+def get_local_path(conf, relative_path, bucket_name=None):
 
-    local_destination = f'{conf.local_buckets_root}/{conf.namespace_bucket}/{relative_path}'
+    if bucket_name is None:
+        bucket_name = conf.namespace_bucket
+
+    local_destination = f'{conf.local_buckets_root}/{bucket_name}/{relative_path}'
     return local_destination
 
 

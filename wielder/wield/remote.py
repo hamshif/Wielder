@@ -11,7 +11,7 @@ from wielder.wield.enumerator import local_deployments
 from wielder.wield.project import configure_external_kafka_urls, get_local_path
 
 
-def configure_remote_unique_context(conf):
+def configure_remote_unique_context(conf, bucket_name=None):
     """
     Places project configuration in distributed env e.g. AWS
     Used for super cluster processes such as data pipelines.
@@ -19,6 +19,9 @@ def configure_remote_unique_context(conf):
     :param conf: project level hocon conf
     :return:
     """
+
+    if bucket_name is None:
+        bucket_name = conf.namespace_bucket
 
     configure_external_kafka_urls(conf)
 
@@ -33,7 +36,7 @@ def configure_remote_unique_context(conf):
     with open(unique_context_conf, "w") as outfile:
         outfile.write(pyhocon.HOCONConverter.to_hocon(conf))
 
-    namespace_bucket = conf.namespace_bucket
+
     artifactory_bucket = conf.artifactory_bucket
 
     unique_config_path = conf.unique_config_path
@@ -43,7 +46,7 @@ def configure_remote_unique_context(conf):
 
         bucket_path = conf.local_buckets_root
 
-        conf_path = f'{bucket_path}/{namespace_bucket}/{unique_config_path}'
+        conf_path = f'{bucket_path}/{bucket_name}/{unique_config_path}'
 
         os.makedirs(conf_path, exist_ok=True)
 
@@ -58,21 +61,21 @@ def configure_remote_unique_context(conf):
 
         bucket_names = b.get_bucket_names()
 
-        if namespace_bucket not in bucket_names:
-            b.create_bucket(bucket_name=namespace_bucket, region=aws_zone)
+        if bucket_name not in bucket_names:
+            b.create_bucket(bucket_name=bucket_name, region=aws_zone)
 
         if artifactory_bucket not in bucket_names:
             b.create_bucket(bucket_name=artifactory_bucket, region=aws_zone)
 
-        names = b.get_object_names(namespace_bucket, unique_name)
+        names = b.get_object_names(bucket_name, unique_name)
 
         b.upload_file(
             unique_context_conf,
-            namespace_bucket,
+            bucket_name,
             f'{unique_config_path}/{unique_name}.conf'
         )
 
-        names = b.get_object_names(namespace_bucket, unique_name)
+        names = b.get_object_names(bucket_name, unique_name)
 
 
 def get_remote_unique_context(conf):
