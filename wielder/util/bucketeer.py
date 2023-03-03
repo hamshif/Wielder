@@ -72,7 +72,7 @@ class Bucketeer(ABC):
         pass
 
     @abstractmethod
-    def bucket_sync(self, src_bucket, dest_bucket, prefix, object_name):
+    def bucket_sync(self, src_bucket, dest_bucket, src_prefix, dest_prefix):
         pass
 
 
@@ -322,8 +322,12 @@ class AWSBucketeer(Bucketeer):
 
         return False
 
-    def bucket_sync(self, source, dest, prefix, object_name):
-        _cmd = f'aws s3 sync "s3://{source}/{prefix}/{object_name}" "s3://{dest}/{prefix}/{object_name}" --profile {self.conf.aws_cli_profile}'
+    def bucket_sync(self, source, dest, src_prefix, dest_prefix=None):
+
+        if dest_prefix is None:
+            dest_prefix = src_prefix
+
+        _cmd = f'aws s3 sync "s3://{source}/{src_prefix}" "s3://{dest}/{dest_prefix}" --profile {self.conf.aws_cli_profile}'
         logging.info(f'Running command:\n{_cmd}')
         os.system(_cmd)
 
@@ -509,7 +513,7 @@ class DevBucketeer(Bucketeer):
 
         return False
 
-    def bucket_sync(self, source, dest, prefix, object_name):
+    def bucket_sync(self, src_bucket, dest_bucket, src_prefix, dest_prefix):
         # TODO: Fill function
         pass
 
