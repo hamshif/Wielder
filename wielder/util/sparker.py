@@ -121,7 +121,7 @@ class EMRSparker(Sparker):
             step_name = steps[0]['Name']
 
             response = self.emr.list_steps(
-                ClusterId=self.pipeline_conf.cluster_id,
+                ClusterId=self.cluster_id,
                 StepStates=['PENDING', 'RUNNING'],
             )
 
@@ -170,7 +170,7 @@ class EMRSparker(Sparker):
             for step_id in step_ids:
 
                 response = self.emr.describe_step(
-                    ClusterId=self.pipeline_conf.cluster_id,
+                    ClusterId=self.cluster_id,
                     StepId=step_id
                 )
 
