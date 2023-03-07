@@ -293,12 +293,14 @@ class AWSBucketeer(Bucketeer):
     def get_object_names(self, bucket_name, prefix=''):
 
         try:
-            response = self.s3.list_objects(Bucket=bucket_name, Prefix=prefix)
+
+            paginator = self.s3.get_paginator('list_objects_v2')
+            response = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
             object_names = []
 
-            if 'Contents' in response:
-                s3objects = response['Contents']
+            for responses in response:
+                s3objects = responses['Contents']
                 for obj in s3objects:
                     object_name = obj["Key"].rstrip()
                     logging.debug(f'Object name: {object_name}')
