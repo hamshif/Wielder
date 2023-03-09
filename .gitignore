@@ -38,3 +38,5 @@ deploy/slate-storage-class.yaml.tmpl
 gcp/slate-deploy.yaml.tmpl
 image/
 plan/
+
+python-driver/

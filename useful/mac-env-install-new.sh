@@ -56,7 +56,8 @@ brew install cask openssl -vd
 brew install librdkafka -vd
 brew install libgd -vd
 brew install libgcrypt -vd
-
+brew install cmake
+brew install gfortran
 
 brew install --cask iterm2 -vd
 
@@ -131,11 +132,11 @@ if [[ ! $(command -v spark-submit) == "" ]]; then
 else
 
   echo 'installing spark'
-  wget https://archive.apache.org/dist/spark/spark-3.0.3/spark-3.0.3-bin-hadoop3.2.tgz -P ~/Downloads
-  mkdir -p ~/hadoop/spark-3.0.3
-  tar -xvzf ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz -C ~/hadoop/spark-3.0.3 --strip 1
-  rm -f ~/Downloads/spark-3.0.3-bin-hadoop3.2.tgz
-  echo 'export SPARK_HOME=~/hadoop/spark-3.0.3' >> ~/.zshrc
+  wget https://archive.apache.org/dist/spark/spark-3.3.1/spark-3.3.1-bin-hadoop3.tgz -P ~/Downloads
+  mkdir -p ~/hadoop/spark-3.3.1
+  tar -xvzf ~/Downloads/spark-3.3.1-bin-hadoop3.tgz -C ~/hadoop/spark-3.3.1 --strip 1
+  rm -f ~/Downloads/spark-3.3.1-bin-hadoop3.tgz
+  echo 'export SPARK_HOME=~/hadoop/spark-3.3.1' >> ~/.zshrc
   echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.zshrc
   echo 'export PYSPARK_PYTHON=/Users/$HOME/.pyenv/shims/python3' >> ~/.zshrc
   echo 'installed spark'
@@ -182,6 +183,7 @@ tfenv install 1.1.9
 tfenv use 1.1.9
 terraform -install-autocomplete
 
+brew install graphviz
 
 
 brew doctor

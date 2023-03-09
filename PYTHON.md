@@ -6,9 +6,11 @@ Virtual Environment
 -
 pyenv virtualenvs 
 https://github.com/pyenv/pyenv-virtualenv
+
+For Mac
 ```
 brew install pyenv
-pyenv install 3.8.7
+pyenv install 3.8.10
 brew install pyenv-virtualenv pyenv-virtualenvwrapper
 ```
 To config add these lines in .zshrc or .bashrc
@@ -18,8 +20,14 @@ eval "$(pyenv virtualenv-init -)"
 ```
 
 Create virtualenv
+
+Either run
 ```
-pyenv virtualenv 3.8.7 wielder
+./useful/wielder_pyenv.sh
+```
+or
+```
+pyenv virtualenv 3.8.10 wielder
 pyenv activate wielder 
 ```
 

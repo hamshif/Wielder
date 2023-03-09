@@ -100,13 +100,14 @@ class EMRSparker(Sparker):
             session = get_aws_session(conf)
 
         self.emr = session.client('emr')
+        self.cluster_id = self.pipeline_conf.cluster_id
 
-        cluster_ids = self._get_cluster_id(cluster_regx=conf.unique_name, cluster_states=['RUNNING', 'WAITING'])
+        cluster_ids = self._get_cluster_id(cluster_regx=conf.emr_regex, cluster_states=['RUNNING', 'WAITING'])
 
         if cluster_ids:
             cluster_id = cluster_ids[0]
 
-            self.pipeline_conf.cluster_id = cluster_id
+            self.cluster_id = cluster_id
 
     def is_job_active(self, jobs_path=['jobs']):
         """Create EMR Steps in a specified region
@@ -120,7 +121,7 @@ class EMRSparker(Sparker):
             step_name = steps[0]['Name']
 
             response = self.emr.list_steps(
-                ClusterId=self.pipeline_conf.cluster_id,
+                ClusterId=self.cluster_id,
                 StepStates=['PENDING', 'RUNNING'],
             )
 
@@ -148,7 +149,7 @@ class EMRSparker(Sparker):
             # self.emr.
 
             response = self.emr.add_job_flow_steps(
-                JobFlowId=self.pipeline_conf.cluster_id,
+                JobFlowId=self.cluster_id,
                 Steps=steps
             )
 
@@ -169,7 +170,7 @@ class EMRSparker(Sparker):
             for step_id in step_ids:
 
                 response = self.emr.describe_step(
-                    ClusterId=self.pipeline_conf.cluster_id,
+                    ClusterId=self.cluster_id,
                     StepId=step_id
                 )
 
@@ -264,7 +265,7 @@ class EMRSparker(Sparker):
                         step_conf.jar_path,
                         "-re", conf.runtime_env,
                         "-u", conf.unique_name,
-                        "-nb", conf.namespace_bucket,
+                        "-nb", conf.conf_bucket,
                     ]
                 }
             }
@@ -284,7 +285,9 @@ class DevSparker(Sparker):
     """
 
     def is_job_active(self, jobs_path=['jobs']):
-        raise Exception("is_job_active function must be implemented in DevSparker class")
+
+        return False
+        # raise Exception("is_job_active function must be implemented in DevSparker class")
 
     def __init__(self, conf, launch_env=RuntimeEnv.MAC):
 
@@ -311,6 +314,8 @@ class DevSparker(Sparker):
                    f"-re local " \
                    f"-u {conf.unique_name} " \
                    f"-nb {conf.namespace_bucket} "
+
+            logging.info(f'running command:\n{_cmd}')
 
             with DirContext(conf.super_project_root):
                 os.system(_cmd)

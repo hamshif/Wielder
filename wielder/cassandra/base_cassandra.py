@@ -7,10 +7,9 @@ import os
 import argparse
 import traceback
 from enum import Enum
-
 from time import sleep
-
 import logging
+
 from cassandra import ConsistencyLevel, ReadTimeout
 from cassandra.cluster import Cluster, BatchStatement
 from cassandra.auth import PlainTextAuthProvider

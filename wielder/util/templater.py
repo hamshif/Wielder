@@ -389,22 +389,3 @@ def hocon_to_tfvrs(acc, k, v, indent=''):
             acc = acc + f'{indent}"{v},"\n'
 
     return acc
-
-
-if __name__ == "__main__":
-
-    setup_logging(log_level=logging.DEBUG)
-
-    _dir_path = os.path.dirname(os.path.realpath(__file__))
-    logging.debug(f"current working dir: {_dir_path}")
-
-    _conf = Conf()
-    _conf.template_variables = [
-        ("#yo#", "Goofy"),
-        ("#bro#", "Joker")
-    ]
-
-    _templates = gather_templates(_dir_path, _conf)
-
-    logging.info(f"templates:\n{_templates}")
-    templates_to_instances(_templates, _conf.template_variables)

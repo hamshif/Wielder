@@ -3,25 +3,6 @@ import logging
 import os
 from shutil import copyfile
 
-from wielder.util.arguer import get_create_parser
-from wielder.util.log_util import setup_logging
-from wielder.util.wgit import clone_or_update
-from wielder.wield.enumerator import CodeLanguage
-
-# TODO get these hardcoded constants from config
-PROJECT_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'deploy', 'egg-info', 'datastores', '.git']
-MODULE_IGNORED_DIRS = ['__pycache__', 'personal', 'plan', 'artifacts', 'egg-info', '.git']
-
-IGNORED_FILE_TYPES = ['.iml', '.DS_Store', '.git', 'local.conf']
-
-WIELD_SERVICES_SRC = 'https://github.com/hamshif/wield-services.git'
-
-lang_module_map = {
-    CodeLanguage.PYTHON: 'slate',
-    CodeLanguage.PERL: 'pep',
-    CodeLanguage.JAVA: 'boot',
-}
-
 
 def has_end(whole, ends):
 
@@ -34,8 +15,8 @@ def has_end(whole, ends):
     return False
 
 
-def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored_dirs=[],
-                       ignored_files=[], replace_in_copy=True):
+def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored_dirs,
+                       ignored_files, replace_in_copy=True):
     """
 
     :param replace_in_copy:
@@ -48,7 +29,9 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
     :return:
     """
 
-    os.makedirs(dest_path, exist_ok=True)
+    dest_module_path = f'{dest_path}/{target_name}'
+
+    os.makedirs(dest_module_path, exist_ok=True)
 
     for subdir, dirs, files in os.walk(origin_path):
 
@@ -57,7 +40,7 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
         logging.info(f"subdir: {subdir} \ndirs: \n{dirs}")
 
         dir_name = subdir[subdir.rfind('/') + 1:]
-        _new_dir = subdir.replace(origin_path, dest_path).replace(origin_name, target_name)
+        _new_dir = subdir.replace(origin_path, dest_module_path).replace(origin_name, target_name)
 
         logging.info(f'new dir: {_new_dir}')
 
@@ -72,7 +55,7 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
 
                 # TODO add more insurances preventing bug where an incidental substring is replaced
                 #  or one is accidentally excluded.
-                destination_path = origin_file.replace(origin_path, dest_path)
+                destination_path = origin_file.replace(origin_path, dest_module_path)
                 destination_path = destination_path.replace(f'/{origin_name}/', f'/{target_name}/')
                 destination_path = destination_path.replace(f'{origin_name}-', f'{target_name}-')
                 destination_path = destination_path.replace(f'{origin_name}_', f'{target_name}_')
@@ -127,100 +110,48 @@ def variation_copy_file(origin_path, dest_path, origin_name, target_name):
         logging.error(e)
 
 
-def create_infrastructure(create_wield_services, target_root, project_name,
-                          target_module='micro', origin_module='slate'):
+def create_app_shell_from_app(conf):
 
-    wield_services_root = f'{target_root}/{project_name}/wield-services'
-
-    origin_root = '/tmp/wield-services'
-
-    clone_or_update(WIELD_SERVICES_SRC, origin_root, name=None, branch='master', local=False)
-
-    standard_module_sub_path = '/src/wield_services/deploy'
-
-    if create_wield_services:
-
-        variation_copy_dir(
-            origin_root,
-            wield_services_root,
-            origin_name=origin_module,
-            target_name=target_module,
-            ignored_dirs=PROJECT_IGNORED_DIRS,
-            ignored_files=IGNORED_FILE_TYPES,
-            replace_in_copy=False
-        )
-
-        modules_root = f'{wield_services_root}{standard_module_sub_path}'
-
-    else:
-        modules_root = f'{wield_services_root}'
-
-    origin_path = f'{origin_root}{standard_module_sub_path}/{origin_module}'
-    target_path = f'{modules_root}/{target_module}'
+    plan = conf.app_shell_creation
 
     variation_copy_dir(
-        origin_path,
-        target_path,
-        origin_name=origin_module,
-        target_name=target_module,
-        ignored_dirs=MODULE_IGNORED_DIRS
+        origin_path=plan.source_root,
+        dest_path=plan.dest_root,
+        origin_name=plan.source_app,
+        target_name=plan.app_name,
+        ignored_dirs=plan.ignored_dirs,
+        ignored_files=conf.ignored_files,
+        replace_in_copy=True
+    )
+
+    variation_copy_dir(
+        origin_path=plan.source_conf_root,
+        dest_path=plan.dest_conf_root,
+        origin_name=plan.source_app,
+        target_name=plan.app_name,
+        ignored_dirs=plan.ignored_dirs,
+        ignored_files=conf.ignored_files,
+        replace_in_copy=True
     )
 
 
-def create(create_args):
+def create_module_from_module(conf):
 
-    container_lang = create_args.language
+    plan = conf.module_creation
 
-    # TODO map type and framework to origin [in config file]
-    #  origin_module derived from CodeLanguage.PYTHON LanguageFramework.FLASK
-    origin_module = lang_module_map.get(container_lang)
-
-    create_infrastructure(
-        create_wield_services=create_args.create_project,
-        target_root=create_args.target_root,
-        project_name=create_args.project_name,
-        target_module=create_args.module_name,
-        origin_module=origin_module
+    variation_copy_dir(
+        origin_path=plan.source_module_root,
+        dest_path=plan.dest_module_root,
+        origin_name=plan.source_module,
+        target_name=plan.module_name,
+        ignored_dirs=conf.ignored_dirs,
+        ignored_files=conf.ignored_files,
+        replace_in_copy=True
     )
 
+    place_holder = f'{plan.dest_module_root}/stam.txt'
 
-def test():
+    with open(place_holder, "wt") as file_out:
 
-    target_root = '/tmp/test/wielder-services'
-
-    logging.info(f'testing project module creation in \n{target_root}')
-
-    project_name = 'Dagdahuda'
-    origin_module = 'pep'
-    module_name = 'micro'
-
-    create_infrastructure(
-        create_wield_services=True,
-        target_root=target_root,
-        project_name=project_name,
-        target_module=module_name,
-        origin_module=origin_module
-    )
-
-    # create independent module
-    create_infrastructure(
-        create_wield_services=False,
-        target_root=target_root,
-        project_name=project_name,
-        target_module=module_name,
-        origin_module=origin_module
-    )
-
-
-if __name__ == "__main__":
-
-    setup_logging(log_level=logging.DEBUG)
-    create_parser = get_create_parser()
-    _create_args = create_parser.parse_args()
-
-    if _create_args.test:
-        test()
-    else:
-        logging.info('creating module')
-        create(_create_args)
+        file_out.write('hamshif')
 

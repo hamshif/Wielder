@@ -27,8 +27,18 @@ def monitor_topics(conf):
     kafka_conf = conf.kafka
 
     brokers = kafka_conf.brokers
-    group = kafka_conf.consumer_groups.monitor.id
-    topics = kafka_conf.topics_for_listening
+
+    if conf.topic is None:
+        topics = kafka_conf.topics_for_listening
+        topic = 'monitor'
+    else:
+        topic = conf.topic
+        topics = [topic]
+
+    if conf.group_id is None:
+        group = kafka_conf.consumer_groups[topic].id
+    else:
+        group = conf.group_id
 
     [print(f'listening to topic {t}') for t in topics]
 

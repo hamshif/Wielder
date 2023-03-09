@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import logging
 import os
 import pathlib
@@ -18,7 +17,6 @@ DEFAULT_REGION = "us-east-2"
 class Bucketeer(ABC):
 
     def __init__(self, conf):
-
         self.conf = conf
 
     @abstractmethod
@@ -73,6 +71,10 @@ class Bucketeer(ABC):
     def object_exists(self, bucket_name, prefix, object_name):
         pass
 
+    @abstractmethod
+    def bucket_sync(self, src_bucket, dest_bucket, src_prefix, dest_prefix):
+        pass
+
 
 class AWSBucketeer(Bucketeer):
     """
@@ -82,18 +84,16 @@ class AWSBucketeer(Bucketeer):
     It currently supports AWS S3.
     """
 
-    def __init__(self, conf=None):
+    def __init__(self, conf=None, auth=True):
 
         super().__init__(conf)
 
-        if conf is None:
-            logging.info('conf is None getting default client')
-            self.s3 = boto3_client(service_name='s3')
-        else:
-
+        if auth:
             session = get_aws_session(conf)
-
             self.s3 = session.resource('s3').meta.client
+        else:
+            logging.info('Direct auth not needed, getting default client.')
+            self.s3 = boto3_client(service_name='s3')
 
     def create_bucket(self, bucket_name, region=None):
         """Create an S3 bucket in a specified region
@@ -293,12 +293,14 @@ class AWSBucketeer(Bucketeer):
     def get_object_names(self, bucket_name, prefix=''):
 
         try:
-            response = self.s3.list_objects(Bucket=bucket_name, Prefix=prefix)
+
+            paginator = self.s3.get_paginator('list_objects_v2')
+            response = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
             object_names = []
 
-            if 'Contents' in response:
-                s3objects = response['Contents']
+            for responses in response:
+                s3objects = responses['Contents']
                 for obj in s3objects:
                     object_name = obj["Key"].rstrip()
                     logging.debug(f'Object name: {object_name}')
@@ -321,6 +323,15 @@ class AWSBucketeer(Bucketeer):
             return True
 
         return False
+
+    def bucket_sync(self, source, dest, src_prefix, dest_prefix=None):
+
+        if dest_prefix is None:
+            dest_prefix = src_prefix
+
+        _cmd = f'aws s3 sync "s3://{source}/{src_prefix}" "s3://{dest}/{dest_prefix}" --profile {self.conf.aws_cli_profile}'
+        logging.info(f'Running command:\n{_cmd}')
+        os.system(_cmd)
 
 
 class DevBucketeer(Bucketeer):
@@ -355,6 +366,10 @@ class DevBucketeer(Bucketeer):
 
     def upload_file(self, source, bucket_name, dest):
 
+        dir_path = dest[:dest.rfind('/')]
+        file_path = f'{self.buckets_root}/{bucket_name}/{dir_path}'
+        os.makedirs(file_path, exist_ok=True)
+
         shutil.copy(source, f'{self.buckets_root}/{bucket_name}/{dest}')
 
     def upload_directory(self, source, bucket_name, prefix):
@@ -379,13 +394,15 @@ class DevBucketeer(Bucketeer):
             os.makedirs(dest, exist_ok=True)
             src = f'{self.buckets_root}/{bucket_name}/{key}/{name}'
 
-            stale = f'{dest}/{name}'
-            if os.path.isfile(stale):
-                os.remove(stale)
+            if os.path.isfile(src):
 
-            shutil.copy(src, dest)
+                stale = f'{dest}/{name}'
+                if os.path.isfile(stale):
+                    os.remove(stale)
 
-        except ClientError as e:
+                shutil.copy(src, dest)
+
+        except Exception as e:
             logging.error(e)
             return False
         return True
@@ -498,25 +515,27 @@ class DevBucketeer(Bucketeer):
 
         return False
 
+    def bucket_sync(self, src_bucket, dest_bucket, src_prefix, dest_prefix):
+        # TODO: Fill function
+        pass
 
-def get_bucketeer(conf, bootstrap_env=RuntimeEnv.MAC, runtime_env=RuntimeEnv.AWS):
+
+def get_bucketeer(conf, runtime_env=RuntimeEnv.MAC, bucket_env=RuntimeEnv.AWS):
     """
-    Factory method for standardizing bucket access e.g. S3 boto3 client, GCP Client , Local Directory to simulate bucket,
+    Factory method for standardizing bucket access e.g. S3 boto3 client, GCP Client, Local Directory to simulate bucket,
      depending on the combination of runtime environment and deploy environment.
-    :param conf:
-    :param runtime_env: where this code is running
-    :param bootstrap_env: where spark is expected to run
-    :return:
+    :param conf: project config
+    :param runtime_env: Where this code is running
+    :param bucket_env: Where the bucket is.
+    :return: a Bucketeer object wrapping buckets or local mock buckets
     """
 
-    if bootstrap_env.value in local_deployments:
+    if runtime_env.value in local_deployments:
+        auth = True
+    else:
+        auth = False
 
-        if runtime_env == RuntimeEnv.AWS:
-            return AWSBucketeer(conf)
-        elif runtime_env == RuntimeEnv.DOCKER or runtime_env == RuntimeEnv.KIND:
-            return DevBucketeer(conf)
-
-    elif bootstrap_env == RuntimeEnv.AWS:
-        return AWSBucketeer(None)
-
-    raise ValueError(bootstrap_env)
+    if bucket_env == RuntimeEnv.AWS:
+        return AWSBucketeer(conf, auth=auth)
+    else:
+        return DevBucketeer(conf)

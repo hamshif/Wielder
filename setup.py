@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-_version = '0.2.9'
+_version = '0.5.0'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -19,9 +19,13 @@ setup(
     license='Apache License Version 2.0',
     packages=find_packages(),
     zip_safe=False,
-    install_requires=['Cython==0.29.24', 'GitPython==3.1.18', 'PyYAML==5.4.1', 'kubernetes==17.17.0', 'Rx==3.2.0',
-                      'jprops==2.0.2', 'pyhocon==0.3.58', 'requests==2.26.0',
-                      'botocore==1.21.21', 'boto3==1.18.21'],
+    install_requires=[
+        'wheel', 'Cython', 'GitPython', 'PyYAML', 'kubernetes', 'rx==3.2.0', 'jprops',
+        'pyhocon', 'requests', 'deepdiff', 'botocore', 'boto3',
+        'kazoo', 'kafka', 'confluent-kafka',
+        'cassandra-driver',
+        # TODO use the next version of cassandra driver supporting up to Python 3.11
+    ],
     keywords=['CI-CD', 'Kubernetes', 'Reactive'],
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -29,6 +33,6 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.10',
     ],
 )

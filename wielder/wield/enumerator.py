@@ -6,6 +6,7 @@ class RuntimeEnv(Enum):
     This class bears the same name as wielder enum, here it encompasses the differences between the local hardware and it's GUI.
     """
 
+    LOCAL = 'local'
     MAC = 'mac'
     UBUNTU = 'ubuntu'
     DOCKER = 'docker'
@@ -27,7 +28,8 @@ class CloudProvider(Enum):
 
 
 local_kubes = ['docker', 'kind', 'minikube']
-local_deployments = ['mac', 'ubuntu', 'exdocker'] + local_kubes
+local_runs = ['mac', 'ubuntu', 'exdocker']
+local_deployments = local_runs + local_kubes + ['local']
 
 
 class KubeResType(Enum):

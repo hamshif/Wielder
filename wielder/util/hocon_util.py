@@ -33,7 +33,7 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     if cmd_args is not None:
 
         ar = vars(cmd_args)
-        injection = {**injection,  **ar}
+        injection |= ar
 
     base_conf = Cf.from_dict(injection)
 
@@ -49,6 +49,8 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     for ff in reversed(ordered_conf_paths[:-1]):
 
         if os.path.isfile(ff):
+
+            logging.info(f'Latest hocon config file to be read:\n{ff}')
 
             files_conf = files_conf.with_fallback(
                 config=ff,
