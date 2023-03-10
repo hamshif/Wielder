@@ -75,8 +75,7 @@ def destroy_sanity(conf):
 
 
 def get_wielder_parser(
-        runtime_env=None, bootstrap_env=None, unique_conf=None, deploy_env=None, config_env=None,
-        data_src_env=None, data_dest_env=None
+        runtime_env=None, bootstrap_env=None, unique_conf=None, deploy_env=None, config_env=None
 ):
 
     if runtime_env is None:
@@ -85,10 +84,6 @@ def get_wielder_parser(
         bootstrap_env = 'docker'
     if config_env is None:
         config_env = 'local'
-    if data_src_env is None:
-        data_src_env = 'local'
-    if data_dest_env is None:
-        data_dest_env = 'local'
     if unique_conf is None:
         unique_conf = 'default_conf'
     if deploy_env is None:
@@ -133,22 +128,6 @@ def get_wielder_parser(
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker', 'local'],
         help='Config environment refers to where the configuration is residing E.G AWS bucket',
         default=config_env
-    )
-
-    parser.add_argument(
-        '-ds', '--data_src_env',
-        type=str,
-        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker', 'local'],
-        help='Data source environment refers to where the data is residing e.g. AWS (buckets, Dynamo ...)',
-        default=data_src_env
-    )
-
-    parser.add_argument(
-        '-dd', '--data_dest_env',
-        type=str,
-        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker', 'local'],
-        help='Data destination environment refers to where the data is residing e.g. GCP (buckets, BigQuery ...)',
-        default=data_dest_env
     )
 
     parser.add_argument(
