@@ -73,8 +73,9 @@ class EMRSparker(Sparker):
 
             self.cluster_id = cluster_id
 
-    def is_job_active(self, jobs_path=['jobs']):
-        """Create EMR Steps in a specified region
+    def is_job_active(self, jobs_path='jobs'):
+        """
+        Return True if any of the EMR steps are running
         This relies on the pipelines configuration given in the constructor
         :param jobs_path: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         """
@@ -82,18 +83,20 @@ class EMRSparker(Sparker):
 
             steps = self._wrap_steps(jobs_path)
 
-            step_name = steps[0]['Name']
-
             response = self.emr.list_steps(
                 ClusterId=self.cluster_id,
                 StepStates=['PENDING', 'RUNNING'],
             )
 
-            logging.info(f'response:\n{response}')
+            for step in steps:
 
-            for live_step in response['Steps']:
-                if live_step['Name'] == step_name:
-                    return True
+                step_name = step['Name']
+
+                logging.info(f'response:\n{response}')
+
+                for live_step in response['Steps']:
+                    if live_step['Name'] == step_name:
+                        return True
 
             return False
 

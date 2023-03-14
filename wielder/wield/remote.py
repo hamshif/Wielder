@@ -16,6 +16,7 @@ def configure_remote_unique_context(conf, bucket_name=None):
     Places project configuration in distributed env e.g. AWS
     Used for super cluster processes such as data pipelines.
 
+    :param bucket_name: The bucket where the configuration exists
     :param conf: project level hocon conf
     :return:
     """
@@ -35,7 +36,6 @@ def configure_remote_unique_context(conf, bucket_name=None):
 
     with open(unique_context_conf, "w") as outfile:
         outfile.write(pyhocon.HOCONConverter.to_hocon(conf))
-
 
     artifactory_bucket = conf.artifactory_bucket
 
