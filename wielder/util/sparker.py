@@ -268,7 +268,9 @@ class DevSparker(Sparker):
         conf = self.conf
         pc = self.pipeline_conf
 
-        for job_conf in pc[jobs_path]:
+        jobs_conf = pc[jobs_path]
+
+        for job_conf in jobs_conf:
 
             _cmd = f"spark-submit --master spark://127.0.0.1:7077 " \
                    f"--class {job_conf.main_class} " \
