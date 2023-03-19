@@ -52,42 +52,6 @@ class EMRSparker(Sparker):
     """
     This wrapper object was created to automate steps creation on AWS EMR.
     It retains the AMI session. We use MFA for bootstrapping development.
-    An example"
-
-    runtime_env: docker
-    unique_name: huffelumph
-
-    aws_profile: "pooh_bear"
-    aws_cli_profile: "piglet"
-    aws_user: christopher_robin
-    ssh_password: "sanders"
-
-    aws_account_id: "123456789"
-    aws_zone: us-east-2
-    aws_image_repo_zone: us-east-2
-
-    namespace_bucket: owls_bucket
-
-    pipelines: {
-
-      runtime_env: ${runtime_env}
-      namespace_bucket: ${namespace_bucket}
-      unique_name = ${unique_name}
-
-      cluster_id: j-227D24G662GL1
-
-      kafka_ingestion: {
-        KafkaModelIngestor {
-          jar_path: "s3://"${namespace_bucket}"/spark/KafkaIngestion-1.0.0-SNAPSHOT.jar"
-          main_class: "com.forest.christopher.pipelines.kafka_ingestion.KafkaModelIngestor"
-       }
-
-      KafkaDockingExperimentsIngestor {
-          jar_path: "s3://"${namespace_bucket}"/spark/KafkaIngestion-1.0.0-SNAPSHOT.jar"
-          main_class: "com.forest.christopher.pipelines.kafka_ingestion.KafkaDockingExperimentsIngestor"
-      }
-    }
-
     """
 
     def __init__(self, conf, launch_env=RuntimeEnv.MAC):
@@ -109,8 +73,9 @@ class EMRSparker(Sparker):
 
             self.cluster_id = cluster_id
 
-    def is_job_active(self, jobs_path=['jobs']):
-        """Create EMR Steps in a specified region
+    def is_job_active(self, jobs_path='jobs'):
+        """
+        Return True if any of the EMR steps are running
         This relies on the pipelines configuration given in the constructor
         :param jobs_path: often spark jobs have different subgroups e.g kafka ingestion, purification ...
         """
@@ -118,18 +83,20 @@ class EMRSparker(Sparker):
 
             steps = self._wrap_steps(jobs_path)
 
-            step_name = steps[0]['Name']
-
             response = self.emr.list_steps(
                 ClusterId=self.cluster_id,
                 StepStates=['PENDING', 'RUNNING'],
             )
 
-            logging.info(f'response:\n{response}')
+            for step in steps:
 
-            for live_step in response['Steps']:
-                if live_step['Name'] == step_name:
-                    return True
+                step_name = step['Name']
+
+                logging.info(f'response:\n{response}')
+
+                for live_step in response['Steps']:
+                    if live_step['Name'] == step_name:
+                        return True
 
             return False
 
@@ -137,7 +104,7 @@ class EMRSparker(Sparker):
             logging.error(e)
             return False
 
-    def launch_jobs(self, jobs_path=['jobs']):
+    def launch_jobs(self, jobs_path='jobs'):
         """Create EMR Steps in a specified region
         This relies on the pipelines configuration given in the constructor
         :param jobs_path: often spark jobs have different subgroups e.g kafka ingestion, purification ...
@@ -238,17 +205,16 @@ class EMRSparker(Sparker):
 
         conf = self.pipeline_conf
 
-        group = conf[step_group[0]]
+        group = conf[step_group]
 
-        for key in step_group[1:]:
-            group = group[key]
+        for step_conf in group:
 
-        for step_name in group.keys():
-            step_conf = group[step_name]
+            act = step_conf.ActionOnFailure if 'ActionOnFailure' in step_conf else 'CONTINUE'
+            config_bucket = step_conf.config_bucket if 'config_bucket' in step_conf else conf.namespace_bucket
 
             step = {
-                'Name': step_name,
-                'ActionOnFailure': 'CONTINUE',
+                'Name': step_conf.Name,
+                'ActionOnFailure': act,
                 'HadoopJarStep': {
                     'Properties': [
                         {
@@ -265,12 +231,12 @@ class EMRSparker(Sparker):
                         step_conf.jar_path,
                         "-re", conf.runtime_env,
                         "-u", conf.unique_name,
-                        "-nb", conf.conf_bucket,
+                        "-nb", config_bucket,
                     ]
                 }
             }
 
-            logging.info(f'step {step_name} in AWS format:\n{step}')
+            logging.info(f'step {step_conf.Name} in AWS format:\n{step}')
 
             steps.append(step)
 
@@ -302,18 +268,16 @@ class DevSparker(Sparker):
         conf = self.conf
         pc = self.pipeline_conf
 
-        for j in jobs_path:
-            pc = pc[j]
+        jobs_conf = pc[jobs_path]
 
-        for job in pc.keys():
-            job_conf = pc[job]
+        for job_conf in jobs_conf:
 
             _cmd = f"spark-submit --master spark://127.0.0.1:7077 " \
                    f"--class {job_conf.main_class} " \
-                   f"{job_conf.local_jar_path} " \
+                   f"{job_conf.jar_path} " \
                    f"-re local " \
                    f"-u {conf.unique_name} " \
-                   f"-nb {conf.namespace_bucket} "
+                   f"-nb {job_conf.config_bucket} "
 
             logging.info(f'running command:\n{_cmd}')
 

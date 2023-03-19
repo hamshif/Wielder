@@ -74,12 +74,16 @@ def destroy_sanity(conf):
         exit(1)
 
 
-def get_wielder_parser(runtime_env=None, bootstrap_env=None, unique_conf=None, deploy_env=None):
+def get_wielder_parser(
+        runtime_env=None, bootstrap_env=None, unique_conf=None, deploy_env=None, config_env=None
+):
 
     if runtime_env is None:
         runtime_env = 'docker'
     if bootstrap_env is None:
         bootstrap_env = 'docker'
+    if config_env is None:
+        config_env = 'local'
     if unique_conf is None:
         unique_conf = 'default_conf'
     if deploy_env is None:
@@ -116,6 +120,14 @@ def get_wielder_parser(runtime_env=None, bootstrap_env=None, unique_conf=None, d
         choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker'],
         help='Runtime environment refers to where clusters such as Kubernetes are running',
         default=runtime_env
+    )
+
+    parser.add_argument(
+        '-ce', '--config_env',
+        type=str,
+        choices=['docker', 'gcp', 'on-prem', 'aws', 'azure', 'kind', 'mac', 'ubuntu', 'exdocker', 'local'],
+        help='Config environment refers to where the configuration is residing E.G AWS bucket',
+        default=config_env
     )
 
     parser.add_argument(
