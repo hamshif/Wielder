@@ -431,10 +431,10 @@ class GoogleBucketeer(Bucketeer):
         folder_id = self._get_folder_id(dest)
         file = MediaFileUpload(f'{source}/{file_name}', resumable=True)
 
-        file_metadata = {'title': file_name, "parents": [{"id": folder_id, "kind": "drive#childList"}]}
-        folder = self.service.files().create(body=file_metadata, media_body=file, fields='id').execute()
-        folder.SetContentFile(file_name)
-        folder.Upload()
+        file_metadata = {'name': file_name, "parents": [folder_id]}
+        file = self.service.files().create(body=file_metadata, media_body=file, fields='id').execute()
+        print("File created, id:", file.get("id"))
+
         return True
 
     def upload_directory(self, source, bucket_name, prefix):
