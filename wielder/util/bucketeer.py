@@ -13,6 +13,8 @@ from wielder.wield.project import WielderProject
 from wielder.util.google_drive import service_login
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
+from tabulate import tabulate
+# todo if we decide on that, add dependencies to be installed automatically
 
 DEFAULT_REGION = "us-east-2"
 
@@ -365,41 +367,41 @@ class GoogleBucketeer(Bucketeer):
         else:
             return folder_id
 
+
+    def get_size_format(b, factor=1024, suffix="B"):
+        """
+        Scale bytes to its proper byte format
+        e.g:
+            1253656 => '1.20MB'
+            1253656678 => '1.17GB'
+        """
+        for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+            if b < factor:
+                return f"{b:.2f}{unit}{suffix}"
+            b /= factor
+        return f"{b:.2f}Y{suffix}"
+
     def list_files(self, items):
         """given items returned by Google Drive API, prints them in a tabular way"""
         if not items:
-            # empty drive
-            print('No files found.')
+            return "No files available."
         else:
             rows = []
             for item in items:
-                # get the File ID
                 id = item["id"]
-                # get the name of file
                 name = item["name"]
                 try:
-                    # parent directory ID
                     parents = item["parents"]
                 except:
-                    # has no parrents
                     parents = "N/A"
                 try:
-                    # get the size in nice bytes format (KB, MB, etc.)
-                    size = get_size_format(int(item["size"]))
+                    size = self.get_size_format(int(item["size"]))
                 except:
-                    # not a file, may be a folder
                     size = "N/A"
-                # get the Google Drive type of file
                 mime_type = item["mimeType"]
-                # get last modified date time
                 modified_time = item["modifiedTime"]
-                # append everything to the list
                 rows.append((id, name, parents, size, mime_type, modified_time))
-            print("Files:")
-            # convert to a human readable table
-            table = tabulate(rows, headers=["ID", "Name", "Parents", "Size", "Type", "Modified Time"])
-            # print the table
-            print(table)
+            return tabulate(rows, headers=["ID", "Name", "Parents", "Size", "Type", "Modified Time"])
 
     def create_bucket(self, bucket_name, region=None):
         pass
