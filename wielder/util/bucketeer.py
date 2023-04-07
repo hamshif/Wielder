@@ -417,7 +417,7 @@ class GoogleBucketeer(Bucketeer):
         try:
             # create drive api client
             file_metadata = {
-                'name': 'Invoices',
+                'name': folder_name,
                 'mimeType': 'application/vnd.google-apps.folder'
             }
 
@@ -430,7 +430,11 @@ class GoogleBucketeer(Bucketeer):
             return None
 
     def upload_file(self, source, file_name, dest):
-        folder_id = self._get_folder_id(dest)
+        try:
+            folder_id = self._get_folder_id(dest)
+        except:
+            folder_id = self.create_folder(dest)
+            print(f'No existing folder found. Created folder {dest}.')
         file = MediaFileUpload(f'{source}/{file_name}', resumable=True)
 
         file_metadata = {'name': file_name, "parents": [folder_id]}
