@@ -89,8 +89,9 @@ class MavenBuilder(WBuilder):
             build_command = 'mvn clean install -U -f pom.xml'
             logging.info(f"Running cmd:\n{build_command}")
             os.system(build_command)
-            build_command = 'mvn assembly:assembly -DdescriptorId=jar-with-dependencies'
-            logging.info(f"Running cmd:\n{build_command}")
+            # TODO make sense of the maven build and remove redundancies
+            # build_command = 'mvn assembly:assembly -DdescriptorId=jar-with-dependencies'
+            # logging.info(f"Running cmd:\n{build_command}")
             os.system(build_command)
 
     def ensure_build_path(self, repo_name):
