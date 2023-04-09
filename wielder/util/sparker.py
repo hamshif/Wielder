@@ -212,6 +212,21 @@ class EMRSparker(Sparker):
             act = step_conf.ActionOnFailure if 'ActionOnFailure' in step_conf else 'CONTINUE'
             config_bucket = step_conf.config_bucket if 'config_bucket' in step_conf else conf.namespace_bucket
 
+            inner_args = [
+                "spark-submit",
+                "--class", step_conf.main_class,
+                "--deploy-mode", "client",
+                step_conf.jar_path,
+                "-re", conf.runtime_env,
+                "-u", conf.unique_name,
+                "-nb", config_bucket,
+            ]
+
+            if 'app' in step_conf:
+
+                inner_args.append('-ap')
+                inner_args.append(step_conf.app)
+
             step = {
                 'Name': step_conf.Name,
                 'ActionOnFailure': act,
@@ -224,17 +239,10 @@ class EMRSparker(Sparker):
                     ],
                     'Jar': 'command-runner.jar',
                     # 'MainClass': 'string',
-                    'Args': [
-                        "spark-submit",
-                        "--class", step_conf.main_class,
-                        "--deploy-mode", "client",
-                        step_conf.jar_path,
-                        "-re", conf.runtime_env,
-                        "-u", conf.unique_name,
-                        "-nb", config_bucket,
-                    ]
+                    'Args': inner_args
                 }
             }
+
 
             logging.info(f'step {step_conf.Name} in AWS format:\n{step}')
 
@@ -277,7 +285,12 @@ class DevSparker(Sparker):
                    f"{job_conf.jar_path} " \
                    f"-re local " \
                    f"-u {conf.unique_name} " \
-                   f"-nb {job_conf.config_bucket} "
+                   f"-nb {job_conf.config_bucket} " \
+
+            if 'app' in job_conf:
+
+                _cmd = _cmd + f'-ap {job_conf.app}'
+
 
             logging.info(f'running command:\n{_cmd}')
 
