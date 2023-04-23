@@ -29,10 +29,12 @@ def configure_remote_unique_context(conf, bucket_name=None):
     unique_name = conf.unique_name
 
     app_plan_dir = f'{conf.project_conf_root}/plan'
+    app_plan_dir = app_plan_dir.replace('/', os.sep)
 
     os.makedirs(app_plan_dir, exist_ok=True)
 
     unique_context_conf = f'{app_plan_dir}/{unique_name}.conf'
+    unique_context_conf = unique_context_conf.replace('/', os.sep)
 
     with open(unique_context_conf, "w") as outfile:
         outfile.write(pyhocon.HOCONConverter.to_hocon(conf))
@@ -47,10 +49,14 @@ def configure_remote_unique_context(conf, bucket_name=None):
         bucket_path = conf.local_buckets_root
 
         conf_path = f'{bucket_path}/{bucket_name}/{unique_config_path}'
+        conf_path = conf_path.replace('/', os.sep)
 
         os.makedirs(conf_path, exist_ok=True)
 
-        shutil.copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
+
+        conf_path_and_unique_name = f'{conf_path}/{unique_name}.conf'
+        conf_path_and_unique_name = conf_path_and_unique_name.replace('/', os.sep)
+        shutil.copyfile(unique_context_conf, conf_path_and_unique_name)
 
     elif conf.runtime_env == 'aws':
 
@@ -79,6 +85,8 @@ def configure_remote_unique_context(conf, bucket_name=None):
 
 
 def get_remote_unique_context(conf):
+    # change the paths to Windows
+
     namespace_bucket = conf.namespace_bucket
     unique_name = conf.unique_name
     unique_config_path = conf.unique_config_path
@@ -93,7 +101,15 @@ def get_remote_unique_context(conf):
 
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
 
-    conf = ConfigFactory.parse_file(f'{conf_path}/{file_name}')
+    # if on Windows change the paths to work in all environments
+    saved_path = f'{conf_path}/{file_name}'
+
+    if os.name == 'nt':
+        saved_path = get_local_path(f'{conf_path}/{file_name}')
+
+    conf = ConfigFactory.parse_file(saved_path)
+
+    print(saved_path)
 
     return conf
 
@@ -128,7 +144,6 @@ def sync_stuff(conf):
     dest_path = sync_stuff.dest_path
 
     for stuff in sync_stuff.stuffs:
-
         src_key = f'{src_path}/{stuff}'
         dest_key = f'{dest_path}/{stuff}'
 

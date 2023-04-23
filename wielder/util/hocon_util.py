@@ -9,7 +9,6 @@ from pyhocon.tool import HOCONConverter as Hc
 
 
 def object_to_conf(obj):
-
     v = vars(obj)
     conf = Cf.from_dict(v)
     return conf
@@ -25,15 +24,24 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     :param show: print config
     :return: resolved hocon ConfigTree
     """
+    # first check if on Windows. change the list of path to Windows format
+    # check - print the path that it really the path
+    ordered_conf_paths_unix = ordered_conf_paths
+
+    if os.name == 'nt':
+        ordered_conf_paths = [path.replace('/', os.sep) for path in ordered_conf_paths]
+        print(ordered_conf_paths)
+
+    # insert to injections the new path - the Windows path
 
     if injection is None:
-
         injection = {}
 
     if cmd_args is not None:
-
         ar = vars(cmd_args)
         injection |= ar
+
+    # if Windows - insert to injections the new path - the Unix path - ordered_conf_paths_unix
 
     base_conf = Cf.from_dict(injection)
 
@@ -64,6 +72,8 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
         resolve=True,
     )
 
+    # second level... if there are 2 lists add it to the config
+
     if show:
         for i in conf.items():
             print(i)
@@ -72,9 +82,7 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
 
 
 def yaml_file_to_hocon(src_path):
-
     with open(src_path, 'r') as yaml_in:
-
         from_yaml = yaml.safe_load(yaml_in)
         json_string = json.dumps(from_yaml)
         hocon_object = pyhocon.ConfigFactory.parse_string(json_string)
@@ -82,12 +90,10 @@ def yaml_file_to_hocon(src_path):
 
 
 def hocon_to_file(src_path):
-
     conf = yaml_file_to_hocon(src_path)
     hocon_dest = src_path.replace('.yaml', '.conf')
 
     with open(hocon_dest, 'w') as file_hocon:
-
         file_hocon.write(Hc().to_hocon(conf))
 
     return hocon_dest
@@ -114,4 +120,3 @@ def conf_to_native(conf, vessel={}):
             vessel[k] = conf_to_native(v)
 
     return vessel
-

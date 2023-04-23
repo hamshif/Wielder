@@ -6,15 +6,14 @@ from pyhocon import ConfigFactory
 
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
+from wielder.util.util import convert_path_to_any_os
 from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
-
 
 DEFAULT_WIELDER_APP = 'snegurochka'
 
 
 def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None, wield_parser=None):
-
     if wield_parser is None:
         wield_parser = get_wielder_parser()
 
@@ -47,10 +46,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
         override_ordered_files = []
 
     ordered_conf_files = [
-        app_path,
-        runtime_env_path,
-        run_path,
-    ] + override_ordered_files
+                             app_path,
+                             runtime_env_path,
+                             run_path,
+                         ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
@@ -61,7 +60,6 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
 
 
 def default_conf_root():
-
     _, super_project_root, _ = get_super_project_roots()
 
     return f'{super_project_root}/Wielder/conf'
@@ -117,13 +115,22 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
+    # check on which environment we are running and insert the type of the OS to the injection
+    if os.name == 'nt':
+        injection['os'] = 'win'
+    else:
+        injection['os'] = 'unix'
     injection['action'] = action
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
+    if os.name == 'nt':
+        project_conf_root = convert_path_to_any_os(project_conf_root)
     injection['project_conf_root'] = project_conf_root
+
+    # TODO - To insert the prev unix project_conf_root to the injection?
 
     # TODO add specific debug and local mount paths appropriately
     debug_mode = wield_args.debug_mode
@@ -131,28 +138,29 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
     injection |= wield_args.__dict__
 
-    wg = WGit(super_project_root)
-
-    injection |= wg.as_dict_injection()
+    # TODO - Make it work in Windows
+    # wg = WGit(super_project_root)
+    #
+    # injection |= wg.as_dict_injection()
 
     home = os.getenv('HOME', 'limbo')
     injection['home'] = home
 
-    try:
-        wielder_commit = injection['git']['subs']['Wielder']
-    except Exception as e:
-        wielder_commit = 'elmore_fud'
-        logging.error(e)
+    # try:
+    #     wielder_commit = injection['git']['subs']['Wielder']
+    # except Exception as e:
+    #     wielder_commit = 'elmore_fud'
+    #     logging.error(e)
 
-    injection['wielder_commit'] = wielder_commit
+    # injection['wielder_commit'] = wielder_commit
 
     ordered_project_files = []
 
-    if configure_wield_modules:
-        for sub in injection['git']['subs'].keys():
-            potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-            if os.path.exists(potential_conf_path):
-                ordered_project_files.append(potential_conf_path)
+    # if configure_wield_modules:
+        # for sub in injection['git']['subs'].keys():
+        #     potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
+        #     if os.path.exists(potential_conf_path):
+        #         ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
         module_conf_path = f'{module_root}/conf/{runtime_env}/wield.conf'
@@ -174,7 +182,14 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     ordered_project_files.append(runtime_conf)
 
     bootstrap_conf_root = f'{project_conf_root}/unique_conf/{unique_conf}'
+    # If on Windows change the path to work in all environments
+    if os.name == 'nt':
+        bootstrap_conf_root = bootstrap_conf_root.replace('/', os.sep)
+
     injection['bootstrap_conf_root'] = bootstrap_conf_root
+
+    # TODO - add the prev unix path to the injection?
+
     developer_conf = f'{bootstrap_conf_root}/developer.conf'
 
     ordered_project_files.append(developer_conf)
@@ -184,15 +199,15 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
         injection=injection
     )
 
-    try:
-        code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
-    except Exception as e:
-        code_repo_commit = 'wile_coyote'
-        logging.error(e)
+    # try:
+    #     code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
+    # except Exception as e:
+    #     code_repo_commit = 'wile_coyote'
+    #     logging.error(e)
 
     post_resolution = ConfigFactory.from_dict({
         app: {
-            "code_repo_commit": code_repo_commit
+            # "code_repo_commit": code_repo_commit
         }
     })
 
@@ -204,23 +219,36 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     return conf
 
 
+# def get_super_project_roots():
+#     super_project_root = os.path.dirname(os.path.realpath(__file__))
+#
+#     for i in range(3):
+#         super_project_root = super_project_root[:super_project_root.rfind('/')]
+#
+#     logging.info(f'staging_root:\n{super_project_root}')
+#
+#     staging_root = super_project_root[:super_project_root.rfind('/')]
+#
+#     super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
+#
+#     return staging_root, super_project_root, super_project_name
+
 def get_super_project_roots():
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
-        super_project_root = super_project_root[:super_project_root.rfind('/')]
+        super_project_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
     logging.info(f'staging_root:\n{super_project_root}')
 
-    staging_root = super_project_root[:super_project_root.rfind('/')]
+    staging_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
-    super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
+    super_project_name = super_project_root[super_project_root.rfind(os.path.sep) + 1:]
 
     return staging_root, super_project_root, super_project_name
 
 
 def configure_external_kafka_urls(conf):
-
     if conf.kafka.override_exposed:
 
         ports = [30000 + i for i in range(conf.third_party.kafka_replicas)]
@@ -234,9 +262,8 @@ def configure_external_kafka_urls(conf):
             i = 0
 
             for port in ports:
-
                 exposed_brokers = f'{exposed_brokers},broker-{i}.{conf.unique_name}:{port}'
-                i = i+1
+                i = i + 1
 
         elif runtime_env in local_kubes:
 
@@ -251,7 +278,6 @@ def configure_external_kafka_urls(conf):
 
 
 def get_local_path(conf, relative_path, bucket_name=None):
-
     if bucket_name is None:
         bucket_name = conf.namespace_bucket
 

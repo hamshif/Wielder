@@ -17,7 +17,9 @@ class WGit:
 
             dir_name = repo_path.split('/')[-1]
 
-            latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
+            latest_commit = "ghjkl"
+            # latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
+            # change this to work in Windows
 
             logging.info(f'latest_commit for {dir_name}: {latest_commit}')
             self.commit = latest_commit

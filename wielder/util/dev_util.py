@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import tempfile
 
 from wielder.util.cool import filter_walk
 from wielder.util.kuber import copy_file_to_pods
@@ -8,7 +9,6 @@ from wielder.wield.deployer import get_pods
 
 
 def is_valid_file(name, forbidden):
-
     for f in forbidden:
         if name.endswith(f):
             return False
@@ -17,9 +17,7 @@ def is_valid_file(name, forbidden):
 
 
 def is_valid_dir(name, forbidden):
-
     if name.endswith('.egg-info') or name[0] == '.' or name in forbidden:
-
         return False
 
     return True
@@ -59,6 +57,16 @@ def sync_filtered_to_kube(conf, module_name):
     shutil.rmtree(stage)
     os.makedirs(stage, exist_ok=True)
 
+
+    # this will work in all operating systems:
+    # stage = os.path.join(tempfile.gettempdir(), 'wield_dev_stage')
+    #
+    # # Remove the directory if it already exists
+    # if os.path.exists(stage):
+    #     shutil.rmtree(stage)
+    # # Recreate the directory
+    # os.makedirs(stage, exist_ok=True)
+
     dev_conf = conf[module_name].dev
 
     sync_list = dev_conf.sync_list
@@ -91,7 +99,6 @@ def sync_filtered_to_kube(conf, module_name):
                 os.makedirs(stage_dest, exist_ok=True)
 
                 for file_name in file_names:
-
                     src_file = f'{dir_path}/{file_name}'
                     tmp_file = f'{stage_dest}/{file_name}'
 
@@ -102,7 +109,6 @@ def sync_filtered_to_kube(conf, module_name):
                 print(f'file_names: {file_names}')
 
             if nd is not None:
-
                 pod_search_name = sync_conf.pod_search_name
                 pods = get_pods(pod_search_name, conf.kube_context, False, sync_conf.namespace)
 
@@ -118,4 +124,3 @@ def sync_filtered_to_kube(conf, module_name):
                 )
         else:
             logging.debug(f'{sync} wont be loaded')
-
