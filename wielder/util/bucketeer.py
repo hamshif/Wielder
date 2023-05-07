@@ -14,6 +14,7 @@ from wielder.util.google_drive import service_login
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from tabulate import tabulate
+
 # todo if we decide on that, add dependencies to be installed automatically
 
 DEFAULT_REGION = "us-east-2"
@@ -366,7 +367,6 @@ class GoogleBucketeer(Bucketeer):
             raise Exception('Folder name not found.')
         else:
             return folder_id
-
 
     def get_size_format(b, factor=1024, suffix="B"):
         """
