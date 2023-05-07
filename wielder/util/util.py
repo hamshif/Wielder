@@ -6,8 +6,10 @@ import re
 import string
 from time import sleep
 
+import shutil
 import boto3
 import yaml
+from pyhocon import ConfigFactory
 from requests import get
 from wielder.util.commander import async_cmd
 # This example requires the requests library be installed.  You can learn more
@@ -111,6 +113,7 @@ def remove_line(filename, line):
     f.close()
 
 
+# would work on Windows?
 def write_action_report(name, value):
     dir_path = '/tmp/actions'
     os.makedirs(dir_path, exist_ok=True)
@@ -155,6 +158,7 @@ def get_aws_session(conf):
     return session
 
 
+# would work on Windows?
 def create_pyenv(name, py_version):
     wield_path = get_wield_root()
 
@@ -196,7 +200,6 @@ def block_for_file(why, full_path, interval, max_attempts=50):
 
 
 def pretty(conf):
-
     logging.info('Showing top level config items')
 
     [print(it) for it in conf.as_plain_ordered_dict().items()]
@@ -223,3 +226,23 @@ if __name__ == "__main__":
     logging.debug('break point')
 
     remove_line(_full_path, _line)
+
+
+def parse_file(conf_path, file_name):
+    to_config = f'{conf_path}/{file_name}'
+    if os.name == 'nt':
+        to_config = convert_path_to_any_os(to_config)
+    return ConfigFactory.parse_file(to_config)
+
+
+def makedirs(path):
+    if os.name == 'nt':
+        path = convert_path_to_any_os(path)
+    os.makedirs(path, exist_ok=True)
+
+
+def os_shutil(unique_context_conf, dest):
+    if os.name == 'nt':
+        unique_context_conf = convert_path_to_any_os(unique_context_conf)
+        dest = convert_path_to_any_os(dest)
+    shutil.copyfile(unique_context_conf, dest)

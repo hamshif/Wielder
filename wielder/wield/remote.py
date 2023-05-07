@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 import logging
 import os
-import shutil
+
 
 import pyhocon
-from pyhocon import ConfigFactory
+
 
 from wielder.util.bucketeer import AWSBucketeer
+from wielder.util.util import parse_file, makedirs, os_shutil
 from wielder.wield.enumerator import local_deployments
-from wielder.wield.project import configure_external_kafka_urls, get_local_path
+from wielder.wield.project import configure_external_kafka_urls
 
 
 def configure_remote_unique_context(conf, bucket_name=None):
@@ -30,7 +31,8 @@ def configure_remote_unique_context(conf, bucket_name=None):
 
     app_plan_dir = f'{conf.project_conf_root}/plan'
 
-    os.makedirs(app_plan_dir, exist_ok=True)
+    makedirs(app_plan_dir)
+    # os.makedirs(app_plan_dir, exist_ok=True)
 
     unique_context_conf = f'{app_plan_dir}/{unique_name}.conf'
 
@@ -48,9 +50,11 @@ def configure_remote_unique_context(conf, bucket_name=None):
 
         conf_path = f'{bucket_path}/{bucket_name}/{unique_config_path}'
 
-        os.makedirs(conf_path, exist_ok=True)
+        makedirs(conf_path)
+        # os.makedirs(conf_path, exist_ok=True)
 
-        shutil.copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
+        os_shutil(unique_context_conf, f'{conf_path}/{unique_name}.conf')
+        # shutil.copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
 
     elif conf.runtime_env == 'aws':
 
@@ -93,7 +97,8 @@ def get_remote_unique_context(conf):
 
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
 
-    conf = ConfigFactory.parse_file(f'{conf_path}/{file_name}')
+    # conf = ConfigFactory.parse_file(f'{conf_path}/{file_name}')
+    conf = parse_file(conf_path, file_name)
 
     return conf
 
@@ -128,7 +133,6 @@ def sync_stuff(conf):
     dest_path = sync_stuff.dest_path
 
     for stuff in sync_stuff.stuffs:
-
         src_key = f'{src_path}/{stuff}'
         dest_key = f'{dest_path}/{stuff}'
 

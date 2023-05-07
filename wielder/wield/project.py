@@ -7,7 +7,6 @@ from pyhocon import ConfigFactory
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.util import convert_path_to_any_os
-from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
 
@@ -48,10 +47,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
         override_ordered_files = []
 
     ordered_conf_files = [
-        app_path,
-        runtime_env_path,
-        run_path,
-    ] + override_ordered_files
+                             app_path,
+                             runtime_env_path,
+                             run_path,
+                         ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
@@ -118,6 +117,11 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
+    # check on which environment we are running and insert the type of the OS to the injection
+    if os.name == 'nt':
+        injection['os'] = 'win'
+    else:
+        injection['os'] = 'unix'
     injection['action'] = action
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
