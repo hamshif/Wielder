@@ -200,6 +200,7 @@ def block_for_file(why, full_path, interval, max_attempts=50):
 
 
 def pretty(conf):
+
     logging.info('Showing top level config items')
 
     [print(it) for it in conf.as_plain_ordered_dict().items()]

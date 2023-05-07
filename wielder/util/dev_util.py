@@ -1,7 +1,6 @@
 import logging
 import os
 import shutil
-import tempfile
 
 from wielder.util.cool import filter_walk
 from wielder.util.kuber import copy_file_to_pods
@@ -9,6 +8,7 @@ from wielder.wield.deployer import get_pods
 
 
 def is_valid_file(name, forbidden):
+
     for f in forbidden:
         if name.endswith(f):
             return False
@@ -17,7 +17,9 @@ def is_valid_file(name, forbidden):
 
 
 def is_valid_dir(name, forbidden):
+
     if name.endswith('.egg-info') or name[0] == '.' or name in forbidden:
+
         return False
 
     return True

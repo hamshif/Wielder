@@ -6,7 +6,7 @@ from enum import Enum
 
 from wielder.util.bucketeer import get_bucketeer
 from wielder.util.util import DirContext
-from wielder.util.wgit import WGit, clone_or_update
+from wielder.util.wgit_1 import WGit_1, clone_or_update
 from wielder.wield.enumerator import RuntimeEnv, local_deployments
 
 
@@ -21,7 +21,7 @@ class WBuilder(ABC):
         self.conf = conf
         self.locale = locale
 
-        self.wg = WGit(locale.super_project_root)
+        self.wg = WGit_1(locale.super_project_root)
         self.commit = self.wg.commit
 
         build_root = f'{locale.build_root}/{locale.super_project_name}'

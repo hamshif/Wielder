@@ -7,6 +7,7 @@ from pyhocon import ConfigFactory
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.util import convert_path_to_any_os
+from wielder.util.wgit_1 import WGit_1
 from wielder.wield.enumerator import local_kubes
 
 
@@ -47,10 +48,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
         override_ordered_files = []
 
     ordered_conf_files = [
-                             app_path,
-                             runtime_env_path,
-                             run_path,
-                         ] + override_ordered_files
+        app_path,
+        runtime_env_path,
+        run_path,
+    ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
@@ -139,28 +140,30 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     injection |= wield_args.__dict__
 
     # TODO - Make it work in Windows
-    # wg = WGit(super_project_root)
-    #
-    # injection |= wg.as_dict_injection()
+    wg = WGit_1(super_project_root)
+
+    injection |= wg.as_dict_injection()
 
     home = os.getenv('HOME', 'limbo')
     injection['home'] = home
 
-    # try:
-    #     wielder_commit = injection['git']['subs']['Wielder']
-    # except Exception as e:
-    #     wielder_commit = 'elmore_fud'
-    #     logging.error(e)
+    try:
+        wielder_commit = injection['git']['subs']['Wielder']
+    except Exception as e:
+        wielder_commit = 'elmore_fud'
+        logging.error(e)
 
-    # injection['wielder_commit'] = wielder_commit
+    injection['wielder_commit'] = wielder_commit
 
     ordered_project_files = []
 
-    # if configure_wield_modules:
-        # for sub in injection['git']['subs'].keys():
-        #     potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-        #     if os.path.exists(potential_conf_path):
-        #         ordered_project_files.append(potential_conf_path)
+    if configure_wield_modules:
+        for sub in injection['git']['subs'].keys():
+            potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
+            if os.name == 'nt':
+                potential_conf_path = convert_path_to_any_os(potential_conf_path)
+            if os.path.exists(potential_conf_path):
+                ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
         module_conf_path = f'{module_root}/conf/{runtime_env}/wield.conf'
@@ -196,15 +199,15 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
         injection=injection
     )
 
-    # try:
-    #     code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
-    # except Exception as e:
-    #     code_repo_commit = 'wile_coyote'
-    #     logging.error(e)
+    try:
+        code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
+    except Exception as e:
+        code_repo_commit = 'wile_coyote'
+        logging.error(e)
 
     post_resolution = ConfigFactory.from_dict({
         app: {
-            # "code_repo_commit": code_repo_commit
+            "code_repo_commit": code_repo_commit
         }
     })
 

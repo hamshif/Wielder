@@ -1,18 +1,43 @@
 #!/usr/bin/env python
 import logging
+import platform
 import subprocess as sp
 import shlex
 
 from wielder.util.log_util import setup_logging
 
 
-def async_cmd(args, verbose=False, executable='/bin/sh'):
+# def async_cmd(args, verbose=False, executable='/bin/sh'):
+#     lines = []
+#     p = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT, executable=executable)
+#     for line in p.stdout.readlines():
+#         if verbose:
+#             logging.info(line.decode("utf-8"))
+#         lines.append(line.decode("utf-8"))
+#
+#     return_val = p.wait()
+#     if verbose:
+#         logging.info(return_val)
+#     return lines
+
+
+def async_cmd(args, verbose=False, shell=False):
     lines = []
-    p = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT, executable=executable)
-    for line in p.stdout.readlines():
+    if platform.system() == "Windows":
+        # On Windows, set shell=True to use the default shell (cmd.exe)
+        p = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
+    else:
+        # On Unix-based systems, split the command into arguments using shlex.split
+        args = shlex.split(args)
+        p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
+
+    while True:
+        line = p.stdout.readline().decode("utf-8")
+        if not line:
+            break
         if verbose:
-            logging.info(line.decode("utf-8"))
-        lines.append(line.decode("utf-8"))
+            logging.info(line)
+        lines.append(line)
 
     return_val = p.wait()
     if verbose:
