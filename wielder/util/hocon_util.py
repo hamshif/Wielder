@@ -25,6 +25,15 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     :param show: print config
     :return: resolved hocon ConfigTree
     """
+    # first check if on Windows. change the list of path to Windows format
+    # check - print the path that it really the path
+    ordered_conf_paths_unix = ordered_conf_paths
+
+    if os.name == 'nt':
+        ordered_conf_paths = [path.replace('/', os.sep) for path in ordered_conf_paths]
+        print(ordered_conf_paths)
+
+    # insert to injections the new path - the Windows path
 
     if injection is None:
 

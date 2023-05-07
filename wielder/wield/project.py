@@ -6,6 +6,7 @@ from pyhocon import ConfigFactory
 
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
+from wielder.util.util import convert_path_to_any_os
 from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
@@ -123,6 +124,8 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
+    if os.name == 'nt':
+        project_conf_root = convert_path_to_any_os(project_conf_root)
     injection['project_conf_root'] = project_conf_root
 
     # TODO add specific debug and local mount paths appropriately
@@ -131,28 +134,29 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
     injection |= wield_args.__dict__
 
-    wg = WGit(super_project_root)
-
-    injection |= wg.as_dict_injection()
+    # TODO - Make it work in Windows
+    # wg = WGit(super_project_root)
+    #
+    # injection |= wg.as_dict_injection()
 
     home = os.getenv('HOME', 'limbo')
     injection['home'] = home
 
-    try:
-        wielder_commit = injection['git']['subs']['Wielder']
-    except Exception as e:
-        wielder_commit = 'elmore_fud'
-        logging.error(e)
+    # try:
+    #     wielder_commit = injection['git']['subs']['Wielder']
+    # except Exception as e:
+    #     wielder_commit = 'elmore_fud'
+    #     logging.error(e)
 
-    injection['wielder_commit'] = wielder_commit
+    # injection['wielder_commit'] = wielder_commit
 
     ordered_project_files = []
 
-    if configure_wield_modules:
-        for sub in injection['git']['subs'].keys():
-            potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-            if os.path.exists(potential_conf_path):
-                ordered_project_files.append(potential_conf_path)
+    # if configure_wield_modules:
+        # for sub in injection['git']['subs'].keys():
+        #     potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
+        #     if os.path.exists(potential_conf_path):
+        #         ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
         module_conf_path = f'{module_root}/conf/{runtime_env}/wield.conf'
@@ -174,6 +178,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     ordered_project_files.append(runtime_conf)
 
     bootstrap_conf_root = f'{project_conf_root}/unique_conf/{unique_conf}'
+    # If on Windows change the path to work in all environments
+    if os.name == 'nt':
+        bootstrap_conf_root = bootstrap_conf_root.replace('/', os.sep)
+
     injection['bootstrap_conf_root'] = bootstrap_conf_root
     developer_conf = f'{bootstrap_conf_root}/developer.conf'
 
@@ -184,15 +192,15 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
         injection=injection
     )
 
-    try:
-        code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
-    except Exception as e:
-        code_repo_commit = 'wile_coyote'
-        logging.error(e)
+    # try:
+    #     code_repo_commit = injection['git']['subs'][conf[app].code_repo_name]
+    # except Exception as e:
+    #     code_repo_commit = 'wile_coyote'
+    #     logging.error(e)
 
     post_resolution = ConfigFactory.from_dict({
         app: {
-            "code_repo_commit": code_repo_commit
+            # "code_repo_commit": code_repo_commit
         }
     })
 
@@ -204,17 +212,31 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     return conf
 
 
+# def get_super_project_roots():
+#     super_project_root = os.path.dirname(os.path.realpath(__file__))
+#
+#     for i in range(3):
+#         super_project_root = super_project_root[:super_project_root.rfind('/')]
+#
+#     logging.info(f'staging_root:\n{super_project_root}')
+#
+#     staging_root = super_project_root[:super_project_root.rfind('/')]
+#
+#     super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
+#
+#     return staging_root, super_project_root, super_project_name
+
 def get_super_project_roots():
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
-        super_project_root = super_project_root[:super_project_root.rfind('/')]
+        super_project_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
     logging.info(f'staging_root:\n{super_project_root}')
 
-    staging_root = super_project_root[:super_project_root.rfind('/')]
+    staging_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
-    super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
+    super_project_name = super_project_root[super_project_root.rfind(os.path.sep) + 1:]
 
     return staging_root, super_project_root, super_project_name
 

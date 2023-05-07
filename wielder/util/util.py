@@ -16,6 +16,11 @@ from wielder.util.credential_helper import get_aws_mfa_cred
 from wielder.util.log_util import setup_logging
 
 
+# function that converts a unix path to work in all OSes
+def convert_path_to_any_os(path):
+    return path.replace('/', os.sep)
+
+
 def get_external_ip():
     try:
         ip = get('https://api.ipify.org').text
