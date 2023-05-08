@@ -165,13 +165,6 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
         app_conf_path = f'{project_conf_root}/app/{app}/app.conf'
         ordered_project_files.append(app_conf_path)
 
-    resources_path = f'{super_project_root}/pep-data/resources'
-    res_confs = next(os.walk(resources_path), (None, None, []))[2]
-    res_confs = list(filter(lambda file: '.conf' in file, res_confs))
-
-    for res_conf in res_confs:
-        ordered_project_files.append(f'{resources_path}/{res_conf}')
-
     deploy_conf = f'{project_conf_root}/deploy_env/{deploy_env}/wield.conf'
     bootstrap_conf = f'{project_conf_root}/bootstrap_env/{bootstrap_env}/wield.conf'
     runtime_conf = f'{project_conf_root}/runtime_env/{runtime_env}/wield.conf'
