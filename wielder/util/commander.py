@@ -7,29 +7,14 @@ import shlex
 from wielder.util.log_util import setup_logging
 
 
-# def async_cmd(args, verbose=False, executable='/bin/sh'):
-#     lines = []
-#     p = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT, executable=executable)
-#     for line in p.stdout.readlines():
-#         if verbose:
-#             logging.info(line.decode("utf-8"))
-#         lines.append(line.decode("utf-8"))
-#
-#     return_val = p.wait()
-#     if verbose:
-#         logging.info(return_val)
-#     return lines
-
-
-def async_cmd(args, verbose=False, shell=False):
+def async_cmd(args, verbose=False, executable='/bin/sh'):
     lines = []
     if platform.system() == "Windows":
-        # On Windows, set shell=True to use the default shell (cmd.exe)
-        p = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
-    else:
-        # On Unix-based systems, split the command into arguments using shlex.split
-        args = shlex.split(args)
-        p = sp.Popen(args, stdout=sp.PIPE, stderr=sp.STDOUT)
+        # Use PowerShell instead of the default shell
+        args = ["powershell.exe", "-Command", args]
+        shell = True
+
+    p = sp.Popen(args, shell=shell, stdout=sp.PIPE, stderr=sp.STDOUT)
 
     while True:
         line = p.stdout.readline().decode("utf-8")

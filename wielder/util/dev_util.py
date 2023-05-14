@@ -8,7 +8,6 @@ from wielder.wield.deployer import get_pods
 
 
 def is_valid_file(name, forbidden):
-
     for f in forbidden:
         if name.endswith(f):
             return False
@@ -17,9 +16,7 @@ def is_valid_file(name, forbidden):
 
 
 def is_valid_dir(name, forbidden):
-
     if name.endswith('.egg-info') or name[0] == '.' or name in forbidden:
-
         return False
 
     return True

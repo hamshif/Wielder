@@ -1,6 +1,7 @@
 import logging
 
 import git
+import os
 from pyhocon import ConfigFactory as Cf
 from wielder.util.commander import subprocess_cmd, async_cmd
 from wielder.util.log_util import setup_logging
@@ -15,7 +16,7 @@ class WGit:
 
         with DirContext(repo_path):
 
-            dir_name = repo_path.split('/')[-1]
+            dir_name = repo_path.split(os.sep)[-1]
 
             latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
 
@@ -41,6 +42,8 @@ class WGit:
             _cmd = f'git ls-tree HEAD {sub}'
 
             submodule_pointer = async_cmd(_cmd)
+            if len(submodule_pointer) == 0:
+                return None
 
             submodule_pointer = submodule_pointer[0].split(' ')[2].split('\t')[0]
             logging.info(f'submodule {sub} pointer commit: {submodule_pointer}')
@@ -50,9 +53,9 @@ class WGit:
     def get_submodule_names(self):
 
         with DirContext(self.repo_path):
-
+            awk_cmd = 'gawk' if os.system('gawk --version') == 0 else 'awk'
             print_line = '{ print $2 }'
-            _cmd = f"git config --file .gitmodules --get-regexp path | awk '{print_line}'"
+            _cmd = f"git config --file .gitmodules --get-regexp path | {awk_cmd} '{print_line}'"
 
             response = async_cmd(_cmd)
             submodule_names = []

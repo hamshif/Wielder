@@ -7,7 +7,7 @@ from pyhocon import ConfigFactory
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.util import convert_path_to_any_os
-from wielder.util.wgit_1 import WGit_1
+from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
 
@@ -48,10 +48,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
         override_ordered_files = []
 
     ordered_conf_files = [
-        app_path,
-        runtime_env_path,
-        run_path,
-    ] + override_ordered_files
+                             app_path,
+                             runtime_env_path,
+                             run_path,
+                         ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
@@ -111,27 +111,29 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if injection is None:
         injection = {}
 
+    local_system = 'unix' if os.name != 'nt' else 'win'
+
     action = wield_args.wield
     runtime_env = wield_args.runtime_env
     deploy_env = wield_args.deploy_env
     bootstrap_env = wield_args.bootstrap_env
+    if bootstrap_env != local_system:
+        logging.warning(f'bootstrap_env: {bootstrap_env} is not consistant with local system: {local_system}')
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
     # check on which environment we are running and insert the type of the OS to the injection
-    if os.name == 'nt':
-        injection['os'] = 'win'
-    else:
-        injection['os'] = 'unix'
     injection['action'] = action
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
     injection['staging_root'] = staging_root
     injection['super_project_root'] = super_project_root
     injection['super_project_name'] = super_project_name
+    injection['os'] = local_system
     if os.name == 'nt':
         project_conf_root = convert_path_to_any_os(project_conf_root)
     injection['project_conf_root'] = project_conf_root
+
 
     # TODO add specific debug and local mount paths appropriately
     debug_mode = wield_args.debug_mode
@@ -140,7 +142,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     injection |= wield_args.__dict__
 
     # TODO - Make it work in Windows
-    wg = WGit_1(super_project_root)
+    wg = WGit(super_project_root)
 
     injection |= wg.as_dict_injection()
 
@@ -218,20 +220,6 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
 
     return conf
 
-
-# def get_super_project_roots():
-#     super_project_root = os.path.dirname(os.path.realpath(__file__))
-#
-#     for i in range(3):
-#         super_project_root = super_project_root[:super_project_root.rfind('/')]
-#
-#     logging.info(f'staging_root:\n{super_project_root}')
-#
-#     staging_root = super_project_root[:super_project_root.rfind('/')]
-#
-#     super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
-#
-#     return staging_root, super_project_root, super_project_name
 
 def get_super_project_roots():
     super_project_root = os.path.dirname(os.path.realpath(__file__))
