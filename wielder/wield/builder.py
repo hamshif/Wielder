@@ -138,7 +138,7 @@ class MavenBuilder(WBuilder):
 
         sub_commit, build_path = self.ensure_build_path(repo_name)
 
-        local_artifact_path = f'{build_path}/{module_path}/target'.replace("//", '/')
+        local_artifact_path = f'{build_path}/{module_path}/target'.replace("//", os.sep)
         renamed = f'{artifact_name}-{sub_commit}.jar'
 
         full_local_path = f'{full_local_artifactory_path}/{renamed}'

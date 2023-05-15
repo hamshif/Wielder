@@ -53,10 +53,11 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
                 origin_file = os.path.join(subdir, _file)
                 logging.info(f"origin:      {origin_file}")
 
+                sep = os.sep
                 # TODO add more insurances preventing bug where an incidental substring is replaced
                 #  or one is accidentally excluded.
                 destination_path = origin_file.replace(origin_path, dest_module_path)
-                destination_path = destination_path.replace(f'/{origin_name}/', f'/{target_name}/')
+                destination_path = destination_path.replace(f'{sep}{origin_name}{sep}', f'{sep}{target_name}{sep}')
                 destination_path = destination_path.replace(f'{origin_name}-', f'{target_name}-')
                 destination_path = destination_path.replace(f'{origin_name}_', f'{target_name}_')
 
