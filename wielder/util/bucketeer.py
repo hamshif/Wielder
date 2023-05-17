@@ -14,6 +14,7 @@ from wielder.util.google_drive import service_login
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from tabulate import tabulate
+from tqdm import tqdm
 
 # todo if we decide on that, add dependencies to be installed automatically
 
@@ -163,7 +164,7 @@ class AWSBucketeer(Bucketeer):
         """
         try:
 
-            print(name)
+            # print(name)
 
             # create nested directory structure
             os.makedirs(dest, exist_ok=True)
@@ -192,7 +193,7 @@ class AWSBucketeer(Bucketeer):
         :return: True if bucket deleted, else False
         """
 
-        for key in keys:
+        for key in tqdm(keys):
 
             obj_path = key[:key.rindex('/')]
 
