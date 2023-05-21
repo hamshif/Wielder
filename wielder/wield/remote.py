@@ -7,7 +7,7 @@ import pyhocon
 
 
 from wielder.util.bucketeer import AWSBucketeer
-from wielder.util.util import parse_file, makedirs, os_shutil
+from wielder.util.util import parse_file, makedirs, copyfile
 from wielder.wield.enumerator import local_deployments
 from wielder.wield.project import configure_external_kafka_urls
 
@@ -53,7 +53,7 @@ def configure_remote_unique_context(conf, bucket_name=None):
         makedirs(conf_path)
         # os.makedirs(conf_path, exist_ok=True)
 
-        os_shutil(unique_context_conf, f'{conf_path}/{unique_name}.conf')
+        copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
         # shutil.copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
 
     elif conf.runtime_env == 'aws':

@@ -241,7 +241,7 @@ def makedirs(path):
     os.makedirs(path, exist_ok=True)
 
 
-def os_shutil(unique_context_conf, dest):
+def copyfile(unique_context_conf, dest):
     if os.name == 'nt':
         unique_context_conf = convert_path_to_any_os(unique_context_conf)
         dest = convert_path_to_any_os(dest)
