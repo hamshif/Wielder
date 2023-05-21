@@ -4,6 +4,7 @@ __author__ = 'Gideon Bar'
 
 import logging
 import os
+import wielder.util.util as wu
 
 from pyhocon.tool import HOCONConverter as Hc
 
@@ -19,7 +20,7 @@ class WrapHelm:
 
         unique_name = conf.unique_name
         values_path = f'{values_path}/plan/{unique_name}'
-        os.makedirs(values_path, exist_ok=True)
+        wu.makedirs(values_path, exist_ok=True)
 
         self.unique_name = unique_name
         self.context = conf.kube_context

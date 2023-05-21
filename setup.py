@@ -21,8 +21,8 @@ setup(
     zip_safe=False,
     install_requires=[
         'wheel', 'Cython', 'GitPython', 'PyYAML', 'kubernetes', 'rx==3.2.0', 'jprops',
-        'pyhocon', 'requests', 'deepdiff', 'botocore', 'boto3', 'tabulate',
-        'kazoo', 'kafka', 'confluent-kafka', 'google-api-python-client', 'google-auth-oauthlib',
+        'pyhocon', 'requests', 'deepdiff', 'botocore', 'boto3',
+        'kazoo', 'kafka', 'confluent-kafka',
         'cassandra-driver',
         # TODO use the next version of cassandra driver supporting up to Python 3.11
     ],

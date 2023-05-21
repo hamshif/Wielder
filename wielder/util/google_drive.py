@@ -1,3 +1,4 @@
+import wielder.util.util as wu
 from __future__ import print_function
 
 import os.path
@@ -22,7 +23,7 @@ def service_login(conf):
 
     token_key = f'{conf.google_credentials_path}/token.json'
     creds_key = f'{conf.google_credentials_path}/credentials.json'
-    if os.path.exists(token_key):
+    if wu.exists(token_key):
         creds = Credentials.from_authorized_user_file(token_key, SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -32,7 +33,7 @@ def service_login(conf):
             flow = InstalledAppFlow.from_client_secrets_file(creds_key, SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open(token_key, 'w') as token:
+        with wu.open(token_key, 'w') as token:
             token.write(creds.to_json())
 
     try:

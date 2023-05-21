@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+import os
 import subprocess as sp
 import shlex
 
@@ -8,11 +9,18 @@ from wielder.util.log_util import setup_logging
 
 def async_cmd(args, verbose=False, executable='/bin/sh'):
     lines = []
-    p = sp.Popen(args, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT, executable=executable)
+    if os.name == 'nt':
+        # Use PowerShell instead of the default shell
+        args = ["powershell.exe", "-Command", args]
+        shell = True
+
+    p = sp.Popen(args, shell=shell, stdout=sp.PIPE, stderr=sp.STDOUT)
+
     for line in p.stdout.readlines():
+        line = line.decode("utf-8")
         if verbose:
-            logging.info(line.decode("utf-8"))
-        lines.append(line.decode("utf-8"))
+            logging.info(line)
+        lines.append(line)
 
     return_val = p.wait()
     if verbose:
