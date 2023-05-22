@@ -54,3 +54,9 @@ CI-CD
 Use Instructions
 -
 To learn how to run read PYTHON.md
+
+Path Handling:
+-
+In Wielder, paths are treated as Unix paths due to the distributed environment.
+However, when using Wielder on Windows, paths are dealt locally with in a Windows-specific manner.
+

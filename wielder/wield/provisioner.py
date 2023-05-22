@@ -1,4 +1,5 @@
 import os
+import wielder.util.util as wu
 
 from wielder.util.terraformer import WrapTerraform
 from wielder.util.wgit import WGit, clone_or_update
@@ -22,7 +23,7 @@ class NamespaceProvisioner:
         self.origin_commit = wg.commit
 
         provision_dir = f'{conf.provision_root}/{conf.unique_name}/{self.repo_name}'
-        os.makedirs(provision_dir, exist_ok=True)
+        wu.makedirs(provision_dir, exist_ok=True)
 
         self.provision_dir = provision_dir
 
