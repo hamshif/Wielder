@@ -26,8 +26,6 @@ helm repo update
 choco install awscli
 choco install docker-desktop
 choco install terraform
-choco install gawk
-
 
 git clone https://github.com/FelixSelter/JEnv-for-Windows.git $env:userprofile/.jenv
 powershell -noexit $env:userprofile/.jenv/src/jenv.ps1

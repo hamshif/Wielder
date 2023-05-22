@@ -2,7 +2,6 @@ import logging
 import os
 import pathlib
 import shutil
-import wielder.util.util as wu
 from abc import ABC, abstractmethod
 
 from botocore.exceptions import ClientError
@@ -133,12 +132,12 @@ class AWSBucketeer(Bucketeer):
 
     def upload_file(self, source, bucket_name, dest):
 
-        with wu.open(source, "rb") as f:
+        with open(source, "rb") as f:
             self.s3.upload_fileobj(f, bucket_name, dest)
 
     def upload_directory(self, source, bucket_name, prefix):
 
-        for root, dirs, files in wu.walk(source):
+        for root, dirs, files in os.walk(source):
             for file in files:
 
                 sub = root.replace(source, '')
@@ -150,7 +149,6 @@ class AWSBucketeer(Bucketeer):
 
                 dest = f'{prefix}{sub}{file}'
                 print(dest)
-                # not suitable for windows
                 self.s3.upload_file(os.path.join(root, file), bucket_name, dest)
 
     def download_object(self, bucket_name, key, name, dest='/tmp'):
@@ -168,10 +166,9 @@ class AWSBucketeer(Bucketeer):
             print(name)
 
             # create nested directory structure
-            wu.makedirs(dest, exist_ok=True)
+            os.makedirs(dest, exist_ok=True)
 
             # save file with full path locally
-            # not suitable for windows
             self.s3.download_file(bucket_name, f'{key}/{name}', f'{dest}/{name}')
 
         except ClientError as e:
@@ -202,7 +199,6 @@ class AWSBucketeer(Bucketeer):
             obj_name = key.split('/')[-1]
             logging.debug(f'obj_path: {obj_path}\nobj_name: {obj_name}')
 
-            # not suitable for windows
             ok = self.download_object(bucket_name, obj_path, obj_name, dest)
             if not ok:
                 return False
@@ -220,7 +216,7 @@ class AWSBucketeer(Bucketeer):
         """
 
         names = self.get_object_names(bucket_name, root_key)
-        # not suitable for windows
+
         return self.download_objects(bucket_name, names, dest)
 
     def delete_file(self, bucket_name, file_name):
@@ -328,7 +324,7 @@ class AWSBucketeer(Bucketeer):
             bucket_name=bucket_name,
             prefix=prefix
         )
-        # is suitable for windows?
+
         if f'{prefix}/{object_name}' in object_names:
             return True
 
@@ -449,7 +445,7 @@ class GoogleBucketeer(Bucketeer):
 
     def upload_directory(self, source, bucket_name, prefix):
 
-        wu.copytree(source, f'{self.buckets_root}/{bucket_name}/{prefix}')
+        shutil.copytree(source, f'{self.buckets_root}/{bucket_name}/{prefix}')
 
     def download_object(self, bucket_name, key, name, dest='/tmp'):
         """
@@ -466,16 +462,16 @@ class GoogleBucketeer(Bucketeer):
             print(name)
 
             # create nested directory structure
-            wu.makedirs(dest, exist_ok=True)
+            os.makedirs(dest, exist_ok=True)
             src = f'{self.buckets_root}/{bucket_name}/{key}/{name}'
 
-            if wu.isfile(src):
+            if os.path.isfile(src):
 
                 stale = f'{dest}/{name}'
-                if wu.isfile(stale):
-                    wu.remove(stale)
+                if os.path.isfile(stale):
+                    os.remove(stale)
 
-                wu.copy(src, dest)
+                shutil.copy(src, dest)
 
         except Exception as e:
             logging.error(e)
@@ -496,17 +492,17 @@ class GoogleBucketeer(Bucketeer):
         :return: True
         """
 
-        wu.makedirs(dest, exist_ok=True)
+        os.makedirs(dest, exist_ok=True)
 
         for name in names:
 
             dest1 = f'{dest}/{name}'
 
-            if wu.exists(dest1):
-                wu.remove(dest1)
+            if os.path.exists(dest1):
+                os.remove(dest1)
 
             src = f'{bucket_name}/{name}'
-            wu.copyfile(src, dest)
+            shutil.copyfile(src, dest)
 
     def download_objects_by_key(self, bucket_name, root_key='', dest='/tmp'):
         """
@@ -517,8 +513,8 @@ class GoogleBucketeer(Bucketeer):
         :param bucket_name: Bucket
         :return: True
         """
-        wu.rmtree(dest, ignore_errors=True)
-        wu.copytree(f'{self.buckets_root}/{bucket_name}/{root_key}', dest)
+        shutil.rmtree(dest, ignore_errors=True)
+        shutil.copytree(f'{self.buckets_root}/{bucket_name}/{root_key}', dest)
 
         return True
 
@@ -529,7 +525,7 @@ class GoogleBucketeer(Bucketeer):
         :return: True if bucket deleted, else False
         """
 
-        wu.rmtree(f'{self.buckets_root}/{bucket_name}/{file_name}', ignore_errors=True)
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}/{file_name}', ignore_errors=True)
 
         return True
 
@@ -540,7 +536,7 @@ class GoogleBucketeer(Bucketeer):
         :param bucket_name: Bucket to deleted
         :return: True if bucket deleted, else False
         """
-        wu.rmtree(f'{self.buckets_root}/{bucket_name}/{prefix}', ignore_errors=True)
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}/{prefix}', ignore_errors=True)
 
         return True
 
@@ -551,7 +547,7 @@ class GoogleBucketeer(Bucketeer):
         :return: True if bucket deleted, else False
         """
 
-        wu.rmtree(f'{self.buckets_root}/{bucket_name}', ignore_errors=True)
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}', ignore_errors=True)
 
         return True
 
@@ -618,7 +614,7 @@ class DevBucketeer(Bucketeer):
         :param region: Ignored but kept to save interface compatibility
         :return: True if bucket created, else False
         """
-        wu.makedirs(f'{self.buckets_root}/{bucket_name}', exist_ok=True)
+        os.makedirs(f'{self.buckets_root}/{bucket_name}', exist_ok=True)
 
         return True
 
@@ -629,13 +625,13 @@ class DevBucketeer(Bucketeer):
 
         dir_path = dest[:dest.rfind('/')]
         file_path = f'{self.buckets_root}/{bucket_name}/{dir_path}'
-        wu.makedirs(file_path, exist_ok=True)
+        os.makedirs(file_path, exist_ok=True)
 
-        wu.copy(source, f'{self.buckets_root}/{bucket_name}/{dest}')
+        shutil.copy(source, f'{self.buckets_root}/{bucket_name}/{dest}')
 
     def upload_directory(self, source, bucket_name, prefix):
 
-        wu.copytree(source, f'{self.buckets_root}/{bucket_name}/{prefix}')
+        shutil.copytree(source, f'{self.buckets_root}/{bucket_name}/{prefix}')
 
     def download_object(self, bucket_name, key, name, dest='/tmp'):
         """
@@ -652,16 +648,16 @@ class DevBucketeer(Bucketeer):
             print(name)
 
             # create nested directory structure
-            wu.makedirs(dest, exist_ok=True)
+            os.makedirs(dest, exist_ok=True)
             src = f'{self.buckets_root}/{bucket_name}/{key}/{name}'
 
-            if wu.isfile(src):
+            if os.path.isfile(src):
 
                 stale = f'{dest}/{name}'
-                if wu.isfile(stale):
-                    wu.remove(stale)
+                if os.path.isfile(stale):
+                    os.remove(stale)
 
-                wu.copy(src, dest)
+                shutil.copy(src, dest)
 
         except Exception as e:
             logging.error(e)
@@ -682,17 +678,17 @@ class DevBucketeer(Bucketeer):
         :return: True
         """
 
-        wu.makedirs(dest, exist_ok=True)
+        os.makedirs(dest, exist_ok=True)
 
         for name in names:
 
             dest1 = f'{dest}/{name}'
 
-            if wu.exists(dest1):
-                wu.remove(dest1)
+            if os.path.exists(dest1):
+                os.remove(dest1)
 
             src = f'{bucket_name}/{name}'
-            wu.copyfile(src, dest)
+            shutil.copyfile(src, dest)
 
     def download_objects_by_key(self, bucket_name, root_key='', dest='/tmp'):
         """
@@ -703,8 +699,8 @@ class DevBucketeer(Bucketeer):
         :param bucket_name: Bucket
         :return: True
         """
-        wu.rmtree(dest, ignore_errors=True)
-        wu.copytree(f'{self.buckets_root}/{bucket_name}/{root_key}', dest)
+        shutil.rmtree(dest, ignore_errors=True)
+        shutil.copytree(f'{self.buckets_root}/{bucket_name}/{root_key}', dest)
 
         return True
 
@@ -715,7 +711,7 @@ class DevBucketeer(Bucketeer):
         :return: True if bucket deleted, else False
         """
 
-        wu.rmtree(f'{self.buckets_root}/{bucket_name}/{file_name}', ignore_errors=True)
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}/{file_name}', ignore_errors=True)
 
         return True
 
@@ -726,7 +722,7 @@ class DevBucketeer(Bucketeer):
         :param bucket_name: Bucket to deleted
         :return: True if bucket deleted, else False
         """
-        wu.rmtree(f'{self.buckets_root}/{bucket_name}/{prefix}', ignore_errors=True)
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}/{prefix}', ignore_errors=True)
 
         return True
 
@@ -737,7 +733,7 @@ class DevBucketeer(Bucketeer):
         :return: True if bucket deleted, else False
         """
 
-        wu.rmtree(f'{self.buckets_root}/{bucket_name}', ignore_errors=True)
+        shutil.rmtree(f'{self.buckets_root}/{bucket_name}', ignore_errors=True)
 
         return True
 

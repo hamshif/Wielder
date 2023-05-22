@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 import logging
 import os
-import wielder.util.util as wu
+
 from pyhocon import ConfigFactory
 
 from wielder.util.arguer import get_wielder_parser, convert_log_level
 from wielder.util.hocon_util import object_to_conf, resolve_ordered
-import wielder.util.util as wu
 from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
@@ -111,14 +110,10 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if injection is None:
         injection = {}
 
-    local_system = 'unix' if os.name != 'nt' else 'win'
-
     action = wield_args.wield
     runtime_env = wield_args.runtime_env
     deploy_env = wield_args.deploy_env
     bootstrap_env = wield_args.bootstrap_env
-    if bootstrap_env != local_system:
-        logging.warning(f'bootstrap_env: {bootstrap_env} is not consistant with local system: {local_system}')
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
@@ -156,7 +151,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if configure_wield_modules:
         for sub in injection['git']['subs'].keys():
             potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-            if wu.exists(potential_conf_path):
+            if os.path.exists(potential_conf_path):
                 ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
@@ -213,17 +208,14 @@ def get_super_project_roots():
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
-        super_project_root = super_project_root[:super_project_root.rfind(os.path.sep)]
+        super_project_root = super_project_root[:super_project_root.rfind('/')]
 
     logging.info(f'staging_root:\n{super_project_root}')
 
-    staging_root = super_project_root[:super_project_root.rfind(os.path.sep)]
+    staging_root = super_project_root[:super_project_root.rfind('/')]
 
-    super_project_name = super_project_root[super_project_root.rfind(os.path.sep) + 1:]
+    super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
 
-    staging_root = wu.convert_to_unix_path(staging_root)
-    super_project_root = wu.convert_to_unix_path(super_project_root)
-    super_project_name = wu.convert_to_unix_path(super_project_name)
     return staging_root, super_project_root, super_project_name
 
 
@@ -285,25 +277,25 @@ class WielderProject:
 
         if packing_root is None:
             packing_root = f'{super_project_root}/pack'
-            wu.makedirs(packing_root, exist_ok=True)
+            os.makedirs(packing_root, exist_ok=True)
 
         self.packing_root = packing_root
 
         if build_root is None:
             build_root = f'{super_project_root}/build'
-            wu.makedirs(build_root, exist_ok=True)
+            os.makedirs(build_root, exist_ok=True)
 
         self.build_root = build_root
 
         if provision_root is None:
             provision_root = f'{super_project_root}/provision'
-            wu.makedirs(provision_root, exist_ok=True)
+            os.makedirs(provision_root, exist_ok=True)
 
         self.provision_root = provision_root
 
         if mock_buckets_root is None:
             mock_buckets_root = f'{super_project_root}/buckets'
-            wu.makedirs(mock_buckets_root, exist_ok=True)
+            os.makedirs(mock_buckets_root, exist_ok=True)
 
         self.mock_buckets_root = mock_buckets_root
 
