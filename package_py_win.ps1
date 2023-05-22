@@ -11,6 +11,4 @@ Set-Location $scriptDir
 # Print the new working directory using Get-Location and Write-Host
 $newDir = Get-Location
 Write-Host "The new working directory is: $newDir"
-
-python -m pip install --upgrade pip
 python -m pip install -e ./

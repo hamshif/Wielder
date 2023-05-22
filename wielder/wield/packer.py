@@ -1,5 +1,4 @@
 import os
-import wielder.util.util as wu
 
 
 class WieldPacker:
@@ -20,7 +19,7 @@ class WieldPacker:
         self.build_conf = app_conf.build_instructions
 
         pack_dir = f'{conf.packing_root}/{conf.unique_name}/{app_conf.code_repo_name}'
-        wu.makedirs(pack_dir, exist_ok=True)
+        os.makedirs(pack_dir, exist_ok=True)
 
         self.pack_dir = pack_dir
         self.build_dir = f'{pack_dir}/{app_conf.build_dir}'
