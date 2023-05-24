@@ -21,6 +21,13 @@ class RuntimeEnv(Enum):
     EXDOCKER = 'exdocker'
 
 
+def get_runtime_by_value(value):
+    for member in RuntimeEnv:
+        if member.value == value:
+            return member
+    raise ValueError(f"No enum member with value {value} found.")
+
+
 class CloudProvider(Enum):
     GCP = 'gcp'
     AWS = 'aws'

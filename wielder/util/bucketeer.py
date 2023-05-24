@@ -750,8 +750,8 @@ class DevBucketeer(Bucketeer):
     def get_object_names(self, bucket_name, prefix=''):
 
         try:
-
-            bucket_names = [p for p in pathlib.Path(f'{self.buckets_root}/{prefix}').iterdir() if p.is_dir()]
+            full_path = f'{self.buckets_root}/{bucket_name}/{prefix}'
+            bucket_names = [str(p) for p in pathlib.Path(full_path).iterdir() if p.is_dir()]
 
             return bucket_names
 
