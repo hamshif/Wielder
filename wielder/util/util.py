@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 import logging
 import os
+import pathlib
 import random
 import re
 import string
 from time import sleep
 
+import shutil
 import boto3
 import yaml
+from pyhocon import ConfigFactory
 from requests import get
 from wielder.util.commander import async_cmd
 # This example requires the requests library be installed.  You can learn more
@@ -116,7 +119,7 @@ def remove_line(filename, line):
 
 def write_action_report(name, value):
     dir_path = '/tmp/actions'
-    os.makedirs(dir_path, exist_ok=True)
+    makedirs(dir_path, exist_ok=True)
 
     report_path = f'{dir_path}/actions_report.yaml'
 
@@ -203,6 +206,79 @@ def pretty(conf):
     logging.info('Showing top level config items')
 
     [print(it) for it in conf.as_plain_ordered_dict().items()]
+
+
+def makedirs(path, exist_ok=True):
+    if os.name == 'nt':
+        path = convert_path_to_any_os(path)
+    os.makedirs(path, exist_ok=exist_ok)
+
+
+def copyfile(unique_context_conf, dest):
+    if os.name == 'nt':
+        unique_context_conf = convert_path_to_any_os(unique_context_conf)
+        dest = convert_path_to_any_os(dest)
+    shutil.copyfile(unique_context_conf, dest)
+
+
+def copytree(source, destination):
+    if os.name == 'nt':
+        source = convert_path_to_any_os(source)
+        destination = convert_path_to_any_os(destination)
+    shutil.copytree(source, destination)
+
+
+def isfile(src):
+    if os.name == 'nt':
+        src = convert_path_to_any_os(src)
+    return os.path.isfile(src)
+
+
+def remove(stale):
+    if os.name == 'nt':
+        stale = convert_path_to_any_os(stale)
+    os.remove(stale)
+
+
+def copy(src, dest):
+    if os.name == 'nt':
+        src = convert_path_to_any_os(src)
+        dest = convert_path_to_any_os(dest)
+    shutil.copy(src, dest)
+
+
+def exists(dest):
+    if os.name == 'nt':
+        dest = convert_path_to_any_os(dest)
+    return os.path.exists(dest)
+
+
+def rmtree(dest, ignore_errors=True):
+    if os.name == 'nt':
+        dest = convert_path_to_any_os(dest)
+    shutil.rmtree(dest, ignore_errors=ignore_errors)
+
+
+def open(place_holder, open_purpose):
+    if os.name == 'nt':
+        place_holder = convert_path_to_any_os(place_holder)
+    return open(place_holder, open_purpose)
+
+
+def parse_file(full_path):
+    if os.name == 'nt':
+        full_path = convert_path_to_any_os(full_path)
+    return ConfigFactory.parse_file(full_path)
+
+
+def walk(source):
+    if os.name == 'nt':
+        source = convert_path_to_any_os(source)
+    return os.walk(source)
+
+
+def get_files_in_dir(full_path):
+    return pathlib.Path(full_path).iterdir()
 
 
 if __name__ == "__main__":

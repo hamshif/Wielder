@@ -156,7 +156,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if configure_wield_modules:
         for sub in injection['git']['subs'].keys():
             potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-            if os.path.exists(potential_conf_path):
+            if wu.exists(potential_conf_path):
                 ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
@@ -285,25 +285,25 @@ class WielderProject:
 
         if packing_root is None:
             packing_root = f'{super_project_root}/pack'
-            os.makedirs(packing_root, exist_ok=True)
+            wu.makedirs(packing_root, exist_ok=True)
 
         self.packing_root = packing_root
 
         if build_root is None:
             build_root = f'{super_project_root}/build'
-            os.makedirs(build_root, exist_ok=True)
+            wu.makedirs(build_root, exist_ok=True)
 
         self.build_root = build_root
 
         if provision_root is None:
             provision_root = f'{super_project_root}/provision'
-            os.makedirs(provision_root, exist_ok=True)
+            wu.makedirs(provision_root, exist_ok=True)
 
         self.provision_root = provision_root
 
         if mock_buckets_root is None:
             mock_buckets_root = f'{super_project_root}/buckets'
-            os.makedirs(mock_buckets_root, exist_ok=True)
+            wu.makedirs(mock_buckets_root, exist_ok=True)
 
         self.mock_buckets_root = mock_buckets_root
 

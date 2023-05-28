@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import os
+import wielder.util.util as wu
 from shutil import copyfile
 
 
@@ -31,7 +32,7 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
 
     dest_module_path = f'{dest_path}/{target_name}'
 
-    os.makedirs(dest_module_path, exist_ok=True)
+    wu.makedirs(dest_module_path, exist_ok=True)
 
     for subdir, dirs, files in os.walk(origin_path):
 
@@ -44,7 +45,7 @@ def variation_copy_dir(origin_path, dest_path, origin_name, target_name, ignored
 
         logging.info(f'new dir: {_new_dir}')
 
-        os.makedirs(_new_dir, exist_ok=True)
+        wu.makedirs(_new_dir, exist_ok=True)
 
         for _file in files:
 
@@ -151,7 +152,7 @@ def create_module_from_module(conf):
 
     place_holder = f'{plan.dest_module_root}/stam.txt'
 
-    with open(place_holder, "wt") as file_out:
+    with wu.open(place_holder, "wt") as file_out:
 
         file_out.write('hamshif')
 

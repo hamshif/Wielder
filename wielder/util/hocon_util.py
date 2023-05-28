@@ -26,6 +26,12 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     :return: resolved hocon ConfigTree
     """
 
+    ordered_conf_paths_unix = ordered_conf_paths
+
+    if os.name == 'nt':
+        ordered_conf_paths = [path.replace('/', os.sep) for path in ordered_conf_paths]
+        print(ordered_conf_paths)
+
     if injection is None:
 
         injection = {}
