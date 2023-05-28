@@ -31,7 +31,7 @@ class WieldService(WielderBase):
     """
 
     def __init__(self, name, project_conf_root, module_root, app,
-                 plan_format=PlanType.YAML, injection={}):
+                 plan_format=PlanType.YAML, injection={}, verbose=False):
 
         self.name = name
         self.module_root = module_root
@@ -45,7 +45,8 @@ class WieldService(WielderBase):
         if name not in injection.items():
             injection[name] = {}
 
-        self.pretty()
+        if verbose:
+            self.pretty()
 
         extra_paths = []
 
@@ -82,7 +83,8 @@ class WieldService(WielderBase):
 
         self.plan.wield(action=WieldAction.PLAN)
 
-        self.plan.pretty()
+        if verbose:
+            self.plan.pretty()
 
         self.packaging = self.plan.module_conf.packaging
 

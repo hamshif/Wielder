@@ -120,11 +120,13 @@ class WieldPlan(WielderBase):
                         observe_pod(pod, self.context)
 
                     if '-' in res:
+
                         res_tup = res.split('-')
 
                         observe_set(self.context, self.namespace, res_tup[0], res_tup[1])
 
         if self.module_conf.observe_svc:
+
             observe_service(
                 context=self.context,
                 svc_name=self.name,
@@ -175,6 +177,7 @@ class WieldPlan(WielderBase):
 
 
 def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
+
     plan_conf = conf.planables[plan_key]
     plan_resources = plan_conf.ordered_resources
 
@@ -196,3 +199,6 @@ def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
 
         with wu.open(f'{plan_path}/{res}.{plan_format.value}', 'wt') as file_out:
             file_out.write(plans)
+
+
+
