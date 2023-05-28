@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import logging
 import os
-
+import wielder.util.util as wu
 from pyhocon import ConfigFactory
 
 from wielder.util.arguer import get_wielder_parser, convert_log_level
@@ -110,13 +110,18 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if injection is None:
         injection = {}
 
+    local_system = 'unix' if os.name != 'nt' else 'win'
+
     action = wield_args.wield
     runtime_env = wield_args.runtime_env
     deploy_env = wield_args.deploy_env
     bootstrap_env = wield_args.bootstrap_env
+    if bootstrap_env != local_system:
+        logging.warning(f'bootstrap_env: {bootstrap_env} is not consistant with local system: {local_system}')
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
+    injection['local_system'] = local_system
     injection['action'] = action
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
@@ -208,14 +213,17 @@ def get_super_project_roots():
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
-        super_project_root = super_project_root[:super_project_root.rfind('/')]
+        super_project_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
     logging.info(f'staging_root:\n{super_project_root}')
 
-    staging_root = super_project_root[:super_project_root.rfind('/')]
+    staging_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
-    super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
+    super_project_name = super_project_root[super_project_root.rfind(os.path.sep) + 1:]
 
+    staging_root = wu.convert_to_unix_path(staging_root)
+    super_project_root = wu.convert_to_unix_path(super_project_root)
+    super_project_name = wu.convert_to_unix_path(super_project_name)
     return staging_root, super_project_root, super_project_name
 
 

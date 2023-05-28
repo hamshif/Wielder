@@ -16,6 +16,14 @@ from wielder.util.credential_helper import get_aws_mfa_cred
 from wielder.util.log_util import setup_logging
 
 
+def convert_path_to_any_os(path):
+    return path.replace('/', os.sep)
+
+
+def convert_to_unix_path(path):
+    return os.path.normpath(path).replace("\\", "/")
+
+
 def get_external_ip():
     try:
         ip = get('https://api.ipify.org').text
