@@ -23,7 +23,7 @@ setup(
         'wheel', 'Cython', 'GitPython', 'PyYAML', 'kubernetes', 'rx==3.2.0', 'jprops',
         'pyhocon', 'requests', 'deepdiff', 'botocore', 'boto3', 'tabulate',
         'kazoo', 'kafka', 'confluent-kafka', 'google-api-python-client', 'google-auth-oauthlib',
-        'cassandra-driver',
+        'cassandra-driver', 'tqdm'
         # TODO use the next version of cassandra driver supporting up to Python 3.11
     ],
     keywords=['CI-CD', 'Kubernetes', 'Reactive'],
