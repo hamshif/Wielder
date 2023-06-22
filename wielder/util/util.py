@@ -259,13 +259,7 @@ def rmtree(dest, ignore_errors=True):
     shutil.rmtree(dest, ignore_errors=ignore_errors)
 
 
-def open(place_holder, open_purpose):
-    if os.name == 'nt':
-        place_holder = convert_path_to_any_os(place_holder)
-    return open(place_holder, open_purpose)
-
-
-def parse_file(full_path):
+def parse_file_as_hocon(full_path):
     if os.name == 'nt':
         full_path = convert_path_to_any_os(full_path)
     return ConfigFactory.parse_file(full_path)

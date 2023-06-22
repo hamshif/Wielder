@@ -93,7 +93,7 @@ def get_remote_unique_context(conf):
 
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
 
-    conf = wu.parse_file(f'{conf_path}/{file_name}')
+    conf = wu.parse_file_as_hocon(f'{conf_path}/{file_name}')
 
     return conf
 
