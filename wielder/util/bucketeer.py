@@ -135,7 +135,7 @@ class AWSBucketeer(Bucketeer):
 
     def upload_file(self, source, bucket_name, dest):
 
-        with wu.open(source, "rb") as f:
+        with wu.open_data_path(source, "rb") as f:
             self.s3.upload_fileobj(f, bucket_name, dest)
 
     def upload_directory(self, source, bucket_name, prefix):
@@ -799,3 +799,6 @@ def get_bucketeer(conf, runtime_env=RuntimeEnv.MAC, bucket_env=RuntimeEnv.AWS):
         return AWSBucketeer(conf, auth=auth)
     else:
         return DevBucketeer(conf)
+
+if __name__ == '__main__':
+    wu.open_data_path('C:/Users/User/Desktop/tasks.txt', "rb")

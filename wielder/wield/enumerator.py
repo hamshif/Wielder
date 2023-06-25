@@ -16,6 +16,7 @@ class RuntimeEnv(Enum):
     AZURE = 'azure'
     ON_PREM = 'on-prem'
     MINIKUBE = 'minikube'
+    WIN = 'win'
 
     # TODO deprecate
     EXDOCKER = 'exdocker'

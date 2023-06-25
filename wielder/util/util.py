@@ -275,6 +275,11 @@ def get_files_in_dir(full_path):
     return pathlib.Path(full_path).iterdir()
 
 
+def open_data_path(full_path, mode='r'):
+    if os.name == 'nt':
+        full_path = convert_path_to_any_os(full_path)
+    return open(full_path, mode)
+
 if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
