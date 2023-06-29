@@ -117,7 +117,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     deploy_env = wield_args.deploy_env
     bootstrap_env = wield_args.bootstrap_env
     if bootstrap_env != local_system:
-        logging.warning(f'bootstrap_env: {bootstrap_env} is not consistant with local system: {local_system}')
+        logging.warning(f'bootstrap_env: {bootstrap_env} is not consistent with local system: {local_system}')
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 

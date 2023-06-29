@@ -62,8 +62,14 @@ class WGit:
             response = async_cmd(_cmd)
             submodule_names = []
 
-            for submodule_name in response:
-                submodule_names.append(submodule_name.replace('\n', ''))
+            for dirty_submodule_name in response:
+
+                submodule_name = dirty_submodule_name.replace('\n', '')
+                if os.name == 'nt':
+                    if submodule_name[-1:] == '\r':
+                        submodule_name = submodule_name[:-1]
+
+                submodule_names.append(submodule_name)
 
             logging.info(response)
 
