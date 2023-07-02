@@ -6,8 +6,8 @@ import wielder.util.util as wu
 
 from pyhocon import ConfigFactory
 
-from wielder.util.bucketeer import AWSBucketeer
-from wielder.wield.enumerator import local_deployments
+from wielder.util.bucketeer import AWSBucketeer, get_bucketeer
+from wielder.wield.enumerator import local_deployments, RuntimeEnv
 from wielder.wield.project import configure_external_kafka_urls
 
 
@@ -88,9 +88,11 @@ def get_remote_unique_context(conf):
     conf_path = f'{bucket_path}/{namespace_bucket}/{unique_config_path}'
     file_name = f'{unique_name}.conf'
 
-    if conf.runtime_env == 'aws':
-        b = AWSBucketeer(conf)
+    if conf.runtime_env not in local_deployments:
+        runtime_env = RuntimeEnv[conf.bootstrap_env.upper()]
+        bucket_env = RuntimeEnv[conf.runtime_env.upper()]
 
+        b = get_bucketeer(conf, runtime_env, bucket_env)
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
 
     conf = wu.parse_file_as_hocon(f'{conf_path}/{file_name}')
@@ -128,7 +130,6 @@ def sync_stuff(conf):
     dest_path = sync_stuff.dest_path
 
     for stuff in sync_stuff.stuffs:
-
         src_key = f'{src_path}/{stuff}'
         dest_key = f'{dest_path}/{stuff}'
 
