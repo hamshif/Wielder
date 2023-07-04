@@ -267,6 +267,31 @@ def get_local_path(conf, relative_path, bucket_name=None):
     return local_destination
 
 
+def configure_project_module(conf, module, app):
+    pass
+        # module_root = f'{conf.project_root}/{module}'
+        # module_conf = f'{module_root}/conf/{conf.runtime_env}/wield.conf'
+        #
+        # module_conf = ConfigFactory.parse_file(module_conf)
+        #
+        # module_conf = module_conf.with_fallback(
+        #     config=conf,
+        #     resolve=True,
+        # )
+        #
+        # module_conf = module_conf.with_fallback(
+        #     config=ConfigFactory.from_dict({
+        #         app: {
+        #             "module_root": module_root
+        #         }
+        #     }),
+        #     resolve=True,
+        # )
+        #
+        # return module_conf
+
+
+
 class WielderProject:
     """
     Encapsulates project directory structure and paths
