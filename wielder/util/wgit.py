@@ -5,7 +5,8 @@ import os
 from pyhocon import ConfigFactory as Cf
 from wielder.util.commander import subprocess_cmd, async_cmd
 from wielder.util.log_util import setup_logging
-from wielder.util.util import DirContext
+from wielder.util.util import DirContext, convert_path_to_any_os
+import wielder.util.util as wu
 
 
 class WGit:
@@ -32,7 +33,6 @@ class WGit:
             for b in branches:
 
                 if b[0] == '*':
-
                     branch = b[1:-1].strip()
 
             self.branch = branch
@@ -40,7 +40,6 @@ class WGit:
     def get_submodule_commit(self, sub):
 
         with DirContext(self.repo_path):
-
             _cmd = f'git ls-tree HEAD {sub}'
 
             submodule_pointer = async_cmd(_cmd)
@@ -78,7 +77,6 @@ class WGit:
     def update_submodules(self):
 
         with DirContext(self.repo_path):
-
             _cmd = 'git submodule update --init --recursive'
 
             response = async_cmd(_cmd)
@@ -90,7 +88,6 @@ class WGit:
     def update_submodule(self, sub_path):
 
         with DirContext(self.repo_path):
-
             _cmd = f'git submodule update --init -- {sub_path}'
 
             response = async_cmd(_cmd)
@@ -99,12 +96,23 @@ class WGit:
 
             return response
 
+    def dev_info(self):
+        dev_info_file = os.path.join(self.repo_path, "DEV_INFO.md")
+
+        with DirContext(self.repo_path):
+            if not wu.exists(dev_info_file):
+                wu.open_data_path(dev_info_file, 'w').close()  # Create an empty file if it doesn't exist
+
+            _cmd = f'git submodule foreach "git rev-parse --abbrev-ref HEAD; git rev-parse HEAD;" >> {dev_info_file}'
+            response = async_cmd(_cmd)
+            logging.info(response)
+            return response
+
     def get_diff(self, sub):
 
         sub_path = f'{self.repo_path}/{sub}'
 
         with DirContext(sub_path):
-
             _cmd = f'git status'
 
             status = async_cmd(_cmd)
@@ -123,7 +131,6 @@ class WGit:
         a = ''
 
         for k, v in d.items():
-
             a = f'{a}\ngit.{k}:{v}'
 
         return a
@@ -135,18 +142,15 @@ class WGit:
         injection = {'git': {'subs': {}}}
 
         for k, v in d.items():
-
             injection['git'][k] = v
 
         for sub in self.get_submodule_names():
-
             injection['git']['subs'][sub] = self.get_submodule_commit(sub)
 
         return injection
 
 
 def is_repo(path):
-
     try:
         _ = git.Repo(path).git_dir
         return True
@@ -157,7 +161,6 @@ def is_repo(path):
 
 
 def clone_or_update(source, destination, name=None, branch='master', commit_sha=None, local=False):
-
     logging.info("\nclone_or_update_local_repository\n")
 
     should_clone = not is_repo(destination)
@@ -190,7 +193,6 @@ def clone_or_update(source, destination, name=None, branch='master', commit_sha=
 
 
 if __name__ == "__main__":
-
     setup_logging(log_level=logging.DEBUG)
 
     logging.info('Configured logging')
