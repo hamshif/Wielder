@@ -121,3 +121,14 @@ def conf_to_native(conf, vessel={}):
 
     return vessel
 
+
+def merge_configurations(conf, remote_conf):
+    # Parse the configurations
+    conf_dict = pyhocon.ConfigFactory.from_dict(conf)
+    remote_conf_dict = pyhocon.ConfigFactory.from_dict(remote_conf)
+
+    # Merge the configurations, with remote_conf taking precedence
+    merge_conf_dict = pyhocon.ConfigTree.merge_configs(conf_dict, remote_conf_dict)
+
+    return merge_conf_dict
+
