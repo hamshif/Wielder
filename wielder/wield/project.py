@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import importlib
 import logging
 import os
 import wielder.util.util as wu
@@ -268,28 +269,36 @@ def get_local_path(conf, relative_path, bucket_name=None):
 
 
 def configure_project_module(conf, module, app):
-    pass
-        # module_root = f'{conf.project_root}/{module}'
-        # module_conf = f'{module_root}/conf/{conf.runtime_env}/wield.conf'
-        #
-        # module_conf = ConfigFactory.parse_file(module_conf)
-        #
-        # module_conf = module_conf.with_fallback(
-        #     config=conf,
-        #     resolve=True,
-        # )
-        #
-        # module_conf = module_conf.with_fallback(
-        #     config=ConfigFactory.from_dict({
-        #         app: {
-        #             "module_root": module_root
-        #         }
-        #     }),
-        #     resolve=True,
-        # )
-        #
-        # return module_conf
+    module_config = conf[module]
+    if module_config:
+        app_config = module_config[app]
+        if app_config:
+            configs = app_config.configs
+            if configs:
+                for key, value in configs.items():
+                    file_name = value.get('file_name')
+                    format_type = value.get('format')
+                    keys = value.get('keys')
+                    dest_path = value.get('dest')
 
+                    if file_name and format_type and keys and dest_path:
+                        dest_path = os.path.join(dest_path, file_name)
+
+                        # Resolve the values from the keys
+                        resolved_keys = [app_config[key] for key in keys]
+
+                        # Import the dump module dynamically based on the format type
+                        try:
+                            format_module_name = f"{format_type}"
+                            format_module = importlib.import_module(format_module_name)
+                            dump_function = getattr(format_module, "dump")
+                        except (ImportError, AttributeError):
+                            print(f"Unsupported format: {format_type}")
+                            continue
+
+                        # Write content to the destination path based on the format
+                        with open(f'{dest_path}.{format_type}', 'w') as f:
+                            dump_function(resolved_keys, f)
 
 
 class WielderProject:

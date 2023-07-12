@@ -800,5 +800,3 @@ def get_bucketeer(conf, runtime_env=RuntimeEnv.MAC, bucket_env=RuntimeEnv.AWS):
     else:
         return DevBucketeer(conf)
 
-if __name__ == '__main__':
-    wu.open_data_path('C:/Users/User/Desktop/tasks.txt', "rb")
