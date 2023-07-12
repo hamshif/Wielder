@@ -2,6 +2,7 @@ import logging
 
 import git
 import os
+import wielder.util.util as wu
 from pyhocon import ConfigFactory as Cf
 from wielder.util.commander import subprocess_cmd, async_cmd
 from wielder.util.log_util import setup_logging
@@ -36,6 +37,22 @@ class WGit:
                     branch = b[1:-1].strip()
 
             self.branch = branch
+
+    def dev_info(self):
+        dev_info_file = os.path.join(self.repo_path, "DEV_INFO.md")
+
+        with DirContext(self.repo_path):
+
+            _cmd = f'git submodule foreach "git rev-parse --abbrev-ref HEAD; git rev-parse HEAD;"'
+            response = async_cmd(_cmd)
+
+            response_str = '\n'.join(response)  # Convert list to a string
+
+            with wu.open_data_path(dev_info_file, 'w') as file:
+                file.write(response_str)
+
+            logging.info(response_str)
+            return response_str
 
     def get_submodule_commit(self, sub):
 
