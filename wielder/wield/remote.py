@@ -95,7 +95,11 @@ def get_remote_unique_context(conf):
         b = get_bucketeer(conf, runtime_env, bucket_env)
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
 
-    conf = wu.parse_file_as_hocon(f'{conf_path}/{file_name}')
+    try:
+        conf = wu.parse_file_as_hocon(f'{conf_path}/{file_name}')
+    except FileNotFoundError:
+        print(f"File '{conf_path}/{file_name}' does not exist.")
+        conf = None
 
     return conf
 
