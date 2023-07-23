@@ -132,7 +132,7 @@ class WGit:
 
         d = vars(self)
 
-        injection = {'git': {'subs': {}}}
+        injection = {'git': {'subs': {}, 'branches': {}}}
 
         for k, v in d.items():
 
@@ -141,8 +141,23 @@ class WGit:
         for sub in self.get_submodule_names():
 
             injection['git']['subs'][sub] = self.get_submodule_commit(sub)
+            injection['git']['branches'][sub] = self.get_submodule_branch(sub)
 
         return injection
+
+    def get_submodule_branch(self, sub):
+
+        full_path = f'{self.repo_path}/{sub}'
+        with DirContext(full_path):
+
+            _cmd = f'git rev-parse --abbrev-ref HEAD;'
+            branch = async_cmd(_cmd)[0].replace('\n', '')
+
+            if os.name == 'nt':
+                if branch[-1:] == '\r':
+                    branch = branch[:-1]
+
+        return branch
 
 
 def is_repo(path):
