@@ -1,6 +1,11 @@
 #!/usr/bin/env python
+
+import json
 import logging
 import os
+
+import yaml
+
 import wielder.util.util as wu
 from pyhocon import ConfigFactory
 
@@ -9,12 +14,10 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
-
 DEFAULT_WIELDER_APP = 'snegurochka'
 
 
 def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None, wield_parser=None):
-
     if wield_parser is None:
         wield_parser = get_wielder_parser()
 
@@ -47,10 +50,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
         override_ordered_files = []
 
     ordered_conf_files = [
-        app_path,
-        runtime_env_path,
-        run_path,
-    ] + override_ordered_files
+                             app_path,
+                             runtime_env_path,
+                             run_path,
+                         ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
@@ -61,7 +64,6 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
 
 
 def default_conf_root():
-
     _, super_project_root, _ = get_super_project_roots()
 
     return f'{super_project_root}/Wielder/conf'
@@ -228,7 +230,6 @@ def get_super_project_roots():
 
 
 def configure_external_kafka_urls(conf):
-
     if conf.kafka.override_exposed:
 
         ports = [30000 + i for i in range(conf.third_party.kafka_replicas)]
@@ -242,9 +243,8 @@ def configure_external_kafka_urls(conf):
             i = 0
 
             for port in ports:
-
                 exposed_brokers = f'{exposed_brokers},broker-{i}.{conf.unique_name}:{port}'
-                i = i+1
+                i = i + 1
 
         elif runtime_env in local_kubes:
 
@@ -259,12 +259,59 @@ def configure_external_kafka_urls(conf):
 
 
 def get_local_path(conf, relative_path, bucket_name=None):
-
     if bucket_name is None:
         bucket_name = conf.namespace_bucket
 
     local_destination = f'{conf.local_buckets_root}/{bucket_name}/{relative_path}'
     return local_destination
+
+
+def configure_project_module(conf, app):
+    """
+    Configure a project module
+    :param conf:
+    :param module:
+    :param app: the application namespace
+    :return:
+    """
+
+    if app in conf:
+        module_config = conf[app]
+
+        if 'configure_modules' in module_config:
+            config_instructions = module_config['configure_modules']
+
+            for key, value in config_instructions.items():
+
+                dest = value.dest
+
+                wu.makedirs(wu.dirname(dest))
+                _type = value.type
+
+                match _type:
+                    case 'text':
+                        content = '\n'.join(str(item) for item in value.content) + '\n'
+
+                        mode = 'w'
+                        match value.mode:
+                            case 'append':
+                                mode = 'a'
+                            case 'prepend':
+                                mode = 'w+'
+                                if wu.exists(dest):
+                                    with open(dest, 'r') as file:
+                                        existing_content = file.read()
+                                        content = existing_content + content
+
+                        with open(dest, mode) as file:
+                            file.write(content)
+
+                    case 'json':
+                        with open(dest, 'w') as file:
+                            json.dump(value.content, file, indent=4)
+                    case 'yaml':
+                        with open(dest, 'w') as file:
+                            yaml.dump(value.content, file)
 
 
 class WielderProject:
