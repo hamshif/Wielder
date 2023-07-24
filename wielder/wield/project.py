@@ -4,6 +4,7 @@ import json
 import logging
 import os
 
+import pyhocon
 import yaml
 
 import wielder.util.util as wu
@@ -270,7 +271,6 @@ def configure_project_module(conf, app):
     """
     Configure a project module
     :param conf:
-    :param module:
     :param app: the application namespace
     :return:
     """
@@ -312,6 +312,9 @@ def configure_project_module(conf, app):
                     case 'yaml':
                         with open(dest, 'w') as file:
                             yaml.dump(value.content, file)
+                    case 'hocon':
+                        with open(dest, 'w') as file:
+                            file.write(pyhocon.HOCONConverter.to_hocon(value.content))
 
 
 class WielderProject:
