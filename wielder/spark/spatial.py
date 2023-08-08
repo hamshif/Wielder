@@ -8,11 +8,7 @@ def estimate_dataset_boundaries(spark_session, src, spatial_reference):
         .select(f"{spatial_reference}.*", "*") \
         .drop(spatial_reference) \
         .na.drop(subset=["x", "y", "z"]) \
-        .select(['IngestionId', "x", "y", "z"]) \
-        .withColumnRenamed('IngestionId', 'Index') \
-        .withColumnRenamed('X', 'x') \
-        .withColumnRenamed('Y', 'y') \
-        .withColumnRenamed('Z', 'z')
+        .select(["x", "y", "z"])
 
     df.show(5)
     df.printSchema()
