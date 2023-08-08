@@ -3,8 +3,9 @@ import os
 import platform
 
 from pyhocon import ConfigFactory as CF
-from pyspark.sql.functions import udf
-from pyspark.sql.types import StringType
+import pyspark.sql.functions as F
+from pyspark.sql.types import StringType, DoubleType
+from pyspark.ml.feature import MinMaxScaler, VectorAssembler
 
 
 def set_spark_env():
@@ -29,7 +30,7 @@ def rgb_to_hex(R, G, B):
     return f'#{int(R * 255):02x}{int(G * 255):02x}{int(B * 255):02x}'
 
 
-rgb_to_hex_udf = udf(rgb_to_hex, StringType())
+rgb_to_hex_udf = F.udf(rgb_to_hex, StringType())
 
 
 def color_by_range(min_val, max_val, cold=True):
@@ -88,4 +89,54 @@ def move_column_to_position(df, column_name, position=0):
         columns.remove(column_name)
         columns.insert(position, column_name)
     return df.select(*columns)
+
+
+def columns_ranges(df, columns):
+    """
+    Compute the minimum and maximum values for a list of columns
+    :param df:
+    :param columns:
+    :return:
+    """
+    # List to store our aggregation functions
+    agg_funcs = []
+
+    # Loop through each column and add the min and max aggregation functions
+    for col_name in columns:
+        agg_funcs.append(F.min(col_name).alias(f"min_{col_name}"))
+        agg_funcs.append(F.max(col_name).alias(f"max_{col_name}"))
+
+    # Compute the ranges using the generated aggregation functions
+    ranges = df.agg(*agg_funcs)
+
+    return ranges.collect()[0].asDict()
+
+
+def normalize_column(df, input_name, output_name):
+
+    df.show()
+
+    vector_assembler = VectorAssembler(inputCols=[input_name], outputCol="features")
+
+    df = vector_assembler.transform(df)
+
+    # Initialize the MinMaxScaler with the input and output column names
+    min_max_scaler = MinMaxScaler(inputCol="features", outputCol="normalized_features")
+
+    # Compute the minimum and maximum values of the input column
+    scaler_model = min_max_scaler.fit(df)
+
+    # Transform the DataFrame to normalize the values to a range of 0 to 1
+    df = scaler_model.transform(df)
+
+    # Extract the normalized values from the vector column into a new column
+    udf_extract_norm_value = F.udf(lambda x: float(x[0]), DoubleType())
+    df = df.withColumn(output_name, udf_extract_norm_value("normalized_features"))
+
+    # Drop the intermediate columns (optional)
+    df = df.drop("features", "normalized_features")
+
+    df.show()
+
+    return df
 
