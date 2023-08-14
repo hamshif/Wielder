@@ -134,6 +134,12 @@ def generate_vs_proj_files(solution_name: str, unreal_dir: str, unreal_project_d
 
 
 def build_unreal_proj(vs_dir: str, solution_path: str):
+    """
+    For windows platform only.
+    :param vs_dir:
+    :param solution_path:
+    :return:
+    """
     command = f"{vs_dir} {solution_path} /property:Configuration=Development /property:Platform=Win64 /verbosity:detailed"
     print(command)
     subprocess.call(command, shell=True)
