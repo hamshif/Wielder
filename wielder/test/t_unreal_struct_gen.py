@@ -16,8 +16,9 @@ if __name__ == "__main__":
     uconf = conf.unreal
     # Delete old structs
     solution_name = uconf.solution_name
-    # unreal_conf = conf.unreal
-    # delete_old_structs(solution_name, uconf.project_path)
+
+    if uconf.del_structs:
+        delete_old_structs(solution_name, uconf.project_path)
 
     # Define the path to your config file
     conf_path = uconf.conf_path
@@ -27,13 +28,15 @@ if __name__ == "__main__":
     generate_structs(conf_path, output_dir)
 
     # Prepare Unreal for building
-    # prep_unreal_build(solution_name, uconf.project_path)
+    prep_unreal_build(solution_name, uconf.project_path)
 
     # Generate Visual Studio project files
-    # unreal_dir = "f"{conf.staging_root}\\dev\\UE_5.2"
-    # generate_vs_proj_files(solution_name, unreal_dir, uconf.project_path)
-    #
-    # # Build the project with Visual Studio
-    # vs_dir = "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe\""
-    # solution_path = os.path.join(unreal_proj_dir, f"{solution_name}.sln")
-    # build_unreal_proj(vs_dir, solution_path)
+    if uconf.build:
+        if os.name == 'nt':
+            unreal_dir = f"{conf.staging_root}\\dev\\UE_5.2"
+            generate_vs_proj_files(solution_name, unreal_dir, uconf.project_path)
+
+            # # Build the project with Visual Studio
+            vs_dir = "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe\""
+            solution_path = os.path.join(uconf.project_path, f"{solution_name}.sln")
+            build_unreal_proj(vs_dir, solution_path)
