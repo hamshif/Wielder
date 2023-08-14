@@ -8,6 +8,7 @@ from pyspark.sql.types import StringType, DoubleType
 from pyspark.ml.feature import MinMaxScaler, VectorAssembler
 from pyspark.sql import DataFrame as SparkDataFrame
 import pandas as pd
+from decimal import Decimal
 
 
 def set_spark_env():
@@ -144,8 +145,8 @@ def columns_ranges(df, columns):
     return ranges.collect()[0].asDict()
 
 
-def normalize_column(df, input_name, output_name):
-    df.show()
+def normalize_column(df, input_name, output_name, round_factor=6, enlarge=1):
+    # df.show()
 
     vector_assembler = VectorAssembler(inputCols=[input_name], outputCol="features")
 
@@ -161,12 +162,12 @@ def normalize_column(df, input_name, output_name):
     df = scaler_model.transform(df)
 
     # Extract the normalized values from the vector column into a new column
-    udf_extract_norm_value = F.udf(lambda x: float(x[0]), DoubleType())
+    udf_extract_norm_value = F.udf(lambda x: round(float(x[0]) * enlarge, round_factor), DoubleType())
     df = df.withColumn(output_name, udf_extract_norm_value("normalized_features"))
 
     # Drop the intermediate columns (optional)
     df = df.drop("features", "normalized_features")
 
-    df.show()
+    # df.show()
 
     return df
