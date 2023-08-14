@@ -6,6 +6,8 @@ from pyhocon import ConfigFactory as CF
 import pyspark.sql.functions as F
 from pyspark.sql.types import StringType, DoubleType
 from pyspark.ml.feature import MinMaxScaler, VectorAssembler
+from pyspark.sql import DataFrame as SparkDataFrame
+import pandas as pd
 
 
 def set_spark_env():
@@ -26,8 +28,15 @@ def set_spark_env():
             print('PYSPARK_PYTHON not found')
 
 
-def rgb_to_hex(R, G, B):
-    return f'#{int(R * 255):02x}{int(G * 255):02x}{int(B * 255):02x}'
+def normalized_to_hex(r, g, b):
+    return f'#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}'
+
+
+normalized_to_hex_udf = F.udf(normalized_to_hex, StringType())
+
+
+def rgb_to_hex(r, g, b):
+    return f'#{int(r):02x}{int(g):02x}{int(b):02x}'
 
 
 rgb_to_hex_udf = F.udf(rgb_to_hex, StringType())
@@ -57,13 +66,12 @@ def color_by_range(min_val, max_val, cold=True):
 
         B = normalized_i  # Increases from 0 to 255
 
-        color_codes[str(min_val + i)] = rgb_to_hex(R, G, B)
+        color_codes[str(min_val + i)] = normalized_to_hex(R, G, B)
 
     return color_codes
 
 
 def to_unreal(df, dest, module_conf=None, main_table=None, table=None, default_table=False):
-
     df.toPandas().to_csv(dest, header=True, index=False)
     schema = json.loads(df.schema.json())
 
@@ -77,18 +85,42 @@ def to_unreal(df, dest, module_conf=None, main_table=None, table=None, default_t
 
 def move_column_to_position(df, column_name, position=0):
     """
-    Move a column to a specific position in the dataframe,
-    default is first position
-    :param df:
-    :param column_name:
-    :param position:
-    :return:
+    Move a column to a specific position in the DataFrame.
+
+    Parameters:
+        df: The original DataFrame (either pandas or PySpark).
+        column_name (str): The name of the column to move.
+        position (int): The target position (0-based indexing).
+
+    Returns:
+        DataFrame: DataFrame with the column moved to the desired position.
     """
-    columns = df.columns
-    if column_name in columns:
-        columns.remove(column_name)
-        columns.insert(position, column_name)
-    return df.select(*columns)
+
+    # Check if input is a pandas DataFrame
+    if isinstance(df, pd.DataFrame):
+        # Check if column_name exists in df
+        if column_name not in df.columns:
+            raise ValueError(f"'{column_name}' not found in DataFrame columns.")
+
+        # Check if position is valid
+        if position < 0 or position > len(df.columns) - 1:
+            raise ValueError(f"Position {position} is out of range.")
+
+        cols = df.columns.tolist()
+        cols.insert(position, cols.pop(cols.index(column_name)))
+
+        return df[cols]
+
+    # Check if input is a PySpark DataFrame
+    elif isinstance(df, SparkDataFrame):
+        columns = df.columns
+        if column_name in columns:
+            columns.remove(column_name)
+            columns.insert(position, column_name)
+        return df.select(*columns)
+
+    else:
+        raise TypeError("Input should be either a pandas DataFrame or a PySpark DataFrame.")
 
 
 def columns_ranges(df, columns):
@@ -113,7 +145,6 @@ def columns_ranges(df, columns):
 
 
 def normalize_column(df, input_name, output_name):
-
     df.show()
 
     vector_assembler = VectorAssembler(inputCols=[input_name], outputCol="features")
@@ -139,4 +170,3 @@ def normalize_column(df, input_name, output_name):
     df.show()
 
     return df
-
