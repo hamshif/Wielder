@@ -37,6 +37,12 @@ def delete_old_structs(solution_name: str, unreal_project_dir: str):
 
 
 def generate_structs(config_file_path: str, output_dir: str):
+    """
+    Generates Unreal structs from a config file
+    :param config_file_path:
+    :param output_dir:
+    :return:
+    """
     with open(config_file_path, 'r') as f:
         data = json.load(f)
 
