@@ -28,11 +28,13 @@ if __name__ == "__main__":
     generate_structs(conf_path, output_dir)
 
     # Prepare Unreal for building
-    prep_unreal_build(solution_name, uconf.project_path)
+    #
 
     # Generate Visual Studio project files
     if uconf.build:
         if os.name == 'nt':
+            prep_unreal_build(solution_name, uconf.project_path)
+
             unreal_dir = f"{conf.staging_root}\\dev\\UE_5.2"
             generate_vs_proj_files(solution_name, unreal_dir, uconf.project_path)
 
