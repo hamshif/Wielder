@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import wielder.util.util as wu
 
 # MAKE SURE THAT VISUAL STUDIO AND UNREAL ENGINE ARE CLOSED PRIOR TO RUNNING!
 # THIS SCRIPT ASSUMES A WINDOWS ENVIRONMENT!
@@ -74,16 +75,22 @@ def generate_structs(config_file_path: str, output_dir: str):
             # Write code for the .cpp file
             cpp_code = f'#include "{struct_name}.h"\n'
             # Write the header code to the header file
-            dest = f"{struct_name}.h"
-            print("Writing to: ", os.path.join(output_dir, dest))
-            with open(os.path.join(output_dir, dest), 'w') as f:
+
+            dest = os.path.join(output_dir, f"{struct_name}.h")
+            wu.remove(dest)
+            print(f"Writing to:\n{dest}")
+
+            with open(dest, 'w') as f:
                 f.write(header_code)
+
             # Write the .cpp code to the .cpp file
-            dest = f"{struct_name}.cpp"
-            print("Writing to: ", os.path.join(output_dir, dest))
-            with open(os.path.join(output_dir, dest), 'w') as f:
+            dest = os.path.join(output_dir, f"{struct_name}.cpp")
+            wu.remove(dest)
+
+            with open(dest, 'w') as f:
                 f.write(cpp_code)
-            print(f"{struct_name} header and .cpp code written to {os.path.abspath(output_dir)}")
+
+            print(f"{struct_name} header and .cpp code written to:\n{output_dir}")
 
 
 def prep_unreal_build(solution_name: str, unreal_proj_dir: str):

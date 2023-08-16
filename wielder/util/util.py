@@ -233,7 +233,10 @@ def isfile(src):
     return os.path.isfile(src)
 
 
-def remove(stale):
+def remove(stale, ignore_errors=True):
+
+    if ignore_errors and not exists(stale):
+        return
     if os.name == 'nt':
         stale = convert_path_to_any_os(stale)
     os.remove(stale)

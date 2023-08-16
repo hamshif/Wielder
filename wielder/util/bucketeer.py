@@ -1,21 +1,20 @@
 import logging
 import os
 import pathlib
-import shutil
-import wielder.util.util as wu
 from abc import ABC, abstractmethod
 
 from botocore.exceptions import ClientError
-
-from wielder.util.boto3_session_cache import boto3_client
-from wielder.util.util import get_aws_session
-from wielder.wield.enumerator import RuntimeEnv, local_deployments
-from wielder.wield.project import WielderProject
-from wielder.util.google_drive import service_login
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from tabulate import tabulate
 from tqdm import tqdm
+
+import wielder.util.util as wu
+from wielder.util.boto3_session_cache import boto3_client
+from wielder.util.google_drive import service_login
+from wielder.util.util import get_aws_session
+from wielder.wield.enumerator import RuntimeEnv, local_deployments
+from wielder.wield.project import WielderProject
 
 # todo if we decide on that, add dependencies to be installed automatically
 
@@ -471,8 +470,7 @@ class GoogleBucketeer(Bucketeer):
             if wu.isfile(src):
 
                 stale = f'{dest}/{name}'
-                if wu.isfile(stale):
-                    wu.remove(stale)
+                wu.remove(stale)
 
                 wu.copy(src, dest)
 
@@ -501,8 +499,7 @@ class GoogleBucketeer(Bucketeer):
 
             dest1 = f'{dest}/{name}'
 
-            if wu.exists(dest1):
-                wu.remove(dest1)
+            wu.remove(dest1)
 
             src = f'{bucket_name}/{name}'
             wu.copyfile(src, dest)
@@ -657,8 +654,7 @@ class DevBucketeer(Bucketeer):
             if wu.isfile(src):
 
                 stale = f'{dest}/{name}'
-                if wu.isfile(stale):
-                    wu.remove(stale)
+                wu.remove(stale)
 
                 wu.copy(src, dest)
 
@@ -687,8 +683,7 @@ class DevBucketeer(Bucketeer):
 
             dest1 = f'{dest}/{name}'
 
-            if wu.exists(dest1):
-                wu.remove(dest1)
+            wu.remove(dest1)
 
             src = f'{bucket_name}/{name}'
             wu.copyfile(src, dest)
