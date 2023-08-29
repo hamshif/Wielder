@@ -118,6 +118,24 @@ def download_stuff(conf):
     )
 
 
+def download_stuff_one_object(conf):
+    b = AWSBucketeer(conf)
+
+    stuff = conf.stuff_one_object
+
+    src_path = stuff.bucket_path
+    bucket_name = stuff.bucket_name
+    local_dest = stuff.local_dest
+
+    # os.system(f'atom {local_dest}')
+
+    b.download_objects(
+        bucket_name=bucket_name,
+        keys=[src_path],
+        dest=local_dest
+    )
+
+
 def sync_stuff(conf):
     b = AWSBucketeer(conf)
 
