@@ -1,14 +1,11 @@
-import json
 import os
 import platform
 
-from pyhocon import ConfigFactory as CF
 import pyspark.sql.functions as F
 from pyspark.sql.types import StringType, DoubleType
 from pyspark.ml.feature import MinMaxScaler, VectorAssembler
 from pyspark.sql import DataFrame as SparkDataFrame
 import pandas as pd
-from decimal import Decimal
 
 
 def set_spark_env():
@@ -70,18 +67,6 @@ def color_by_range(min_val, max_val, cold=True):
         color_codes[str(min_val + i)] = normalized_to_hex(R, G, B)
 
     return color_codes
-
-
-def to_unreal(df, dest, module_conf=None, main_table=None, table=None, default_table=False):
-    df.toPandas().to_csv(dest, header=True, index=False)
-    schema = json.loads(df.schema.json())
-
-    if module_conf is not None:
-        module_conf.data_types[main_table].tables[table]['columns'] = CF.from_dict(schema['fields'])
-    if default_table:
-        module_conf.data_types[main_table]['default_table'] = table
-
-    return module_conf
 
 
 def move_column_to_position(df, column_name, position=0):
