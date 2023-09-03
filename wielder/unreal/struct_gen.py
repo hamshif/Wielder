@@ -52,7 +52,14 @@ def generate_structs(config_file_path: str, output_dir: str):
         main_dataset = data['data_types'][main_dataset_name]
 
         # Iterate over sub-datasets
-        for sub_dataset_name in main_dataset["tables"]:
+
+        structable_tables = main_dataset["tables"]
+
+        if 'one_to_many_tables' in main_dataset:
+            for k, v in main_dataset["one_to_many_tables"].items():
+                structable_tables[k] = v
+
+        for sub_dataset_name in structable_tables:
             sub_dataset = main_dataset["tables"][sub_dataset_name]
             properties = sub_dataset['columns']
 
