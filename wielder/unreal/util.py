@@ -27,7 +27,7 @@ def to_unreal(df, dest, module_conf=None, main_table=None, table=None, table_typ
             case UnrealTableType.SECONDARY:
                 module_conf.data_types[main_table].tables[table]['columns'] = CF.from_dict(schema['fields'])
             case UnrealTableType.ONE_TO_MANY:
-                module_conf.data_types[main_table].one_to_many_tables[table]['columns'] = CF.from_dict(schema['fields'])
+                module_conf.data_types[main_table].many_to_one_tables[table]['columns'] = CF.from_dict(schema['fields'])
 
     return module_conf
 

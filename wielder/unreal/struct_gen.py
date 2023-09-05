@@ -55,8 +55,8 @@ def generate_structs(config_file_path: str, output_dir: str):
 
         structable_tables = main_dataset["tables"]
 
-        if 'one_to_many_tables' in main_dataset:
-            for k, v in main_dataset["one_to_many_tables"].items():
+        if 'many_to_one_tables' in main_dataset:
+            for k, v in main_dataset["many_to_one_tables"].items():
                 structable_tables[k] = v
 
         for sub_dataset_name in structable_tables:
