@@ -13,7 +13,7 @@ class UnrealTableType(Enum):
 
     MAIN = 'main'
     SECONDARY = 'secondary'
-    ONE_TO_MANY = 'one_to_many'
+    MANY_TO_ONE = 'many_to_one'
 
 
 def to_unreal(df, dest, module_conf=None, main_table=None, table=None, table_type=UnrealTableType.MAIN):
@@ -26,7 +26,7 @@ def to_unreal(df, dest, module_conf=None, main_table=None, table=None, table_typ
                 module_conf.data_types[main_table]['default_table'] = table
             case UnrealTableType.SECONDARY:
                 module_conf.data_types[main_table].tables[table]['columns'] = CF.from_dict(schema['fields'])
-            case UnrealTableType.ONE_TO_MANY:
+            case UnrealTableType.MANY_TO_ONE:
                 module_conf.data_types[main_table].many_to_one_tables[table]['columns'] = CF.from_dict(schema['fields'])
 
     return module_conf
