@@ -192,7 +192,7 @@ class AWSBucketeer(Bucketeer):
 
             obj_name = key.split('/')[-1]
             logging.debug(f'obj_path: {obj_path}\nobj_name: {obj_name}')
-
+            os.makedirs(dest, exist_ok=True)
             ok = self.download_object(bucket_name, obj_path, obj_name, dest)
             if not ok:
                 return False
