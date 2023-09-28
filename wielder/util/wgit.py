@@ -1,6 +1,7 @@
 import logging
 
 import git
+import os
 from pyhocon import ConfigFactory as Cf
 from wielder.util.commander import subprocess_cmd, async_cmd
 from wielder.util.log_util import setup_logging
@@ -12,10 +13,12 @@ class WGit:
     def __init__(self, repo_path):
 
         self.repo_path = repo_path
+        self.local_system = 'unix' if os.name != 'nt' else 'win'
+        self.awk_command = 'gawk' if self.local_system == 'win' else 'awk'
 
         with DirContext(repo_path):
 
-            dir_name = repo_path.split('/')[-1]
+            dir_name = repo_path.split(os.sep)[-1]
 
             latest_commit = async_cmd('git rev-parse --verify HEAD')[0][:-1]
 
@@ -41,6 +44,8 @@ class WGit:
             _cmd = f'git ls-tree HEAD {sub}'
 
             submodule_pointer = async_cmd(_cmd)
+            if len(submodule_pointer) == 0:
+                return None
 
             submodule_pointer = submodule_pointer[0].split(' ')[2].split('\t')[0]
             logging.info(f'submodule {sub} pointer commit: {submodule_pointer}')
@@ -52,13 +57,19 @@ class WGit:
         with DirContext(self.repo_path):
 
             print_line = '{ print $2 }'
-            _cmd = f"git config --file .gitmodules --get-regexp path | awk '{print_line}'"
+            _cmd = f"git config --file .gitmodules --get-regexp path | {self.awk_command} '{print_line}'"
 
             response = async_cmd(_cmd)
             submodule_names = []
 
-            for submodule_name in response:
-                submodule_names.append(submodule_name.replace('\n', ''))
+            for dirty_submodule_name in response:
+
+                submodule_name = dirty_submodule_name.replace('\n', '')
+                if os.name == 'nt':
+                    if submodule_name[-1:] == '\r':
+                        submodule_name = submodule_name[:-1]
+
+                submodule_names.append(submodule_name)
 
             logging.info(response)
 
@@ -121,7 +132,7 @@ class WGit:
 
         d = vars(self)
 
-        injection = {'git': {'subs': {}}}
+        injection = {'git': {'subs': {}, 'branches': {}}}
 
         for k, v in d.items():
 
@@ -130,8 +141,23 @@ class WGit:
         for sub in self.get_submodule_names():
 
             injection['git']['subs'][sub] = self.get_submodule_commit(sub)
+            injection['git']['branches'][sub] = self.get_submodule_branch(sub)
 
         return injection
+
+    def get_submodule_branch(self, sub):
+
+        full_path = f'{self.repo_path}/{sub}'
+        with DirContext(full_path):
+
+            _cmd = f'git rev-parse --abbrev-ref HEAD;'
+            branch = async_cmd(_cmd)[0].replace('\n', '')
+
+            if os.name == 'nt':
+                if branch[-1:] == '\r':
+                    branch = branch[:-1]
+
+        return branch
 
 
 def is_repo(path):

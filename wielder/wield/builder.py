@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import wielder.util.util as wu
 from abc import ABC, abstractmethod
 from enum import Enum
 
@@ -25,11 +26,11 @@ class WBuilder(ABC):
         self.commit = self.wg.commit
 
         build_root = f'{locale.build_root}/{locale.super_project_name}'
-        os.makedirs(build_root, exist_ok=True)
+        wu.makedirs(build_root, exist_ok=True)
         self.build_root = build_root
 
         local_artifactory = f'{locale.local_buckets}/{conf.artifactory_bucket}'
-        os.makedirs(local_artifactory, exist_ok=True)
+        wu.makedirs(local_artifactory, exist_ok=True)
         self.local_artifactory = local_artifactory
 
         self.artifactory = conf.artifactory_bucket
@@ -89,8 +90,9 @@ class MavenBuilder(WBuilder):
             build_command = 'mvn clean install -U -f pom.xml'
             logging.info(f"Running cmd:\n{build_command}")
             os.system(build_command)
-            build_command = 'mvn assembly:assembly -DdescriptorId=jar-with-dependencies'
-            logging.info(f"Running cmd:\n{build_command}")
+            # TODO make sense of the maven build and remove redundancies
+            # build_command = 'mvn assembly:assembly -DdescriptorId=jar-with-dependencies'
+            # logging.info(f"Running cmd:\n{build_command}")
             os.system(build_command)
 
     def ensure_build_path(self, repo_name):
@@ -133,7 +135,7 @@ class MavenBuilder(WBuilder):
         """
 
         full_local_artifactory_path = f'{self.local_artifactory}/{artifactory_key}'
-        os.makedirs(full_local_artifactory_path, exist_ok=True)
+        wu.makedirs(full_local_artifactory_path, exist_ok=True)
 
         sub_commit, build_path = self.ensure_build_path(repo_name)
 
@@ -180,7 +182,7 @@ class MavenBuilder(WBuilder):
 
         self.build_artifact(build_path)
 
-        shutil.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar',
+        wu.copyfile(f'{local_artifact_path}/{artifact_name}-1.0.0-SNAPSHOT-jar-with-dependencies.jar',
                         full_local_path)
 
     def verify_local_artifact(self, artifact_path, artifact_name):

@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import wielder.util.util as wu
 
 from wielder.util.cool import filter_walk
 from wielder.util.kuber import copy_file_to_pods
@@ -55,9 +56,9 @@ def sync_filtered_to_kube(conf, module_name):
     """
     stage = '/tmp/wield_dev_stage'
 
-    os.makedirs(stage, exist_ok=True)
+    wu.makedirs(stage, exist_ok=True)
     shutil.rmtree(stage)
-    os.makedirs(stage, exist_ok=True)
+    wu.makedirs(stage, exist_ok=True)
 
     dev_conf = conf[module_name].dev
 
@@ -88,14 +89,14 @@ def sync_filtered_to_kube(conf, module_name):
                 nd = dir_path.replace(src, '')
 
                 stage_dest = f'{stage}/{sync_dir}/{nd}'
-                os.makedirs(stage_dest, exist_ok=True)
+                wu.makedirs(stage_dest, exist_ok=True)
 
                 for file_name in file_names:
 
                     src_file = f'{dir_path}/{file_name}'
                     tmp_file = f'{stage_dest}/{file_name}'
 
-                    shutil.copyfile(src_file, tmp_file)
+                    wu.copyfile(src_file, tmp_file)
 
                 print(f'dir_path: {nd}')
                 print(f'sub_dir_names: {sub_dirs}')

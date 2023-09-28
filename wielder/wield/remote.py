@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 import logging
 import os
-import shutil
-
 import pyhocon
+import wielder.util.util as wu
+
 from pyhocon import ConfigFactory
 
-from wielder.util.bucketeer import AWSBucketeer
-from wielder.wield.enumerator import local_deployments
-from wielder.wield.project import configure_external_kafka_urls, get_local_path
+from wielder.util.bucketeer import AWSBucketeer, get_bucketeer
+from wielder.wield.enumerator import local_deployments, RuntimeEnv
+from wielder.wield.project import configure_external_kafka_urls
 
 
 def configure_remote_unique_context(conf, bucket_name=None):
@@ -30,7 +30,7 @@ def configure_remote_unique_context(conf, bucket_name=None):
 
     app_plan_dir = f'{conf.project_conf_root}/plan'
 
-    os.makedirs(app_plan_dir, exist_ok=True)
+    wu.makedirs(app_plan_dir, exist_ok=True)
 
     unique_context_conf = f'{app_plan_dir}/{unique_name}.conf'
 
@@ -48,9 +48,9 @@ def configure_remote_unique_context(conf, bucket_name=None):
 
         conf_path = f'{bucket_path}/{bucket_name}/{unique_config_path}'
 
-        os.makedirs(conf_path, exist_ok=True)
+        wu.makedirs(conf_path, exist_ok=True)
 
-        shutil.copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
+        wu.copyfile(unique_context_conf, f'{conf_path}/{unique_name}.conf')
 
     elif conf.runtime_env == 'aws':
 
@@ -88,12 +88,14 @@ def get_remote_unique_context(conf):
     conf_path = f'{bucket_path}/{namespace_bucket}/{unique_config_path}'
     file_name = f'{unique_name}.conf'
 
-    if conf.runtime_env == 'aws':
-        b = AWSBucketeer(conf)
+    if conf.runtime_env not in local_deployments:
+        runtime_env = RuntimeEnv[conf.bootstrap_env.upper()]
+        bucket_env = RuntimeEnv[conf.runtime_env.upper()]
 
+        b = get_bucketeer(conf, runtime_env, bucket_env)
         b.download_object(namespace_bucket, key=unique_config_path, name=file_name, dest=conf_path)
 
-    conf = ConfigFactory.parse_file(f'{conf_path}/{file_name}')
+    conf = wu.parse_file_as_hocon(f'{conf_path}/{file_name}')
 
     return conf
 
@@ -112,6 +114,24 @@ def download_stuff(conf):
     b.download_objects_by_key(
         bucket_name=bucket_name,
         root_key=src_path,
+        dest=local_dest
+    )
+
+
+def download_stuff_one_object(conf):
+    b = AWSBucketeer(conf)
+
+    stuff = conf.stuff_one_object
+
+    src_path = stuff.bucket_path
+    bucket_name = stuff.bucket_name
+    local_dest = stuff.local_dest
+
+    # os.system(f'atom {local_dest}')
+
+    b.download_objects(
+        bucket_name=bucket_name,
+        keys=[src_path],
         dest=local_dest
     )
 

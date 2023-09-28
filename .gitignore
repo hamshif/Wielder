@@ -40,3 +40,6 @@ image/
 plan/
 
 python-driver/
+*.VS
+
+*stam.*

@@ -1,7 +1,13 @@
 #!/usr/bin/env python
+
+import json
 import logging
 import os
 
+import pyhocon
+import yaml
+
+import wielder.util.util as wu
 from pyhocon import ConfigFactory
 
 from wielder.util.arguer import get_wielder_parser, convert_log_level
@@ -9,12 +15,10 @@ from wielder.util.hocon_util import object_to_conf, resolve_ordered
 from wielder.util.wgit import WGit
 from wielder.wield.enumerator import local_kubes
 
-
 DEFAULT_WIELDER_APP = 'snegurochka'
 
 
 def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files, injection=None, wield_parser=None):
-
     if wield_parser is None:
         wield_parser = get_wielder_parser()
 
@@ -47,10 +51,10 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
         override_ordered_files = []
 
     ordered_conf_files = [
-        app_path,
-        runtime_env_path,
-        run_path,
-    ] + override_ordered_files
+                             app_path,
+                             runtime_env_path,
+                             run_path,
+                         ] + override_ordered_files
 
     conf = resolve_ordered(
         ordered_conf_paths=ordered_conf_files,
@@ -61,7 +65,6 @@ def get_project_wield_conf(conf_path, app_name, run_name, override_ordered_files
 
 
 def default_conf_root():
-
     _, super_project_root, _ = get_super_project_roots()
 
     return f'{super_project_root}/Wielder/conf'
@@ -110,13 +113,18 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if injection is None:
         injection = {}
 
+    local_system = 'unix' if os.name != 'nt' else 'win'
+
     action = wield_args.wield
     runtime_env = wield_args.runtime_env
     deploy_env = wield_args.deploy_env
     bootstrap_env = wield_args.bootstrap_env
+    if bootstrap_env != local_system:
+        logging.warning(f'bootstrap_env: {bootstrap_env} is not consistent with local system: {local_system}')
     unique_conf = wield_args.unique_conf
     log_level = convert_log_level(wield_args.log_level)
 
+    injection['local_system'] = local_system
     injection['action'] = action
     injection['unique_conf'] = unique_conf
     injection['log_level'] = log_level
@@ -151,7 +159,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if configure_wield_modules:
         for sub in injection['git']['subs'].keys():
             potential_conf_path = f'{super_project_root}/{sub}/wield.conf'
-            if os.path.exists(potential_conf_path):
+            if wu.exists(potential_conf_path):
                 ordered_project_files.append(potential_conf_path)
 
     if module_root is not None:
@@ -208,19 +216,21 @@ def get_super_project_roots():
     super_project_root = os.path.dirname(os.path.realpath(__file__))
 
     for i in range(3):
-        super_project_root = super_project_root[:super_project_root.rfind('/')]
+        super_project_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
     logging.info(f'staging_root:\n{super_project_root}')
 
-    staging_root = super_project_root[:super_project_root.rfind('/')]
+    staging_root = super_project_root[:super_project_root.rfind(os.path.sep)]
 
-    super_project_name = super_project_root[super_project_root.rfind('/') + 1:]
+    super_project_name = super_project_root[super_project_root.rfind(os.path.sep) + 1:]
 
+    staging_root = wu.convert_to_unix_path(staging_root)
+    super_project_root = wu.convert_to_unix_path(super_project_root)
+    super_project_name = wu.convert_to_unix_path(super_project_name)
     return staging_root, super_project_root, super_project_name
 
 
 def configure_external_kafka_urls(conf):
-
     if conf.kafka.override_exposed:
 
         ports = [30000 + i for i in range(conf.third_party.kafka_replicas)]
@@ -234,9 +244,8 @@ def configure_external_kafka_urls(conf):
             i = 0
 
             for port in ports:
-
                 exposed_brokers = f'{exposed_brokers},broker-{i}.{conf.unique_name}:{port}'
-                i = i+1
+                i = i + 1
 
         elif runtime_env in local_kubes:
 
@@ -251,12 +260,61 @@ def configure_external_kafka_urls(conf):
 
 
 def get_local_path(conf, relative_path, bucket_name=None):
-
     if bucket_name is None:
         bucket_name = conf.namespace_bucket
 
     local_destination = f'{conf.local_buckets_root}/{bucket_name}/{relative_path}'
     return local_destination
+
+
+def configure_project_module(conf, app):
+    """
+    Configure a project module
+    :param conf:
+    :param app: the application namespace
+    :return:
+    """
+
+    if app in conf:
+        module_config = conf[app]
+
+        if 'configure_modules' in module_config:
+            config_instructions = module_config['configure_modules']
+
+            for key, value in config_instructions.items():
+
+                dest = value.dest
+
+                wu.makedirs(wu.dirname(dest))
+                _type = value.type
+
+                match _type:
+                    case 'text':
+                        content = '\n'.join(str(item) for item in value.content) + '\n'
+
+                        mode = 'w'
+                        match value.mode:
+                            case 'append':
+                                mode = 'a'
+                            case 'prepend':
+                                mode = 'w+'
+                                if wu.exists(dest):
+                                    with open(dest, 'r') as file:
+                                        existing_content = file.read()
+                                        content = existing_content + content
+
+                        with open(dest, mode) as file:
+                            file.write(content)
+
+                    case 'json':
+                        with open(dest, 'w') as file:
+                            json.dump(value.content, file, indent=4)
+                    case 'yaml':
+                        with open(dest, 'w') as file:
+                            yaml.dump(value.content, file)
+                    case 'hocon':
+                        with open(dest, 'w') as file:
+                            file.write(pyhocon.HOCONConverter.to_hocon(value.content))
 
 
 class WielderProject:
@@ -277,25 +335,25 @@ class WielderProject:
 
         if packing_root is None:
             packing_root = f'{super_project_root}/pack'
-            os.makedirs(packing_root, exist_ok=True)
+            wu.makedirs(packing_root, exist_ok=True)
 
         self.packing_root = packing_root
 
         if build_root is None:
             build_root = f'{super_project_root}/build'
-            os.makedirs(build_root, exist_ok=True)
+            wu.makedirs(build_root, exist_ok=True)
 
         self.build_root = build_root
 
         if provision_root is None:
             provision_root = f'{super_project_root}/provision'
-            os.makedirs(provision_root, exist_ok=True)
+            wu.makedirs(provision_root, exist_ok=True)
 
         self.provision_root = provision_root
 
         if mock_buckets_root is None:
             mock_buckets_root = f'{super_project_root}/buckets'
-            os.makedirs(mock_buckets_root, exist_ok=True)
+            wu.makedirs(mock_buckets_root, exist_ok=True)
 
         self.mock_buckets_root = mock_buckets_root
 

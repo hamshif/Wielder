@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import select
+import wielder.util.util as wu
 
 from pyhocon.tool import HOCONConverter as Hc
 from wielder.wield.base import WielderBase
@@ -48,8 +49,8 @@ class WieldPlan(WielderBase):
 
             self.plans.append(plan)
 
-            if not os.path.exists(self.plan_dir):
-                os.makedirs(self.plan_dir)
+            if not wu.exists(self.plan_dir):
+                wu.makedirs(self.plan_dir)
 
             plan_path = self.to_plan_path(res=res)
 
@@ -194,9 +195,9 @@ def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
         logging.info(f'\n{plans}')
 
         if not os.path.exists(plan_dir):
-            os.makedirs(plan_dir)
+            wu.makedirs(plan_dir)
 
-        with open(f'{plan_path}/{res}.{plan_format.value}', 'wt') as file_out:
+        with wu.open(f'{plan_path}/{res}.{plan_format.value}', 'wt') as file_out:
             file_out.write(plans)
 
 
