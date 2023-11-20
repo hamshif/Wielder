@@ -82,6 +82,10 @@ class Bucketeer(ABC):
     def bucket_sync(self, src_bucket, dest_bucket, src_prefix, dest_prefix):
         pass
 
+    @abstractmethod
+    def list_files_by_key(self, bucket_name, root_key):
+        pass
+
 
 class AWSBucketeer(Bucketeer):
     """
@@ -90,6 +94,9 @@ class AWSBucketeer(Bucketeer):
     We use MFA for development and the code is per process.
     It currently supports AWS S3.
     """
+
+    def list_files_by_key(self, bucket_name, root_key):
+        return self.get_object_names(bucket_name, root_key)
 
     def __init__(self, conf=None, auth=True):
 
@@ -348,6 +355,9 @@ class GoogleBucketeer(Bucketeer):
     The class emulates a cloud bucket by performing similar functionality on
     A directory
     """
+
+    def list_files_by_key(self, bucket_name, root_key):
+        pass
 
     def __init__(self, conf=None, auth=True):
 
@@ -657,6 +667,26 @@ class DevBucketeer(Bucketeer):
                 wu.remove(stale)
 
                 wu.copy(src, dest)
+
+        except Exception as e:
+            logging.error(e)
+            return False
+        return True
+
+    def list_files_by_key(self, bucket_name, root_key):
+        """
+        Pretend to download a file by copying
+
+        :param root_key: the object's full path
+        :param bucket_name: Bucket to deleted
+        :return: True if bucket deleted, else False
+        """
+        try:
+
+            src = f'{self.buckets_root}/{bucket_name}/{root_key}'
+
+            if wu.isdir(src):
+                return wu.get_files_in_dir(src)
 
         except Exception as e:
             logging.error(e)

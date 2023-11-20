@@ -233,6 +233,12 @@ def isfile(src):
     return os.path.isfile(src)
 
 
+def isdir(src):
+    if os.name == 'nt':
+        src = convert_path_to_any_os(src)
+    return os.path.isdir(src)
+
+
 def remove(stale, ignore_errors=True):
 
     if ignore_errors and not exists(stale):
@@ -274,7 +280,12 @@ def walk(source):
 
 
 def get_files_in_dir(full_path):
-    return pathlib.Path(full_path).iterdir()
+
+    # list all the files in directory
+    if os.name == 'nt':
+        full_path = convert_path_to_any_os(full_path)
+
+    return os.listdir(full_path)
 
 
 def open_data_path(full_path, mode='r'):
