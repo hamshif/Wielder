@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-_version = '0.5.0'
+_version = '0.6.0'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -33,6 +33,6 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
 )
