@@ -64,6 +64,7 @@ brew install --cask iterm2 -vd
 brew install --cask atom -vd
 
 if [[ $(command -v which pyenv) == "which" ]]; then
+  brew install pyenv-virtualenv -vd
   brew install pyenv -vd
   echo 'export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH"' >> ~/.zshrc
   echo 'export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib"' >> ~/.zshrc
