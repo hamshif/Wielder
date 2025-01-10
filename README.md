@@ -11,13 +11,13 @@ and in the darkness bind them.
 
 Reactive debuggable CI-CD
 -
-Wielder is meant to unify the best technologies for the job.
+Wielder unifies the best technologies for the job into DAG's.
+Reactive deployments, canaries, updates, scaling and rollbacks.
 You decide, pick and choose (fastest, cheapest, legacy...).
 We do this by wrapping the technology in python and then treating it as a black-box with callbacks 
-For example:
-* Kubernetes polymorphic plan apply (A reactive debuggable alternative to Helm declarative charts & SDK dependant Go Operators)
 
-Reactive deployments, canaries, updates, scaling and rollbacks.
+* Kubernetes? Use a polymorphic plan apply Dag (A reactive debuggable alternative to Helm declarative charts & SDK dependant Go Operators)
+or alternatively use the Helm wielding module to weave charts into your process, anything to unify getting the job done.
 
 Wielder wields Git, Docker, Terraform, Kubernetes, Airflow, ETLs & more into reactive debuggable event sequences; 
 to guide code from development through testing to production. 
@@ -60,8 +60,11 @@ Development Instructions
 When developing file systems side effects e.g. creating files, directories, symlinks, etc..
 check if functionality exists in the util module and use it or create it there.
 
-Path Handling:
+Development Environment & Path Handling:
 -
-In Wielder, paths are treated as Unix paths due to the distributed environment.
-However, when using Wielder on Windows, paths are dealt locally with in a Windows-specific manner.
+Wielder paths simulate key-value storage commonly used in distributed environments like S3 or Google Cloud Storage. 
+Distributed functionality has been battle-tested at scale on Unix-based systems and can be simulated locally to closely mirror production, optimizing development cycles, reducing bugs, minimizing DevOps overhead, and familiarizing developers with cloud and distributed environments. Initial support for Windows has also been added.
 
+Production Environment:
+-
+The philosophy is to wrap everything with a consistent interface and make it DAG-compatible using tools like Airflow for high-level monitoring. If issues arise, such as a feature, bug, or operational problem, the interfacing module can be easily opened, debugged, and edited.
