@@ -2,9 +2,10 @@ import os
 import platform
 
 import pyspark.sql.functions as F
-from pyspark.sql.types import StringType, DoubleType
+from pyspark.sql.types import DoubleType, StructField, StringType, FloatType, IntegerType, StructType
 from pyspark.ml.feature import MinMaxScaler, VectorAssembler
 from pyspark.sql import DataFrame as SparkDataFrame
+
 import pandas as pd
 
 
@@ -156,3 +157,23 @@ def normalize_column(df, input_name, output_name, round_factor=6, enlarge=1):
     # df.show()
 
     return df
+
+
+def pandas_to_spark_schema(pdf):
+# create a spark schema from wanted_cols
+
+    wanted_cols = pdf.dtypes.apply(lambda x: x.name).to_dict()
+
+    struct_fields = []
+
+    for col, col_type in wanted_cols.items():
+        if col_type == 'object':
+            struct_fields.append(StructField(col, StringType(), True))
+        elif col_type == 'float64':
+            struct_fields.append(StructField(col, FloatType(), True))
+        elif col_type == 'int64':
+            struct_fields.append(StructField(col, IntegerType(), True))
+
+    wanted_schema = StructType(struct_fields)
+
+    return wanted_schema
