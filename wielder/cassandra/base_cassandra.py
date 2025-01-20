@@ -37,6 +37,8 @@ class WieldTable:
         self.host = conf.host
         self.port = conf.port
         self.user = conf.user
+        self.connect_timeout = conf.connect_timeout
+        self.connect_retries = conf.connect_retries
         self.password = conf.password
         self.keyspace = keyspace
         self.replication_class = meta.replication_class
@@ -120,7 +122,7 @@ class WieldTable:
 
     def _cluster_connect(self):
         self.cluster = self.get_cluster()
-        retry_count = 3
+        retry_count = self.connect_retries
 
         while retry_count > 0:
             try:
@@ -134,8 +136,8 @@ class WieldTable:
 
         return None
 
-    def _session_execute(self, cmd, timeout=30):
-        return self.session.execute(cmd, timeout=timeout)
+    def _session_execute(self, cmd):
+        return self.session.execute(cmd, timeout=self.connect_timeout)
 
     def create_session(self):
 
@@ -210,7 +212,7 @@ class WieldTable:
 
         self.session = self._cluster_connect()
 
-        rows = self._session_execute(f"SELECT keyspace_name FROM system_schema.keyspaces", timeout=20)
+        rows = self._session_execute(f"SELECT keyspace_name FROM system_schema.keyspaces")
         if keyspace in [row[0] for row in rows]:
             self.log.info(f"dropping existing keyspace: {keyspace}")
             self._session_execute(f"DROP KEYSPACE {keyspace}")
