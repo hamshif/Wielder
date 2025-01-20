@@ -118,14 +118,32 @@ class WieldTable:
 
         return cluster
 
+    def _cluster_connect(self):
+        self.cluster = self.get_cluster()
+        retry_count = 3
+
+        while retry_count > 0:
+            try:
+                return self.cluster.connect()
+            except Exception as e:
+                if retry_count > 0:
+                    self.log.warn(f"Failed connecting to cluster, retries left {retry_count}")
+                    retry_count -= 1
+                else:
+                    raise e
+
+        return None
+
+    def _session_execute(self, cmd, timeout=30):
+        return self.session.execute(cmd, timeout=timeout)
+
     def create_session(self):
 
         logging.debug('moose')
         logging.info(f'credentials:\n{self.credentials}')
         print(f'credentials:\n{self.credentials}')
 
-        self.cluster = self.get_cluster()
-        self.session = self.cluster.connect()
+        self.session = self._cluster_connect()
 
         keyspace_cmd = f"""
                 CREATE KEYSPACE IF NOT EXISTS {self.keyspace}
@@ -134,7 +152,7 @@ class WieldTable:
 
         logging.info(f'Running :\n{keyspace_cmd}')
         # self.log.info(f"creating keyspace: {self.keyspace}")
-        self.session.execute(keyspace_cmd)
+        self._session_execute(keyspace_cmd)
 
         # self.log.info(f"keyspace: {self.keyspace} verified")
         self.session.set_keyspace(self.keyspace)
@@ -146,19 +164,22 @@ class WieldTable:
     def set_logger(self):
         log = logging.getLogger()
         log.setLevel('INFO')
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
-        log.addHandler(handler)
+
+        if not log.hasHandlers():
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+            log.addHandler(handler)
+
         self.log = log
 
     def list_keyspaces(self):
 
-        rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces")
+        rows = self._session_execute(f"SELECT keyspace_name FROM system_schema.keyspaces")
 
         [print(row) for row in rows]
 
     def select_data(self, limit=50, pr=False):
-        rows = self.session.execute(f'select * from {self.table_name} limit {limit};')
+        rows = self._session_execute(f'select * from {self.table_name} limit {limit};')
 
         if pr:
             [print(row) for row in rows]
@@ -172,7 +193,7 @@ class WieldTable:
         else:
             where_clause = f' where {where_args}'
 
-        rows = self.session.execute(f'select * from {self.table_name}{where_clause};')
+        rows = self._session_execute(f'select * from {self.table_name}{where_clause};')
 
         if pr:
             [print(row) for row in rows]
@@ -186,13 +207,13 @@ class WieldTable:
 
         if self.cluster is not None:
             self.cluster.shutdown()
-        self.cluster = self.get_cluster()
-        self.session = self.cluster.connect()
 
-        rows = self.session.execute(f"SELECT keyspace_name FROM system_schema.keyspaces", timeout=20)
+        self.session = self._cluster_connect()
+
+        rows = self._session_execute(f"SELECT keyspace_name FROM system_schema.keyspaces", timeout=20)
         if keyspace in [row[0] for row in rows]:
             self.log.info(f"dropping existing keyspace: {keyspace}")
-            self.session.execute(f"DROP KEYSPACE {keyspace}")
+            self._session_execute(f"DROP KEYSPACE {keyspace}")
         else:
             self.log.info(f"could'nt find keyspace: {keyspace}")
 
@@ -201,14 +222,13 @@ class WieldTable:
         if keyspace is None:
             keyspace = self.keyspace
 
-        self.cluster = self.get_cluster()
-        self.session = self.cluster.connect()
+        self.session = self._cluster_connect()
 
         cmd = f"DESCRIBE KEYSPACE {keyspace};"
 
         print(cmd)
 
-        description = self.session.execute(cmd)
+        description = self._session_execute(cmd)
 
         for r in description.current_rows:
             print(r)
@@ -218,8 +238,7 @@ class WieldTable:
         if keyspace is None:
             keyspace = self.keyspace
 
-        self.cluster = self.get_cluster()
-        self.session = self.cluster.connect()
+        self.session = self._cluster_connect()
 
         tables = self.cluster.metadata.keyspaces[keyspace]
 
@@ -246,7 +265,7 @@ class WieldTable:
     def create_table(self):
 
         self.log.info(f"Creating table {self.table_name} with this statement:\n{self.cql_create}")
-        self.session.execute(self.cql_create)
+        self._session_execute(self.cql_create)
         self.log.info(f"{self.table_name} Table verified !!!")
 
     def maybe_upsert_batch(self, upsert):
@@ -258,7 +277,7 @@ class WieldTable:
         if self.upsert_count > self.batch_size:
             print(f"upsert count:  {self.upsert_count}")
             self.upsert_count = 0
-            self.session.execute(self.batch)
+            self._session_execute(self.batch)
             self.batch.clear()
             self.log.info(f'Intermediate Batch Insert Completed {self.table_name}')
 
