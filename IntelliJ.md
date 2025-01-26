@@ -4,18 +4,18 @@ https://github.com/hamshif/data-common.git \
 https://github.com/hamshif/dags.git
 
 ## To open it with IntelliJ
-###Plugins:
 
+###Plugins:
 1. Python
-2. Markdown      
-3. Jenv
-4. Scala
-5. .ignore
-6. Bash
-7. Terraform
-5. hocon
-6. Maven
-7. Perl
+1. Markdown
+1. Jenv
+1. Scala
+1. .ignore
+1. Bash
+1. Terraform
+1. hocon
+1. Maven
+1. Perl
 
 open ~/dev with atom
 copy and modify all the .imld files to iml (Intellij reads them)
@@ -23,8 +23,8 @@ make sure the penv name is correct
 
 
 ###Init workspace
-1. Open project in super projectr directory
-2. Add multiple SDKs :
+1. Open project in super project directory
+2. Add multiple SDKs:
     - Java 1.8
     - Java 11
     - Python Wielder pyenv.
@@ -52,8 +52,7 @@ Maven modules e.g. pipelines add a module using maven (there is some fine-tuning
 1. File -> new -> module from existing source -> maven -> next
 you might have to add Scala directories as source
 1. Add non framework directories e.g. docker scripts from existing sources
-1. Add Python frameworks using preprepared virtualenvwrapper
-
+1. Add Python frameworks using pyenv
 
 
 

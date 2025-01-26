@@ -85,20 +85,17 @@ if [[ $(command -v which jenv) == "which" ]]; then
   echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.zshrc
   echo 'eval "$(jenv init -)"' >> ~/.zshrc
 
-  brew tap AdoptOpenJDK/openjdk -vd
+  brew install --cask temurin@11
+  brew install --cask temurin@8
 
-  brew install adoptopenjdk11 -vd
-  brew install adoptopenjdk8 -vd
+  jenv add /Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home/
+  jenv add /Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home/
 
-  jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
-  jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
   jenv versions
   jenv global 1.8
 
   jenv enable-plugin maven
   jenv enable-plugin export
-
-
 
   java -version
 else
