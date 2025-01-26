@@ -199,3 +199,9 @@ brew doctor
 #    echo "gcloud already installed"
 #    which gcloud
 #fi
+
+
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+echo "execute <EDITOR=nano kubectl edit deployment metrics-server -n kube-system>"
+echo "add the following to the args: - --kubelet-insecure-tls"
