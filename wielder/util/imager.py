@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import logging
 import os
+import platform
 from shutil import rmtree, copyfile, copytree
 from wielder.util.commander import async_cmd
 from wielder.util.log_util import setup_logging
 from wielder.util.util import DirContext
-from wielder.wield.enumerator import CloudProvider
+from wielder.wield.enumerator import CloudProvider, local_kubes
 
 
 def replace_file(origin_path, origin_regex, destination_path, final_name):
@@ -175,7 +176,12 @@ def pack_image(image_root, name, image_name=None, force=False, tag='dev',
 
         logging.info(f"attempting to create image {name}")
 
-        _cmd = f'docker build -t {image_name}:{tag}{added_args} {image_root};'
+        prefix = 'docker build'
+
+        if runtime_env not in local_kubes and platform.machine() == 'arm64':
+                prefix = f'DOCKER_BUILDKIT=1 {prefix} --platform linux/amd64'
+
+        _cmd = f'{prefix} -t {image_name}:{tag}{added_args} {image_root};'
 
         logging.info(f'running:\n{_cmd}')
 

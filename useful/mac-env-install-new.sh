@@ -169,7 +169,11 @@ brew install hudochenkov/sshpass/sshpass -vd
 softwareupdate --install-rosetta
 
 if [[ $(command -v docker) == "" ]]; then
-    echo "Please install Docker from dmg"
+    echo "Please install Docker from dmg and:"
+
+    echo "docker buildx create --use"
+    echo "docker buildx inspect --bootstrap"
+
 
 else
     echo "Docker already installed"
