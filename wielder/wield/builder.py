@@ -93,7 +93,7 @@ class MavenBuilder(WBuilder):
             # TODO make sense of the maven build and remove redundancies
             # build_command = 'mvn assembly:assembly -DdescriptorId=jar-with-dependencies'
             # logging.info(f"Running cmd:\n{build_command}")
-            os.system(build_command)
+            # os.system(build_command)
 
     def ensure_build_path(self, repo_name):
 

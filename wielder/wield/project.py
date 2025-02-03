@@ -252,6 +252,9 @@ def configure_external_kafka_urls(conf):
             for port in ports:
                 exposed_brokers = f'{exposed_brokers},localhost:{port}'
 
+        else:
+            raise Exception("Unknown runtime_env!")
+
         conf.kafka['exposed_brokers'] = exposed_brokers[1:]
     else:
         exposed_brokers = conf.kafka['exposed_brokers']
