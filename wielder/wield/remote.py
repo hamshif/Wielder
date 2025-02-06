@@ -72,7 +72,8 @@ def configure_remote_unique_context(conf, bucket_name=None):
         b.upload_file(
             unique_context_conf,
             bucket_name,
-            f'{unique_config_path}/{unique_name}.conf'
+            f'{unique_config_path}/{unique_name}.conf',
+            is_text=True
         )
 
         names = b.get_object_names(bucket_name, unique_name)

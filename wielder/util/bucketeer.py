@@ -31,11 +31,11 @@ class Bucketeer(ABC):
         pass
 
     @abstractmethod
-    def cli_upload_file(self, source, bucket_name, dest):
+    def cli_upload_file(self, source, bucket_name, dest, is_text=False):
         pass
 
     @abstractmethod
-    def upload_file(self, source, bucket_name, dest):
+    def upload_file(self, source, bucket_name, dest, is_text=False):
         pass
 
     @abstractmethod
@@ -132,17 +132,24 @@ class AWSBucketeer(Bucketeer):
             return False
         return True
 
-    def cli_upload_file(self, source, bucket_name, dest):
+    def cli_upload_file(self, source, bucket_name, dest, is_text=False):
 
         _cmd = f'aws s3 cp {source} "s3://{bucket_name}/{dest}" --profile {self.conf.aws_cli_profile}'
+
+        if is_text:
+            _cmd += ' --content-type "text/plain"'
+
         logging.info(f'Running command:\n{_cmd}')
         #would work in Windows?
         os.system(_cmd)
 
-    def upload_file(self, source, bucket_name, dest):
+    def upload_file(self, source, bucket_name, dest, is_text=False):
 
         with wu.open_data_path(source, "rb") as f:
-            self.s3.upload_fileobj(f, bucket_name, dest)
+            if is_text:
+                self.s3.upload_fileobj(f, bucket_name, dest, ExtraArgs={'ContentType': 'text/plain'})
+            else:
+                self.s3.upload_fileobj(f, bucket_name, dest)
 
     def upload_directory(self, source, bucket_name, prefix):
 
@@ -418,7 +425,7 @@ class GoogleBucketeer(Bucketeer):
     def create_bucket(self, bucket_name, region=None):
         pass
 
-    def cli_upload_file(self, source, bucket_name, dest):
+    def cli_upload_file(self, source, bucket_name, dest, is_text=False):
         pass
 
     def create_folder(self, folder_name):
@@ -441,7 +448,7 @@ class GoogleBucketeer(Bucketeer):
             print(f'An error occurred: {error}')
             return None
 
-    def upload_file(self, source, file_name, dest):
+    def upload_file(self, source, file_name, dest, is_text=False):
         try:
             folder_id = self._get_folder_id(dest)
         except:
@@ -628,10 +635,10 @@ class DevBucketeer(Bucketeer):
 
         return True
 
-    def cli_upload_file(self, source, bucket_name, dest):
+    def cli_upload_file(self, source, bucket_name, dest, is_text=False):
         pass
 
-    def upload_file(self, source, bucket_name, dest):
+    def upload_file(self, source, bucket_name, dest, is_text=False):
 
         dir_path = dest[:dest.rfind('/')]
         file_path = f'{self.buckets_root}/{bucket_name}/{dir_path}'

@@ -103,6 +103,10 @@ def wield_deployment_batches(conf, action, key_path, func_map):
 
     for batch in batches:
 
+        #TKTK - cannot destroy elk, because filebeat has nothing interesting in the conf
+        if batch == ["elk"] and action == WieldAction.DELETE:
+            continue
+
         if parallel:
             deploy_batch(action, batch, func_map)
 

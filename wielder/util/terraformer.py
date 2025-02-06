@@ -228,7 +228,9 @@ class WrapTerraform:
             cred_profile = conf.cred_profile
             region = conf.tfvars.aws_region
 
-            update_kubernetes_context('aws', cred_profile, region, conf.kube_context)
+            kube_cluster_name = conf.kube_cluster_name
+
+            update_kubernetes_context('aws', cred_profile, region, kube_cluster_name)
 
         out = self.read_output()
         logging.info(out)
