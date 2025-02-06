@@ -50,8 +50,12 @@ def provision_ordered_modules(conf, wield_action, module_names, provision_root=N
 
     for module_name in module_names:
 
-        out = provision_module(conf, wield_action, module_name, provision_root)
-        outputs.append(out)
+        try:
+            out = provision_module(conf, wield_action, module_name, provision_root)
+            outputs.append(out)
+        except Exception as e:
+            print(f'Error provisioning module {module_name}:\n{e}')
+            raise e
 
     return outputs
 
