@@ -99,6 +99,10 @@ class TerraformReplyType(Enum):
     TEXT = 'text'
     JSON = 'json'
 
+class AnsibleReplyType(Enum):
+    TEXT = 'text'
+    JSON = 'json'
+
 
 class HelmCommand(Enum):
     INIT_REPO = 'rep add'
