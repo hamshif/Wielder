@@ -6,6 +6,7 @@ import random
 import re
 import string
 from time import sleep
+from contextlib import contextmanager
 
 import shutil
 import boto3
@@ -298,6 +299,21 @@ def dirname(full_path):
     if os.name == 'nt':
         full_path = convert_path_to_any_os(full_path)
     return os.path.dirname(full_path)
+
+@contextmanager
+def wu_open(*args, **kwargs):
+
+    if os.name == 'nt':
+        arg = args[0]
+        unix_path = convert_path_to_any_os(arg)
+        # replace the first argument with the converted path
+        args = (unix_path,) + args[1:]
+
+    file = open(*args, **kwargs)
+    try:
+        yield file
+    finally:
+        file.close()
 
 
 if __name__ == "__main__":

@@ -197,8 +197,10 @@ def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
         if not os.path.exists(plan_dir):
             wu.makedirs(plan_dir)
 
-        with wu.open(f'{plan_path}/{res}.{plan_format.value}', 'wt') as file_out:
+        res_path = f'{plan_path}/{res}.{plan_format.value}'
+        with wu.wu_open(res_path, 'wt') as file_out:
             file_out.write(plans)
+            print(f'Wrote plan to:\n{res_path}')
 
 
 
