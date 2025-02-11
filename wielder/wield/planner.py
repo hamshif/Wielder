@@ -183,7 +183,8 @@ def plan(conf, plan_key, plan_dir, plan_path, plan_format=PlanType.YAML):
 
     for res in plan_resources:
 
-        files_conf = Cf.parse_file(f'{plan_path}/{res}.conf', resolve=False)
+        res_path = f'{plan_path}/{res}.conf'
+        files_conf = Cf.parse_file(res_path, resolve=False)
 
         new_conf = conf.with_fallback(
             config=files_conf,
