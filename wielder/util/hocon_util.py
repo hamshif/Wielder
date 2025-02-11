@@ -95,6 +95,7 @@ def hocon_to_file(src_path):
     with open(hocon_dest, 'w') as file_hocon:
 
         file_hocon.write(Hc().to_hocon(conf))
+        print(f'hocon file written to:\n{hocon_dest}')
 
     return hocon_dest
 
