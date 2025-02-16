@@ -63,12 +63,12 @@ Install Sublime
 Install SourceTree
 =
 
-Download SourceTree from the SourceTree website.
+1. Download SourceTree from the SourceTree website.
 
-Run the installer and follow the setup instructions.
+1. Run the installer and follow the setup instructions.
 
-Log in with your Atlassian account or create a new one.
+1. Log in with your Atlassian account or create a new one.
 
-Connect to your Bitbucket or GitHub account if needed.
+1. Connect to your Bitbucket or GitHub account if needed.
 
-Follow the prompts to complete the setup.
+1.  Follow the prompts to complete the setup.

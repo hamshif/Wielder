@@ -160,3 +160,4 @@ terraform -install-autocomplete
 
 # Restart shell
 exec "$SHELL"
+
