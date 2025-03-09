@@ -288,11 +288,10 @@ class DevSparker(Sparker):
                    f"-nb {job_conf.config_bucket} " \
 
             if 'app' in job_conf:
-
                 _cmd = _cmd + f'-ap {job_conf.app}'
+                logging.info(f"executing app '{job_conf.app}'")
 
-
-            logging.info(f'running command:\n{_cmd}')
+            logging.debug(f'running command:\n{_cmd}')
 
             with DirContext(conf.super_project_root):
                 os.system(_cmd)
