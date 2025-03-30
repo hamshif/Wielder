@@ -143,5 +143,15 @@ export PATH=$SPARK_HOME/bin:$PATH
 export PYSPARK_PYTHON=$HOME/.pyenv/shims/python3
 
 
+export PYSPARK_HOME=/home/$USER/opt/spark-3.5.5-bin-hadoop3
+
+function set_pyenv_pyspark_env() {
+  export SPARK_HOME=$PYSPARK_HOME
+  export PATH=$SPARK_HOME/bin:$PATH
+  export PYSPARK_PYTHON=$(pyenv which python)
+  echo "✅ Using PySpark with $PYSPARK_HOME and Python: $PYSPARK_PYTHON"
+}
+
+
 export PYSPARK_DRIVER_PYTHON='jupyter'
 export PYSPARK_DRIVER_PYTHON_OPTS='notebook --no-browser --port=8889'
