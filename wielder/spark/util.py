@@ -26,6 +26,14 @@ def set_spark_env():
         except:
             print('PYSPARK_PYTHON not found')
 
+    pyspark_home = os.environ.get("PYSPARK_HOME")
+
+    if pyspark_home:
+        os.environ["SPARK_HOME"] = pyspark_home
+        os.environ["PATH"] = f"{pyspark_home}/bin:" + os.environ["PATH"]
+    else:
+        print("PYSPARK_HOME not set in environment\nSet it to your preferred Pyspark e.g. ")
+
 
 def normalized_to_hex(r, g, b):
     return f'#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}'
