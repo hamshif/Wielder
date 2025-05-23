@@ -23,7 +23,7 @@ setup(
         'wheel', 'Cython', 'GitPython', 'PyYAML', 'kubernetes', 'rx==3.2.0', 'jprops',
         'pyhocon', 'requests', 'deepdiff', 'botocore', 'boto3', 'tabulate',
         'kazoo', 'kafka', 'confluent-kafka', 'google-api-python-client', 'google-auth-oauthlib',
-        'cassandra-driver', 'tqdm'
+        'cassandra-driver', 'tqdm', 'docker'
     ],
     keywords=['CI-CD', 'Kubernetes', 'Reactive'],
     classifiers=[
