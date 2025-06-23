@@ -106,7 +106,7 @@ def get_super_project_wield_conf(project_conf_root, module_root=None, app=None, 
     if wield_parser is None:
         wield_parser = get_wielder_parser()
 
-    wield_args = wield_parser.parse_args()
+    wield_args, unknown = wield_parser.parse_known_args()
 
     staging_root, super_project_root, super_project_name = get_super_project_roots()
 
