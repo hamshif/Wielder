@@ -152,7 +152,7 @@ def create_module_from_module(conf):
 
     place_holder = f'{plan.dest_module_root}/stam.txt'
 
-    with wu.open(place_holder, "wt") as file_out:
+    with open(place_holder, "wt") as file_out:
 
         file_out.write('hamshif')
 
