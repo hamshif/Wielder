@@ -214,6 +214,13 @@ def makedirs(path, exist_ok=True):
     os.makedirs(path, exist_ok=exist_ok)
 
 
+def wopen(path, *args, **kwargs):
+    # expands ~ and env vars and makes it OS-portable
+    if os.name == 'nt':
+        path = convert_path_to_any_os(path)
+    return open(path, *args, **kwargs)
+
+
 def copyfile(unique_context_conf, dest):
     if os.name == 'nt':
         unique_context_conf = convert_path_to_any_os(unique_context_conf)
