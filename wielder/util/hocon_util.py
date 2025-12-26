@@ -77,11 +77,26 @@ def resolve_ordered(ordered_conf_paths, injection=None, cmd_args=None, show=Fals
     return conf
 
 
+
+def cleanup_values(data):
+    if isinstance(data, str):
+        return data.strip()
+    if isinstance(data, dict):
+        return {k: cleanup_values(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [cleanup_values(v) for v in data]
+    return data
+
+
 def yaml_file_to_hocon(src_path):
 
     with open(src_path, 'r') as yaml_in:
 
         from_yaml = yaml.safe_load(yaml_in)
+        
+        # Cleanup strings to avoid multi-line triples in HOCON for simple values
+        from_yaml = cleanup_values(from_yaml)
+
         json_string = json.dumps(from_yaml)
         hocon_object = pyhocon.ConfigFactory.parse_string(json_string)
         return hocon_object
@@ -100,25 +115,24 @@ def hocon_to_file(src_path):
     return hocon_dest
 
 
-basic_native_types = (str, int, float, bool)
+basic_native_types = (str, int, float, bool, type(None))
 
 
-def conf_to_native(conf, vessel={}):
+def conf_to_native(conf, vessel=None):
     """
     Converts Hocon Tree to basic native types.
     Uses tail recursion.
-    Best used without specifying vessel.
-    :param conf:
-    :param vessel: The dict to be returned Defaults to
-    :return: vessel with native fields extracted from Hocon
     """
+    if vessel is None:
+        vessel = {}
 
     for k in conf:
         v = conf[k]
+        key = k.strip('"')
         if type(v) in basic_native_types or type(v) == list:
-            vessel[k] = v
+            vessel[key] = v
         else:
-            vessel[k] = conf_to_native(v)
+            vessel[key] = conf_to_native(v)
 
     return vessel
 
