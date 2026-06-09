@@ -1,0 +1,45 @@
+build
+dist
+*.iml
+/.project
+*dump.rdb
+/.idea
+*.war
+
+
+*.rdb
+
+
+
+#  Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfvars files
+*.tfvars
+
+*.tar.gz
+*.rsa.pub
+*.gz.asc
+*.zip
+
+*.pyc
+/__pycache__
+
+*.egg*
+#conf/
+deploy/slate-deploy.yaml.tmpl
+deploy/slate-pv.yaml.tmpl
+deploy/slate-pvc.yaml.tmpl
+deploy/slate-storage-class.yaml.tmpl
+gcp/slate-deploy.yaml.tmpl
+image/
+plan/
+
+python-driver/
+*.VS
+
+*stam.*
