@@ -30,7 +30,7 @@ By default, the script runs:
    Spark installation.
 12. AWS CLI v2 using the official AWS Linux installer.
 13. Google Cloud CLI using the official Google apt repository.
-14. Terraform `1.14.9` through `tfenv`.
+14. Latest stable Terraform through `tfenv`.
 15. `kubectl` and Helm through their official apt repositories.
 16. kind local Kubernetes tooling through `install_kind_wsl_ubuntu.sh`, with
     conservative defaults that do not create or recreate a cluster.
@@ -259,7 +259,7 @@ VERIFY_SPARK_SHA512=1
 INSTALL_AWS_CLI=1
 INSTALL_GCP_CLI=1
 INSTALL_TERRAFORM=1
-TERRAFORM_VERSION=1.14.9
+TERRAFORM_VERSION=latest
 TERRAFORM_INSTALL_METHOD=tfenv
 TFENV_ROOT=/home/gideon/.tfenv
 TERRAFORM_APT_HOLD=0
@@ -404,15 +404,10 @@ gcloud config set project workspace-dev
 The installer installs Terraform through `tfenv` by default. This is required
 for Wielder infrastructure actions such as AWS super-cluster and EMR cleanup.
 
-The Workspace provision modules currently declare:
-
-```hocon
-required_version = "~> 1.14.0"
-```
-
-The installer therefore installs and selects Terraform `1.14.9` by default. It
-also writes the repo root `.terraform-version` file so commands launched inside
-`workspace-provision` resolve the same version through `tfenv`.
+The installer installs and selects Terraform `latest` by default. It does not
+write `.terraform-version`; projects that need a durable selector should store it
+in their Wielder/provisioning configuration and enforce compatibility with
+Terraform `required_version` inside their stacks.
 
 Focused install:
 
@@ -482,10 +477,13 @@ uv pip install --python .venv/bin/python -e <project>
 
 The installer also sources Wielder's generic `uvenv` helper from managed
 `.bashrc` and `.zshrc` blocks. `uvenv` is not Workspace-specific; the Workspace
-installer only sets the default virtualenv path:
+installer sets a default virtualenv path and a friendly default name derived
+from the repository folder only when an earlier shell block has not already
+chosen defaults. `WORKSPACE_UVENV_NAME` overrides the derived friendly name:
 
 ```bash
 uvenv activate              # activate the configured default venv
+uvenv activate culture      # activate the configured default by friendly name
 uvenv activate .venv        # activate a venv by path
 uvenv activate experiment   # activate ./experiment, ./.experiment, or ~/.uvenvs/experiment
 uvenv create experiment     # create ~/.uvenvs/experiment with uv

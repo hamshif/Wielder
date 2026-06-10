@@ -13,6 +13,52 @@ _uvenv_default_name() {
   printf '%s\n' "${UVENV_DEFAULT_NAME:-}"
 }
 
+_uvenv_registry_file() {
+  printf '%s/.uvenv-names\n' "$(_uvenv_home)"
+}
+
+_uvenv_registry_lookup() {
+  local requested="$1" registry line name path
+  registry="$(_uvenv_registry_file)"
+  [[ -n "$requested" && -f "$registry" ]] || return 1
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+      ""|\#*) continue ;;
+    esac
+    name="${line%%=*}"
+    path="${line#*=}"
+    if [[ "$name" == "$requested" && "$path" != "$line" && -n "$path" ]]; then
+      printf '%s\n' "$path"
+      return 0
+    fi
+  done < "$registry"
+
+  return 1
+}
+
+_uvenv_registry_name_for_path() {
+  local requested="$1" registry line name path resolved
+  registry="$(_uvenv_registry_file)"
+  [[ -n "$requested" && -f "$registry" ]] || return 1
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+      ""|\#*) continue ;;
+    esac
+    name="${line%%=*}"
+    path="${line#*=}"
+    [[ -n "$name" && "$path" != "$line" && -n "$path" ]] || continue
+    resolved="$(_uvenv_make_absolute "$path")"
+    if [[ "$resolved" == "$requested" ]]; then
+      printf '%s\n' "$name"
+      return 0
+    fi
+  done < "$registry"
+
+  return 1
+}
+
 _uvenv_python_version() {
   printf '%s\n' "${UVENV_PYTHON_VERSION:-3.11.11}"
 }
@@ -43,6 +89,14 @@ _uvenv_resolve() {
     requested="$(_uvenv_default)"
   fi
 
+  if ! _uvenv_is_pathlike "$requested"; then
+    local registered
+    registered="$(_uvenv_registry_lookup "$requested")" && {
+      _uvenv_make_absolute "$registered"
+      return
+    }
+  fi
+
   if [[ "$requested" == */bin/activate ]]; then
     requested="${requested%/bin/activate}"
     _uvenv_make_absolute "$requested"
@@ -66,20 +120,40 @@ _uvenv_resolve() {
 }
 
 _uvenv_display_name() {
-  local requested="${1:-}" venv_path="${2:-}" default_name default_path home_dir
+  local requested="${1:-}" venv_path="${2:-}" default_name default_path home_dir registry_name
   default_name="$(_uvenv_default_name)"
   default_path="$(_uvenv_resolve "$(_uvenv_default)" activate)"
   home_dir="$(_uvenv_home)"
+  registry_name="$(_uvenv_registry_name_for_path "$venv_path" 2>/dev/null)" || registry_name=""
 
   if [[ -n "$default_name" && "$requested" == "$default_name" ]]; then
     printf '%s\n' "$default_name"
   elif [[ -n "$default_name" && "$venv_path" == "$default_path" ]]; then
     printf '%s\n' "$default_name"
+  elif [[ -n "$registry_name" ]]; then
+    printf '%s\n' "$registry_name"
   elif [[ "$venv_path" == "$home_dir/"* ]]; then
     basename "$venv_path"
   else
     basename "$venv_path"
   fi
+}
+
+_uvenv_ensure_uv() {
+  local uv_dir
+  if command -v uv >/dev/null 2>&1; then
+    return 0
+  fi
+
+  for uv_dir in "$HOME/.local/bin" "$HOME/.cargo/bin"; do
+    if [[ -x "$uv_dir/uv" ]]; then
+      export PATH="$uv_dir:$PATH"
+      command -v uv >/dev/null 2>&1 && return 0
+    fi
+  done
+
+  printf 'uvenv: uv command not found. Install uv or add it to PATH.\n' >&2
+  return 1
 }
 
 _uvenv_has_python_arg() {
@@ -157,6 +231,7 @@ uvenv-create() {
 
   venv_path="$(_uvenv_resolve "$target" create)" || return 1
   mkdir -p "$(dirname "$venv_path")"
+  _uvenv_ensure_uv || return 1
 
   if ! _uvenv_has_python_arg "$@" && _uvenv_is_python_version_arg "${1:-}"; then
     python_version="$1"
@@ -231,8 +306,9 @@ _uvenv_list_entry() {
 }
 
 uvenv-list() {
-  local candidate home_dir seen
+  local candidate home_dir seen registry line name path
   home_dir="$(_uvenv_home)"
+  registry="$(_uvenv_registry_file)"
   seen=":"
 
   for candidate in "${VIRTUAL_ENV:-}" "${UVENV_DEFAULT_VENV:-}" "$PWD/.venv" "$PWD/venv"; do
@@ -245,25 +321,71 @@ uvenv-list() {
     _uvenv_list_entry "$candidate"
   done
 
-  if [[ -d "$home_dir" ]]; then
-    find "$home_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while IFS= read -r candidate; do
+  if [[ -f "$registry" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      case "$line" in
+        ""|\#*) continue ;;
+      esac
+      name="${line%%=*}"
+      path="${line#*=}"
+      [[ -n "$name" && "$path" != "$line" && -n "$path" ]] || continue
+      candidate="$(_uvenv_make_absolute "$path")"
       [[ -f "$candidate/bin/activate" ]] || continue
+      case "$seen" in
+        *":$candidate:"*) continue ;;
+      esac
+      seen="${seen}${candidate}:"
       _uvenv_list_entry "$candidate"
-    done
+    done < "$registry"
+  fi
+
+  if [[ -d "$home_dir" ]]; then
+    while IFS= read -r candidate; do
+      [[ -f "$candidate/bin/activate" ]] || continue
+      case "$seen" in
+        *":$candidate:"*) continue ;;
+      esac
+      seen="${seen}${candidate}:"
+      _uvenv_list_entry "$candidate"
+    done < <(find "$home_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
   fi
 }
 
 uvenv-names() {
-  local home_dir default_name
+  local home_dir default_name registry line name candidate seen
   home_dir="$(_uvenv_home)"
   default_name="$(_uvenv_default_name)"
+  registry="$(_uvenv_registry_file)"
+  seen=":"
 
-  [[ -n "$default_name" ]] && printf '%s\n' "$default_name"
+  if [[ -n "$default_name" ]]; then
+    printf '%s\n' "$default_name"
+    seen="${seen}${default_name}:"
+  fi
+  if [[ -f "$registry" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      case "$line" in
+        ""|\#*) continue ;;
+      esac
+      name="${line%%=*}"
+      [[ -n "$name" && "$name" != "$line" ]] || continue
+      case "$seen" in
+        *":$name:"*) continue ;;
+      esac
+      printf '%s\n' "$name"
+      seen="${seen}${name}:"
+    done < "$registry"
+  fi
   if [[ -d "$home_dir" ]]; then
-    find "$home_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while IFS= read -r candidate; do
+    while IFS= read -r candidate; do
       [[ -f "$candidate/bin/activate" ]] || continue
-      basename "$candidate"
-    done
+      name="$(basename "$candidate")"
+      case "$seen" in
+        *":$name:"*) continue ;;
+      esac
+      printf '%s\n' "$name"
+      seen="${seen}${name}:"
+    done < <(find "$home_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
   fi
 }
 

@@ -9,6 +9,7 @@ source "${SCRIPT_DIR}/install_apt_helpers.sh"
 
 WORKSPACE_PYTHON_VERSION="${WORKSPACE_PYTHON_VERSION:-3.11.11}"
 WORKSPACE_VENV_PATH="${WORKSPACE_VENV_PATH:-${REPO_ROOT}/.venv}"
+WORKSPACE_UVENV_NAME="${WORKSPACE_UVENV_NAME:-$(basename "${REPO_ROOT}")}"
 RECREATE_VENV="${RECREATE_VENV:-0}"
 WORKSPACE_LOCALE="${WORKSPACE_LOCALE:-en_US.UTF-8}"
 UV_INSTALL_DIR="${UV_INSTALL_DIR:-${HOME}/.local/bin}"
@@ -29,7 +30,7 @@ WORKSPACE_NODE_HOME="${WORKSPACE_NODE_HOME:-${WORKSPACE_NODE_ROOT}/${WORKSPACE_N
 WORKSPACE_NODE_DOWNLOAD_URL="${WORKSPACE_NODE_DOWNLOAD_URL:-https://nodejs.org/dist/${WORKSPACE_NODE_VERSION}/${WORKSPACE_NODE_DIST}.tar.xz}"
 WORKSPACE_NODE_SHASUMS_URL="${WORKSPACE_NODE_SHASUMS_URL:-https://nodejs.org/dist/${WORKSPACE_NODE_VERSION}/SHASUMS256.txt}"
 VERIFY_NODE_SHA256="${VERIFY_NODE_SHA256:-1}"
-TERRAFORM_VERSION="${TERRAFORM_VERSION:-1.14.9}"
+TERRAFORM_VERSION="${TERRAFORM_VERSION:-latest}"
 TERRAFORM_INSTALL_METHOD="${TERRAFORM_INSTALL_METHOD:-tfenv}"
 TERRAFORM_APT_HOLD="${TERRAFORM_APT_HOLD:-0}"
 TFENV_ROOT="${TFENV_ROOT:-${HOME}/.tfenv}"
@@ -893,7 +894,7 @@ render_shell_config() {
     log "Rendering shell config with ${python_bin}; ${WORKSPACE_VENV_PATH} can be created later with --only python-env."
   fi
 
-  "${python_bin}" - "${HOME}/.zshrc" "${HOME}/.bashrc" "${REPO_ROOT}" "${WORKSPACE_VENV_PATH}" "${SPARK_ROOT}/spark-4" "${WORKSPACE_LOCALE}" "${WORKSPACE_PYTHON_VERSION}" "${WORKSPACE_NODE_HOME}" <<'PY'
+  "${python_bin}" - "${HOME}/.zshrc" "${HOME}/.bashrc" "${REPO_ROOT}" "${WORKSPACE_VENV_PATH}" "${WORKSPACE_UVENV_NAME}" "${SPARK_ROOT}/spark-4" "${WORKSPACE_LOCALE}" "${WORKSPACE_PYTHON_VERSION}" "${WORKSPACE_NODE_HOME}" <<'PY'
 import sys
 from pathlib import Path
 
@@ -901,10 +902,11 @@ zshrc_path = Path(sys.argv[1])
 bashrc_path = Path(sys.argv[2])
 repo_root = Path(sys.argv[3])
 venv_path = Path(sys.argv[4])
-spark_alias = Path(sys.argv[5])
-locale_name = sys.argv[6]
-python_version = sys.argv[7]
-node_home = Path(sys.argv[8])
+uvenv_name = sys.argv[5]
+spark_alias = Path(sys.argv[6])
+locale_name = sys.argv[7]
+python_version = sys.argv[8]
+node_home = Path(sys.argv[9])
 uvenv_helper = repo_root / "Wielder" / "wielder" / "scripts" / "uvenv.sh"
 
 def replace_managed_block(path: Path, block: str) -> None:
@@ -924,7 +926,8 @@ common_block = f"""# >>> workspace managed >>>
 #   {repo_root}/Wielder/wielder/scripts/install_ubuntu.sh
 export WORKSPACE_ROOT="{repo_root}"
 export WORKSPACE_DEFAULT_VENV="{venv_path}"
-export UVENV_DEFAULT_VENV="{venv_path}"
+export UVENV_DEFAULT_VENV="${{UVENV_DEFAULT_VENV:-{venv_path}}}"
+export UVENV_DEFAULT_NAME="${{UVENV_DEFAULT_NAME:-{uvenv_name}}}"
 export UVENV_PYTHON_VERSION="{python_version}"
 export UVENV_HOME="${{UVENV_HOME:-$HOME/.uvenvs}}"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -996,14 +999,37 @@ if command -v k9s >/dev/null 2>&1; then
   source <(k9s completion zsh 2>/dev/null || true)
 fi
 
-autoload -Uz colors vcs_info
+autoload -Uz colors vcs_info add-zsh-hook
 colors
 zstyle ':vcs_info:git:*' formats ' git:(%F{{red}}%b%f)'
-precmd() {{
+
+__workspace_vcs_info_precmd() {{
   vcs_info
 }}
+
+if (( ${{+functions[add-zsh-hook]}} )); then
+  add-zsh-hook -d precmd __workspace_vcs_info_precmd 2>/dev/null || true
+  add-zsh-hook precmd __workspace_vcs_info_precmd
+else
+  precmd_functions=(${{precmd_functions:#__workspace_vcs_info_precmd}} __workspace_vcs_info_precmd)
+fi
+
+__uvenv_venv_prompt() {{
+  local label="${{UVENV_ACTIVE_NAME:-}}"
+  if [[ -z "$label" && -n "${{VIRTUAL_ENV_PROMPT:-}}" ]]; then
+    label="${{VIRTUAL_ENV_PROMPT}}"
+    label="${{label#(}}"
+    label="${{label%) }}"
+    label="${{label%)}}"
+  fi
+  if [[ -z "$label" && -n "${{VIRTUAL_ENV:-}}" ]]; then
+    label="${{VIRTUAL_ENV##*/}}"
+  fi
+  [[ -n "$label" ]] && printf '(%s) ' "$label"
+}}
+
 setopt prompt_subst
-PROMPT='%F{{green}}➜%f  %F{{cyan}}%1~%f${{vcs_info_msg_0_}} '
+PROMPT='$(__uvenv_venv_prompt)%F{{green}}➜%f  %F{{cyan}}%1~%f${{vcs_info_msg_0_}} '
 
 if [[ -f "$HOME/.zsh_secrets" ]]; then
   source "$HOME/.zsh_secrets"
@@ -1624,7 +1650,6 @@ ensure_terraform_tfenv() {
 
   require_cmd tfenv
 
-  printf '%s\n' "${TERRAFORM_VERSION}" > "${REPO_ROOT}/.terraform-version"
   tfenv install "${TERRAFORM_VERSION}"
   tfenv use "${TERRAFORM_VERSION}"
 
@@ -1632,7 +1657,6 @@ ensure_terraform_tfenv() {
   log "Terraform available through tfenv: $(terraform version | sed -n '1p')"
   record_installed "tfenv: ${TFENV_ROOT}"
   record_installed "Terraform: $(terraform version | sed -n '1p')"
-  record_installed "Terraform version file: ${REPO_ROOT}/.terraform-version"
 }
 
 ensure_terraform_apt() {
